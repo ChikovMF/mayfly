@@ -1,1 +1,5 @@
-<Solution />
+<Solution>
+  <Folder Name="/.sln/">
+    <File Path=".gitignore" />
+  </Folder>
+</Solution>
