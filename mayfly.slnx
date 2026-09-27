@@ -1,5 +1,17 @@
 <Solution>
   <Folder Name="/.sln/">
     <File Path=".gitignore" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Server/">
+    <Project Path="src/Server/Server.Application/Server.Application.csproj" />
+    <Project Path="src/Server/Server.Domain/Server.Domain.csproj" />
+    <Project Path="src/Server/Server.Host/Server.Host.csproj" />
+    <Project Path="src/Server/Server.Infrastructure/Server.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Server.Tests/Server.Tests.csproj" />
   </Folder>
 </Solution>
