@@ -14,14 +14,14 @@ public sealed record ContentType
     public static bool TryCreate([NotNullWhen(true)] string? value, [MaybeNullWhen(false)] out ContentType result)
     {
         if (!MediaTypeHeaderValue.TryParse(value, out var parsed) ||
-            parsed.MediaType is not { } mediaType ||
-            mediaType.Split('/').Contains(Wildcard))
+            parsed.MediaType is null ||
+            parsed.MediaType.Split('/').Contains(Wildcard))
         {
             result = null;
             return false;
         }
 
-        var normalized = new MediaTypeHeaderValue(mediaType.ToLowerInvariant());
+        var normalized = new MediaTypeHeaderValue(parsed.MediaType.ToLowerInvariant());
         foreach (var parameter in parsed.Parameters)
         {
             normalized.Parameters.Add(new NameValueHeaderValue(parameter.Name.ToLowerInvariant(), parameter.Value));
