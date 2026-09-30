@@ -10,7 +10,7 @@ public sealed record FileName
 
     private FileName(string value) => _value = value;
 
-    public static bool TryCreate([NotNullWhen(true)] string? value, [MaybeNullWhen(false)] out FileName result)
+    public static bool TryParse([NotNullWhen(true)] string? value, [MaybeNullWhen(false)] out FileName result)
     {
         var trimmed = value?.Trim();
 

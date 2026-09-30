@@ -8,10 +8,10 @@ public class FileSizeTests
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(long.MaxValue)]
-    public void TryCreate_NonNegativeBytes_ReturnsTrueAndSizeWithGivenBytes(long bytes)
+    public void TryParse_NonNegativeBytes_ReturnsTrueAndSizeWithGivenBytes(long bytes)
     {
         // Act
-        var success = FileSize.TryCreate(bytes, out var size);
+        var success = FileSize.TryParse(bytes, out var size);
 
         // Assert
         Assert.True(success);
@@ -22,10 +22,10 @@ public class FileSizeTests
     [Theory]
     [InlineData(-1)]
     [InlineData(long.MinValue)]
-    public void TryCreate_NegativeBytes_ReturnsFalseAndNull(long bytes)
+    public void TryParse_NegativeBytes_ReturnsFalseAndNull(long bytes)
     {
         // Act
-        var success = FileSize.TryCreate(bytes, out var size);
+        var success = FileSize.TryParse(bytes, out var size);
 
         // Assert
         Assert.False(success);
@@ -36,8 +36,8 @@ public class FileSizeTests
     public void Equals_SameBytes_ReturnsTrue()
     {
         // Arrange
-        FileSize.TryCreate(100, out var first);
-        FileSize.TryCreate(100, out var second);
+        FileSize.TryParse(100, out var first);
+        FileSize.TryParse(100, out var second);
 
         // Act
         var result = first!.Equals(second);
@@ -50,8 +50,8 @@ public class FileSizeTests
     public void Equals_DifferentBytes_ReturnsFalse()
     {
         // Arrange
-        FileSize.TryCreate(100, out var first);
-        FileSize.TryCreate(200, out var second);
+        FileSize.TryParse(100, out var first);
+        FileSize.TryParse(200, out var second);
 
         // Act
         var result = first!.Equals(second);

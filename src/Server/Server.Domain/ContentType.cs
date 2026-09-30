@@ -11,7 +11,7 @@ public sealed record ContentType
 
     private ContentType(string value) => _value = value;
 
-    public static bool TryCreate([NotNullWhen(true)] string? value, [MaybeNullWhen(false)] out ContentType result)
+    public static bool TryParse([NotNullWhen(true)] string? value, [MaybeNullWhen(false)] out ContentType result)
     {
         if (!MediaTypeHeaderValue.TryParse(value, out var parsed) ||
             parsed.MediaType is null ||

@@ -9,9 +9,9 @@ public class StoredFileTests
     {
         // Arrange
         var id = ShareId.New();
-        FileName.TryCreate("report.pdf", out var fileName);
-        ContentType.TryCreate("application/pdf", out var contentType);
-        FileSize.TryCreate(1024, out var size);
+        FileName.TryParse("report.pdf", out var fileName);
+        ContentType.TryParse("application/pdf", out var contentType);
+        FileSize.TryParse(1024, out var size);
 
         // Act
         var file = new StoredFile(id, fileName!, contentType!, size!);

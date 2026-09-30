@@ -8,7 +8,7 @@ public sealed record FileSize
 
     public long Bytes { get; }
 
-    public static bool TryCreate(long bytes, [MaybeNullWhen(false)] out FileSize result)
+    public static bool TryParse(long bytes, [MaybeNullWhen(false)] out FileSize result)
     {
         if (bytes < 0)
         {

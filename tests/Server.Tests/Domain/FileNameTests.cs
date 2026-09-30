@@ -5,13 +5,13 @@ namespace Server.Tests.Domain;
 public class FileNameTests
 {
     [Fact]
-    public void TryCreate_ValidName_ReturnsTrueAndName()
+    public void TryParse_ValidName_ReturnsTrueAndName()
     {
         // Arrange
-        FileName.TryCreate("report.pdf", out var expected);
+        FileName.TryParse("report.pdf", out var expected);
 
         // Act
-        var success = FileName.TryCreate("report.pdf", out var name);
+        var success = FileName.TryParse("report.pdf", out var name);
 
         // Assert
         Assert.True(success);
@@ -19,13 +19,13 @@ public class FileNameTests
     }
 
     [Fact]
-    public void TryCreate_NameWithSurroundingWhitespace_ReturnsTrueAndTrimmedName()
+    public void TryParse_NameWithSurroundingWhitespace_ReturnsTrueAndTrimmedName()
     {
         // Arrange
-        FileName.TryCreate("report.pdf", out var expected);
+        FileName.TryParse("report.pdf", out var expected);
 
         // Act
-        var success = FileName.TryCreate("  report.pdf\t ", out var name);
+        var success = FileName.TryParse("  report.pdf\t ", out var name);
 
         // Assert
         Assert.True(success);
@@ -33,13 +33,13 @@ public class FileNameTests
     }
 
     [Fact]
-    public void TryCreate_NameOfMaxLength_ReturnsTrue()
+    public void TryParse_NameOfMaxLength_ReturnsTrue()
     {
         // Arrange
         var value = new string('a', 255);
 
         // Act
-        var success = FileName.TryCreate(value, out var name);
+        var success = FileName.TryParse(value, out var name);
 
         // Assert
         Assert.True(success);
@@ -47,13 +47,13 @@ public class FileNameTests
     }
 
     [Fact]
-    public void TryCreate_NameLongerThanMaxLength_ReturnsFalseAndNull()
+    public void TryParse_NameLongerThanMaxLength_ReturnsFalseAndNull()
     {
         // Arrange
         var value = new string('a', 256);
 
         // Act
-        var success = FileName.TryCreate(value, out var name);
+        var success = FileName.TryParse(value, out var name);
 
         // Assert
         Assert.False(success);
@@ -70,10 +70,10 @@ public class FileNameTests
     [InlineData("dir\\file.txt")]
     [InlineData("fi\nle.txt")]
     [InlineData("fi\0le.txt")]
-    public void TryCreate_InvalidName_ReturnsFalseAndNull(string? value)
+    public void TryParse_InvalidName_ReturnsFalseAndNull(string? value)
     {
         // Act
-        var success = FileName.TryCreate(value, out var name);
+        var success = FileName.TryParse(value, out var name);
 
         // Assert
         Assert.False(success);
@@ -84,8 +84,8 @@ public class FileNameTests
     public void Equals_SameName_ReturnsTrue()
     {
         // Arrange
-        FileName.TryCreate("report.pdf", out var first);
-        FileName.TryCreate("report.pdf", out var second);
+        FileName.TryParse("report.pdf", out var first);
+        FileName.TryParse("report.pdf", out var second);
 
         // Act
         var result = first!.Equals(second);
@@ -98,8 +98,8 @@ public class FileNameTests
     public void Equals_DifferentNames_ReturnsFalse()
     {
         // Arrange
-        FileName.TryCreate("report.pdf", out var first);
-        FileName.TryCreate("photo.png", out var second);
+        FileName.TryParse("report.pdf", out var first);
+        FileName.TryParse("photo.png", out var second);
 
         // Act
         var result = first!.Equals(second);
@@ -112,7 +112,7 @@ public class FileNameTests
     public void ToString_ReturnsName()
     {
         // Arrange
-        FileName.TryCreate("report.pdf", out var name);
+        FileName.TryParse("report.pdf", out var name);
 
         // Act
         var result = name!.ToString();
