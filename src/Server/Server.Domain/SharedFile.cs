@@ -1,8 +1,8 @@
 namespace Server.Domain;
 
-public sealed class StoredFile
+public sealed class SharedFile
 {
-    public StoredFile(ShareId id, FileName fileName, ContentType contentType, FileSize size)
+    public SharedFile(ShareId id, FileName fileName, ContentType contentType, FileSize size)
     {
         Id = id;
         FileName = fileName;

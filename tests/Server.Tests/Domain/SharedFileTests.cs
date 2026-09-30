@@ -2,7 +2,7 @@ using Server.Domain;
 
 namespace Server.Tests.Domain;
 
-public class StoredFileTests
+public class SharedFileTests
 {
     [Fact]
     public void Constructor_ValidValues_ExposesGivenValues()
@@ -14,7 +14,7 @@ public class StoredFileTests
         var size = FileSize.Parse(1024);
 
         // Act
-        var file = new StoredFile(id, fileName, contentType, size);
+        var file = new SharedFile(id, fileName, contentType, size);
 
         // Assert
         Assert.Same(id, file.Id);

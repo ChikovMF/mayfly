@@ -151,7 +151,7 @@ public class FileNameTests
     public void Parse_Null_ThrowsArgumentNullException()
     {
         // Act
-        var act = () => FileName.Parse(null);
+        var act = () => FileName.Parse(null!);
 
         // Assert
         Assert.Throws<ArgumentNullException>(act);
