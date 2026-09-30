@@ -9,12 +9,12 @@ public class StoredFileTests
     {
         // Arrange
         var id = ShareId.New();
-        FileName.TryParse("report.pdf", out var fileName);
-        ContentType.TryParse("application/pdf", out var contentType);
-        FileSize.TryParse(1024, out var size);
+        var fileName = FileName.Parse("report.pdf");
+        var contentType = ContentType.Parse("application/pdf");
+        var size = FileSize.Parse(1024);
 
         // Act
-        var file = new StoredFile(id, fileName!, contentType!, size!);
+        var file = new StoredFile(id, fileName, contentType, size);
 
         // Assert
         Assert.Same(id, file.Id);

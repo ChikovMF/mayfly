@@ -36,11 +36,11 @@ public class FileSizeTests
     public void Equals_SameBytes_ReturnsTrue()
     {
         // Arrange
-        FileSize.TryParse(100, out var first);
-        FileSize.TryParse(100, out var second);
+        var first = FileSize.Parse(100);
+        var second = FileSize.Parse(100);
 
         // Act
-        var result = first!.Equals(second);
+        var result = first.Equals(second);
 
         // Assert
         Assert.True(result);
@@ -50,13 +50,33 @@ public class FileSizeTests
     public void Equals_DifferentBytes_ReturnsFalse()
     {
         // Arrange
-        FileSize.TryParse(100, out var first);
-        FileSize.TryParse(200, out var second);
+        var first = FileSize.Parse(100);
+        var second = FileSize.Parse(200);
 
         // Act
-        var result = first!.Equals(second);
+        var result = first.Equals(second);
 
         // Assert
         Assert.False(result);
+    }
+
+    [Fact]
+    public void Parse_NonNegativeBytes_ReturnsSizeWithGivenBytes()
+    {
+        // Act
+        var size = FileSize.Parse(1024);
+
+        // Assert
+        Assert.Equal(1024, size.Bytes);
+    }
+
+    [Fact]
+    public void Parse_NegativeBytes_ThrowsArgumentOutOfRangeException()
+    {
+        // Act
+        var act = () => FileSize.Parse(-1);
+
+        // Assert
+        Assert.Throws<ArgumentOutOfRangeException>(act);
     }
 }

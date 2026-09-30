@@ -8,7 +8,7 @@ public class FileNameTests
     public void TryParse_ValidName_ReturnsTrueAndName()
     {
         // Arrange
-        FileName.TryParse("report.pdf", out var expected);
+        var expected = FileName.Parse("report.pdf");
 
         // Act
         var success = FileName.TryParse("report.pdf", out var name);
@@ -22,7 +22,7 @@ public class FileNameTests
     public void TryParse_NameWithSurroundingWhitespace_ReturnsTrueAndTrimmedName()
     {
         // Arrange
-        FileName.TryParse("report.pdf", out var expected);
+        var expected = FileName.Parse("report.pdf");
 
         // Act
         var success = FileName.TryParse("  report.pdf\t ", out var name);
@@ -84,11 +84,11 @@ public class FileNameTests
     public void Equals_SameName_ReturnsTrue()
     {
         // Arrange
-        FileName.TryParse("report.pdf", out var first);
-        FileName.TryParse("report.pdf", out var second);
+        var first = FileName.Parse("report.pdf");
+        var second = FileName.Parse("report.pdf");
 
         // Act
-        var result = first!.Equals(second);
+        var result = first.Equals(second);
 
         // Assert
         Assert.True(result);
@@ -98,11 +98,11 @@ public class FileNameTests
     public void Equals_DifferentNames_ReturnsFalse()
     {
         // Arrange
-        FileName.TryParse("report.pdf", out var first);
-        FileName.TryParse("photo.png", out var second);
+        var first = FileName.Parse("report.pdf");
+        var second = FileName.Parse("photo.png");
 
         // Act
-        var result = first!.Equals(second);
+        var result = first.Equals(second);
 
         // Assert
         Assert.False(result);
@@ -112,12 +112,48 @@ public class FileNameTests
     public void ToString_ReturnsName()
     {
         // Arrange
-        FileName.TryParse("report.pdf", out var name);
+        var name = FileName.Parse("report.pdf");
 
         // Act
-        var result = name!.ToString();
+        var result = name.ToString();
 
         // Assert
         Assert.Equal("report.pdf", result);
+    }
+
+    [Fact]
+    public void Parse_ValidString_ReturnsEqualValue()
+    {
+        // Arrange
+        var expected = FileName.Parse("report.pdf");
+
+        // Act
+        var fileName = FileName.Parse("report.pdf");
+
+        // Assert
+        Assert.Equal(expected, fileName);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("          ")]
+    [InlineData("..")]
+    public void Parse_InvalidString_ThrowsFormatException(string value)
+    {
+        // Act
+        var act = () => FileName.Parse(value);
+
+        // Assert
+        Assert.Throws<FormatException>(act);
+    }
+
+    [Fact]
+    public void Parse_Null_ThrowsArgumentNullException()
+    {
+        // Act
+        var act = () => FileName.Parse(null);
+
+        // Assert
+        Assert.Throws<ArgumentNullException>(act);
     }
 }

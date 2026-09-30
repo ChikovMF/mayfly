@@ -11,6 +11,14 @@ public sealed record ContentType
 
     private ContentType(string value) => _value = value;
 
+    public static ContentType Parse(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return TryParse(value, out var result)
+            ? result
+            : throw new FormatException($"'{value}' is not a valid content type.");
+    }
+
     public static bool TryParse([NotNullWhen(true)] string? value, [MaybeNullWhen(false)] out ContentType result)
     {
         if (!MediaTypeHeaderValue.TryParse(value, out var parsed) ||

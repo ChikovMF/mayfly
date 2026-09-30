@@ -8,7 +8,7 @@ public class ContentTypeTests
     public void TryParse_ValidMediaType_ReturnsTrueAndContentType()
     {
         // Arrange
-        ContentType.TryParse("text/plain", out var expected);
+        var expected = ContentType.Parse("text/plain");
 
         // Act
         var success = ContentType.TryParse("text/plain", out var contentType);
@@ -22,7 +22,7 @@ public class ContentTypeTests
     public void TryParse_MediaTypeInDifferentCase_ReturnsContentTypeEqualToLowercase()
     {
         // Arrange
-        ContentType.TryParse("text/plain", out var expected);
+        var expected = ContentType.Parse("text/plain");
 
         // Act
         var success = ContentType.TryParse("Text/PLAIN", out var contentType);
@@ -36,7 +36,7 @@ public class ContentTypeTests
     public void TryParse_ParameterNameInDifferentCase_ReturnsContentTypeEqualToLowercase()
     {
         // Arrange
-        ContentType.TryParse("text/plain; charset=utf-8", out var expected);
+        var expected = ContentType.Parse("text/plain; charset=utf-8");
 
         // Act
         var success = ContentType.TryParse("text/plain; CHARSET=utf-8", out var contentType);
@@ -68,11 +68,11 @@ public class ContentTypeTests
     public void Equals_SameMediaType_ReturnsTrue()
     {
         // Arrange
-        ContentType.TryParse("text/plain", out var first);
-        ContentType.TryParse("text/plain", out var second);
+        var first = ContentType.Parse("text/plain");
+        var second = ContentType.Parse("text/plain");
 
         // Act
-        var result = first!.Equals(second);
+        var result = first.Equals(second);
 
         // Assert
         Assert.True(result);
@@ -82,11 +82,11 @@ public class ContentTypeTests
     public void Equals_DifferentMediaTypes_ReturnsFalse()
     {
         // Arrange
-        ContentType.TryParse("text/plain", out var first);
-        ContentType.TryParse("image/png", out var second);
+        var first = ContentType.Parse("text/plain");
+        var second = ContentType.Parse("image/png");
 
         // Act
-        var result = first!.Equals(second);
+        var result = first.Equals(second);
 
         // Assert
         Assert.False(result);
@@ -96,10 +96,10 @@ public class ContentTypeTests
     public void ToString_ReturnsMediaType()
     {
         // Arrange
-        ContentType.TryParse("image/png", out var contentType);
+        var contentType = ContentType.Parse("image/png");
 
         // Act
-        var result = contentType!.ToString();
+        var result = contentType.ToString();
 
         // Assert
         Assert.Equal("image/png", result);
@@ -109,12 +109,48 @@ public class ContentTypeTests
     public void ToString_MediaTypeInDifferentCase_ReturnsLowercase()
     {
         // Arrange
-        ContentType.TryParse("Image/PNG", out var contentType);
+        var contentType = ContentType.Parse("Image/PNG");
 
         // Act
-        var result = contentType!.ToString();
+        var result = contentType.ToString();
 
         // Assert
         Assert.Equal("image/png", result);
+    }
+
+    [Fact]
+    public void Parse_ValidString_ReturnsEqualValue()
+    {
+        // Arrange
+        var expected = ContentType.Parse("text/plain");
+
+        // Act
+        var contentType = ContentType.Parse("text/plain");
+
+        // Assert
+        Assert.Equal(expected, contentType);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("          ")]
+    [InlineData("*/*")]
+    public void Parse_InvalidString_ThrowsFormatException(string value)
+    {
+        // Act
+        var act = () => ContentType.Parse(value);
+
+        // Assert
+        Assert.Throws<FormatException>(act);
+    }
+
+    [Fact]
+    public void Parse_Null_ThrowsArgumentNullException()
+    {
+        // Act
+        var act = () => ContentType.Parse(null!);
+
+        // Assert
+        Assert.Throws<ArgumentNullException>(act);
     }
 }
