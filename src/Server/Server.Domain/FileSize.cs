@@ -8,10 +8,11 @@ public sealed record FileSize
 
     public long Bytes { get; }
 
+    /// <exception cref="FormatException"><paramref name="bytes"/> is negative.</exception>
     public static FileSize Parse(long bytes) =>
         TryParse(bytes, out var result)
             ? result
-            : throw new ArgumentOutOfRangeException(nameof(bytes), bytes, "File size cannot be negative.");
+            : throw new FormatException($"'{bytes}' is not a valid file size.");
 
     public static bool TryParse(long bytes, [MaybeNullWhen(false)] out FileSize result)
     {

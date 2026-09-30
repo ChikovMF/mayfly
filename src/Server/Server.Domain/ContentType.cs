@@ -11,6 +11,8 @@ public sealed record ContentType
 
     private ContentType(string value) => _value = value;
 
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
+    /// <exception cref="FormatException"><paramref name="value"/> is not valid.</exception>
     public static ContentType Parse(string value)
     {
         ArgumentNullException.ThrowIfNull(value);

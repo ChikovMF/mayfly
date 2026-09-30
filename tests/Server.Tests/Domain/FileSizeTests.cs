@@ -71,12 +71,12 @@ public class FileSizeTests
     }
 
     [Fact]
-    public void Parse_NegativeBytes_ThrowsArgumentOutOfRangeException()
+    public void Parse_NegativeBytes_ThrowsFormatException()
     {
         // Act
         var act = () => FileSize.Parse(-1);
 
         // Assert
-        Assert.Throws<ArgumentOutOfRangeException>(act);
+        Assert.Throws<FormatException>(act);
     }
 }

@@ -10,6 +10,8 @@ public sealed record FileName
 
     private FileName(string value) => _value = value;
 
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
+    /// <exception cref="FormatException"><paramref name="value"/> is not valid.</exception>
     public static FileName Parse(string value)
     {
         ArgumentNullException.ThrowIfNull(value);

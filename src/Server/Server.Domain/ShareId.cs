@@ -20,8 +20,12 @@ public sealed record ShareId : IParsable<ShareId>
 
     public static ShareId New() => new(RandomNumberGenerator.GetString(Alphabet, DefaultLength));
 
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <see langword="null"/>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> is not a valid share id.</exception>
     public static ShareId Parse(string s) => Parse(s, null);
 
+    /// <exception cref="ArgumentNullException"><paramref name="s"/> is <see langword="null"/>.</exception>
+    /// <exception cref="FormatException"><paramref name="s"/> is not a valid share id.</exception>
     public static ShareId Parse(string s, IFormatProvider? provider)
     {
         ArgumentNullException.ThrowIfNull(s);
