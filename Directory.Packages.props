@@ -9,6 +9,7 @@
     <ItemGroup>
         <PackageVersion Include="Minio" Version="7.0.0"/>
         <PackageVersion Include="Dapper" Version="2.1.89"/>
+        <PackageVersion Include="dbup-postgresql" Version="7.0.1"/>
         <PackageVersion Include="coverlet.collector" Version="10.0.1"/>
         <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1"/>
         <PackageVersion Include="Npgsql" Version="10.0.3"/>
