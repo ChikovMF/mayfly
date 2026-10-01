@@ -2,7 +2,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Minio;
-using Npgsql;
 using Server.Domain.Abstractions;
 using Server.Infrastructure.Persistence;
 using Server.Infrastructure.Storage;
@@ -16,7 +15,8 @@ public static class DependencyInjection
         services.AddOptions<PostgresOptions>().Bind(configuration.GetSection(PostgresOptions.SectionName));
         services.AddOptions<MinioOptions>().Bind(configuration.GetSection(MinioOptions.SectionName));
 
-        services.AddSingleton(sp => NpgsqlDataSource.Create(sp.GetRequiredService<IOptions<PostgresOptions>>().Value.ConnectionString));
+        services.AddNpgsqlDataSource(
+            configuration.GetSection(PostgresOptions.SectionName).Get<PostgresOptions>()?.ConnectionString ?? "");
         services.AddSingleton<IDatabaseMigrator, DatabaseMigrator>();
         services.AddSingleton<ISharedFileRepository, PostgresSharedFileRepository>();
 
