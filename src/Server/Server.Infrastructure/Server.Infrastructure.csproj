@@ -5,7 +5,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Dapper"/>
         <PackageReference Include="Minio"/>
+        <PackageReference Include="Npgsql"/>
     </ItemGroup>
 
     <ItemGroup>
