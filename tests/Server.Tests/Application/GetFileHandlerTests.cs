@@ -15,14 +15,12 @@ public class GetFileHandlerTests
     public GetFileHandlerTests() => _handler = new GetFileHandler(_repository, _storage);
 
     [Fact]
-    public async Task HandleAsync_FileExists_ReturnsFileDataAndContent()
+    public async Task HandleAsync_FileExists_ReturnsFileData()
     {
         // Arrange
         var id = ShareId.New();
         var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
-        using var content = new MemoryStream();
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
-        _storage.OpenReadAsync(id, CancellationToken.None).Returns(content);
 
         // Act
         var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
@@ -31,32 +29,32 @@ public class GetFileHandlerTests
         Assert.NotNull(result);
         Assert.Equal(file.FileName, result.FileName);
         Assert.Equal(file.ContentType, result.ContentType);
-        Assert.Same(content, result.Content);
     }
 
     [Fact]
-    public async Task HandleAsync_FileNotInRepository_ReturnsNullWithoutOpeningContent()
-    {
-        // Arrange
-        var id = ShareId.New();
-        _repository.GetAsync(id, CancellationToken.None).Returns((SharedFile?)null);
-
-        // Act
-        var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
-
-        // Assert
-        Assert.Null(result);
-        await _storage.DidNotReceiveWithAnyArgs().OpenReadAsync(default!, default);
-    }
-
-    [Fact]
-    public async Task HandleAsync_ContentNotInStorage_ReturnsNull()
+    public async Task HandleAsync_FileExists_ReturnsContentCopiedFromStorage()
     {
         // Arrange
         var id = ShareId.New();
         var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
-        _storage.OpenReadAsync(id, CancellationToken.None).Returns((Stream?)null);
+        using var destination = new MemoryStream();
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        await result.CopyContentToAsync(destination, CancellationToken.None);
+        await _storage.Received(1).CopyToAsync(id, destination, CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task HandleAsync_FileNotInRepository_ReturnsNull()
+    {
+        // Arrange
+        var id = ShareId.New();
+        _repository.GetAsync(id, CancellationToken.None).Returns((SharedFile?)null);
 
         // Act
         var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);

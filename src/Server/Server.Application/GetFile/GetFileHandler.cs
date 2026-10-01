@@ -12,7 +12,9 @@ internal sealed class GetFileHandler(ISharedFileRepository repository, IFileStor
             return null;
         }
 
-        var content = await storage.OpenReadAsync(query.Id, cancellationToken);
-        return content is null ? null : new GetFileResult(file.FileName, file.ContentType, content);
+        return new GetFileResult(
+            file.FileName,
+            file.ContentType,
+            (destination, ct) => storage.CopyToAsync(query.Id, destination, ct));
     }
 }
