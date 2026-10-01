@@ -1,5 +1,5 @@
 using NSubstitute;
-using Server.Application;
+using Server.Application.GetFile;
 using Server.Domain;
 using Server.Domain.Abstractions;
 using Server.Domain.ValueObjects;

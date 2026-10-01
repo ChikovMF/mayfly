@@ -1,10 +1,9 @@
 using Server.Domain.Abstractions;
 
-namespace Server.Application;
+namespace Server.Application.GetFile;
 
-public sealed class GetFileHandler(ISharedFileRepository repository, IFileStorage storage)
+internal sealed class GetFileHandler(ISharedFileRepository repository, IFileStorage storage) : IGetFileHandler
 {
-    /// <returns>The file with its content, or <see langword="null"/> if the file does not exist.</returns>
     public async Task<GetFileResult?> HandleAsync(GetFileQuery query, CancellationToken cancellationToken)
     {
         var file = await repository.GetAsync(query.Id, cancellationToken);

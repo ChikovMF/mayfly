@@ -2,11 +2,10 @@ using Server.Domain;
 using Server.Domain.Abstractions;
 using Server.Domain.ValueObjects;
 
-namespace Server.Application;
+namespace Server.Application.SaveFile;
 
-public sealed class SaveFileHandler(ISharedFileRepository repository, IFileStorage storage)
+internal sealed class SaveFileHandler(ISharedFileRepository repository, IFileStorage storage) : ISaveFileHandler
 {
-    /// <exception cref="ArgumentException">The content stream does not support seeking.</exception>
     public async Task<ShareId> HandleAsync(SaveFileCommand command, CancellationToken cancellationToken)
     {
         if (!command.Content.CanSeek)
