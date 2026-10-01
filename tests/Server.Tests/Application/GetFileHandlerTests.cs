@@ -11,7 +11,6 @@ public class GetFileHandlerTests
     private readonly ISharedFileRepository _repository = Substitute.For<ISharedFileRepository>();
     private readonly IFileStorage _storage = Substitute.For<IFileStorage>();
     private readonly GetFileHandler _handler;
-    private readonly ShareId _id = ShareId.New();
 
     public GetFileHandlerTests() => _handler = new GetFileHandler(_repository, _storage);
 
@@ -19,13 +18,14 @@ public class GetFileHandlerTests
     public async Task HandleAsync_FileExists_ReturnsFileDataAndContent()
     {
         // Arrange
-        var file = new SharedFile(_id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
+        var id = ShareId.New();
+        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
         using var content = new MemoryStream();
-        _repository.GetAsync(_id, CancellationToken.None).Returns(file);
-        _storage.OpenReadAsync(_id, CancellationToken.None).Returns(content);
+        _repository.GetAsync(id, CancellationToken.None).Returns(file);
+        _storage.OpenReadAsync(id, CancellationToken.None).Returns(content);
 
         // Act
-        var result = await _handler.HandleAsync(new GetFileQuery(_id), CancellationToken.None);
+        var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -38,10 +38,11 @@ public class GetFileHandlerTests
     public async Task HandleAsync_FileNotInRepository_ReturnsNullWithoutOpeningContent()
     {
         // Arrange
-        _repository.GetAsync(_id, CancellationToken.None).Returns((SharedFile?)null);
+        var id = ShareId.New();
+        _repository.GetAsync(id, CancellationToken.None).Returns((SharedFile?)null);
 
         // Act
-        var result = await _handler.HandleAsync(new GetFileQuery(_id), CancellationToken.None);
+        var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
 
         // Assert
         Assert.Null(result);
@@ -52,12 +53,13 @@ public class GetFileHandlerTests
     public async Task HandleAsync_ContentNotInStorage_ReturnsNull()
     {
         // Arrange
-        var file = new SharedFile(_id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
-        _repository.GetAsync(_id, CancellationToken.None).Returns(file);
-        _storage.OpenReadAsync(_id, CancellationToken.None).Returns((Stream?)null);
+        var id = ShareId.New();
+        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
+        _repository.GetAsync(id, CancellationToken.None).Returns(file);
+        _storage.OpenReadAsync(id, CancellationToken.None).Returns((Stream?)null);
 
         // Act
-        var result = await _handler.HandleAsync(new GetFileQuery(_id), CancellationToken.None);
+        var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
 
         // Assert
         Assert.Null(result);
