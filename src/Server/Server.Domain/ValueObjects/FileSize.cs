@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace Server.Domain;
+namespace Server.Domain.ValueObjects;
 
 public sealed record FileSize
 {

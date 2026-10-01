@@ -1,4 +1,6 @@
-namespace Server.Domain;
+using Server.Domain.ValueObjects;
+
+namespace Server.Domain.Abstractions;
 
 public interface ISharedFileRepository
 {

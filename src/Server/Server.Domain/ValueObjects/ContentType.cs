@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Headers;
 
-namespace Server.Domain;
+namespace Server.Domain.ValueObjects;
 
 public sealed record ContentType
 {

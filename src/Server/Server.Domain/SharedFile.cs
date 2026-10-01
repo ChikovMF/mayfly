@@ -1,3 +1,5 @@
+using Server.Domain.ValueObjects;
+
 namespace Server.Domain;
 
 public sealed class SharedFile

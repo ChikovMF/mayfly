@@ -1,9 +1,8 @@
-using System;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 
-namespace Server.Domain;
+namespace Server.Domain.ValueObjects;
 
 public sealed record ShareId : IParsable<ShareId>
 {
