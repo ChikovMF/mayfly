@@ -6,5 +6,5 @@ public interface IFileStorage
 
     Task<FileContent?> OpenReadAsync(ShareId id, CancellationToken cancellationToken);
 
-    Task<bool> DeleteAsync(ShareId id, CancellationToken cancellationToken);
+    Task DeleteAsync(ShareId id, CancellationToken cancellationToken);
 }
