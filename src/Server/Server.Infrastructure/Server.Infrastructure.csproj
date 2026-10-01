@@ -7,7 +7,9 @@
     <ItemGroup>
         <PackageReference Include="Dapper"/>
         <PackageReference Include="dbup-postgresql"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"/>
         <PackageReference Include="Microsoft.Extensions.Options"/>
+        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions"/>
         <PackageReference Include="Minio"/>
         <PackageReference Include="Npgsql"/>
     </ItemGroup>
