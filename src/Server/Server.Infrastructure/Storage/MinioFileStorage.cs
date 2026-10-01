@@ -3,7 +3,7 @@ using Minio.DataModel.Args;
 using Server.Domain.Abstractions;
 using Server.Domain.ValueObjects;
 
-namespace Server.Infrastructure;
+namespace Server.Infrastructure.Storage;
 
 internal sealed class MinioFileStorage(IMinioClient client, string bucketName) : IFileStorage
 {

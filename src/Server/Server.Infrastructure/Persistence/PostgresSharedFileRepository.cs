@@ -4,7 +4,7 @@ using Server.Domain;
 using Server.Domain.Abstractions;
 using Server.Domain.ValueObjects;
 
-namespace Server.Infrastructure;
+namespace Server.Infrastructure.Persistence;
 
 internal sealed class PostgresSharedFileRepository(NpgsqlDataSource dataSource) : ISharedFileRepository
 {

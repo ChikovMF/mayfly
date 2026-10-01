@@ -1,7 +1,7 @@
 using Server.Domain;
 using Server.Domain.ValueObjects;
 
-namespace Server.Infrastructure;
+namespace Server.Infrastructure.Persistence;
 
 internal sealed record SharedFileRecord(string Id, string FileName, string ContentType, long Size)
 {
