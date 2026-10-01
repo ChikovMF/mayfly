@@ -5,6 +5,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Minio"/>
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\Server.Domain\Server.Domain.csproj"/>
     </ItemGroup>
 
