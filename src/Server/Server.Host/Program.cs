@@ -1,15 +1,27 @@
+using Microsoft.AspNetCore.Http.Features;
 using Server.Application;
 using Server.Domain.Abstractions;
+using Server.Host;
+using Server.Host.Endpoints;
 using Server.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+var upload = builder.Configuration.GetSection(UploadOptions.SectionName).Get<UploadOptions>() ?? new UploadOptions();
+builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = upload.MaxRequestBodySize);
+builder.Services.Configure<FormOptions>(form => form.MultipartBodyLengthLimit = upload.MaxRequestBodySize);
+
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
 app.Services.GetRequiredService<IDatabaseMigrator>().Migrate();
 
-app.MapGet("/", () => "Hello World!");
+app.UseExceptionHandler();
+app.UseStatusCodePages();
+
+app.MapFilesEndpoints();
 
 app.Run();
