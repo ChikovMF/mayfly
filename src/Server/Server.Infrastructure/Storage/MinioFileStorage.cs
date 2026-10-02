@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
+using Minio.Exceptions;
 using Server.Domain.Abstractions;
 using Server.Domain.ValueObjects;
 
@@ -17,6 +18,23 @@ internal sealed class MinioFileStorage(IMinioClient client, IOptions<MinioOption
             .WithObjectSize(content.Length - content.Position);
 
         await client.PutObjectAsync(args, cancellationToken);
+    }
+
+    public async Task<bool> ExistsAsync(ShareId id, CancellationToken cancellationToken)
+    {
+        var args = new StatObjectArgs()
+            .WithBucket(options.Value.BucketName)
+            .WithObject(id.ToString());
+
+        try
+        {
+            await client.StatObjectAsync(args, cancellationToken);
+            return true;
+        }
+        catch (ObjectNotFoundException)
+        {
+            return false;
+        }
     }
 
     public async Task CopyToAsync(ShareId id, Stream destination, CancellationToken cancellationToken)

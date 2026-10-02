@@ -12,9 +12,15 @@ internal sealed class GetFileHandler(ISharedFileRepository repository, IFileStor
             return null;
         }
 
+        if (!await storage.ExistsAsync(query.Id, cancellationToken))
+        {
+            return null;
+        }
+
         return new GetFileResult(
             file.FileName,
             file.ContentType,
+            file.Size,
             (destination, ct) => storage.CopyToAsync(query.Id, destination, ct));
     }
 }

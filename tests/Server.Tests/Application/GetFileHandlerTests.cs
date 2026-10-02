@@ -21,6 +21,7 @@ public class GetFileHandlerTests
         var id = ShareId.New();
         var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
 
         // Act
         var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
@@ -29,6 +30,7 @@ public class GetFileHandlerTests
         Assert.NotNull(result);
         Assert.Equal(file.FileName, result.FileName);
         Assert.Equal(file.ContentType, result.ContentType);
+        Assert.Equal(file.Size, result.Size);
     }
 
     [Fact]
@@ -38,6 +40,7 @@ public class GetFileHandlerTests
         var id = ShareId.New();
         var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
         using var destination = new MemoryStream();
 
         // Act
@@ -55,6 +58,22 @@ public class GetFileHandlerTests
         // Arrange
         var id = ShareId.New();
         _repository.GetAsync(id, CancellationToken.None).Returns((SharedFile?)null);
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task HandleAsync_FileNotInStorage_ReturnsNull()
+    {
+        // Arrange
+        var id = ShareId.New();
+        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
+        _repository.GetAsync(id, CancellationToken.None).Returns(file);
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(false);
 
         // Act
         var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
