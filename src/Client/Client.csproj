@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <PackageId>Mayfly.Client</PackageId>
+        <Description>.NET client for the Mayfly file-storage-by-link service.</Description>
+    </PropertyGroup>
+
+</Project>
