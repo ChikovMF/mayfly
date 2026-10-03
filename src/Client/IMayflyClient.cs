@@ -1,3 +1,5 @@
+using Mayfly.Client.Models;
+
 namespace Mayfly.Client;
 
 public interface IMayflyClient

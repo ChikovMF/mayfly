@@ -1,3 +1,4 @@
+using Mayfly.Client.Models;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;

@@ -1,4 +1,4 @@
-namespace Mayfly.Client;
+namespace Mayfly.Client.Models;
 
 public sealed class DownloadedFile : IDisposable
 {
