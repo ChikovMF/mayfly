@@ -1,7 +1,8 @@
-using Mayfly.Client.Models;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
+using Mayfly.Client.Models;
 
 namespace Mayfly.Client;
 
@@ -15,9 +16,11 @@ internal sealed class MayflyClient(HttpClient httpClient) : IMayflyClient
     {
         var mediaType = contentType is null ? null : MediaTypeHeaderValue.Parse(contentType);
 
-        using var fileContent = new StreamContent(content) { Headers = { ContentType = mediaType } };
+        using var fileContent = new StreamContent(content);
+        fileContent.Headers.ContentType = mediaType;
 
-        using var form = new MultipartFormDataContent { { fileContent, "file", fileName } };
+        using var form = new MultipartFormDataContent();
+        form.Add(fileContent, "file", fileName);
         using var response = await httpClient.PostAsync("api/files", form, cancellationToken);
 
         await ThrowIfUnsuccessfulAsync(response, cancellationToken);
@@ -96,14 +99,18 @@ internal sealed class MayflyClient(HttpClient httpClient) : IMayflyClient
         {
             problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken);
         }
-        catch (Exception ex) when (ex is System.Text.Json.JsonException or NotSupportedException)
+        catch (Exception ex) when (ex is JsonException or NotSupportedException)
         {
             // The body is not problem details (e.g. an error from a proxy); the status code is still reported.
         }
 
+        var message = problem?.Detail
+                      ?? problem?.Title
+                      ?? $"The server responded with {(int)response.StatusCode} {response.StatusCode}.";
+
         throw new MayflyApiException(
             response.StatusCode,
-            problem?.Detail ?? problem?.Title ?? $"The server responded with {(int)response.StatusCode} {response.StatusCode}.",
+            message,
             problem?.Errors?.Values.SelectMany(messages => messages).ToList() ?? []);
     }
 
