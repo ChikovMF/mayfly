@@ -7,6 +7,7 @@ public interface IMayflyClient
     /// <param name="content">File content.</param>
     /// <param name="fileName">Name of the file.</param>
     /// <param name="contentType">MIME type of the file.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="MayflyApiException">The server rejected the request.</exception>
     Task<UploadedFile> UploadAsync(
         Stream content,
