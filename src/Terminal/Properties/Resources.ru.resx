@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="RootDescription" xml:space="preserve">
+    <value>Загрузка и скачивание файлов на сервере Mayfly.</value>
+  </data>
+  <data name="HelpOptionDescription" xml:space="preserve">
+    <value>Показать справку и сведения об использовании</value>
+  </data>
+  <data name="VersionOptionDescription" xml:space="preserve">
+    <value>Показать информацию о версии</value>
+  </data>
+  <data name="ServerOptionDescription" xml:space="preserve">
+    <value>Адрес сервера только для этой команды. По умолчанию используется сохранённый адрес.</value>
+  </data>
+  <data name="ServerNotSet" xml:space="preserve">
+    <value>Адрес сервера не задан. Укажите --server &lt;url&gt; или выполните 'mayfly config set server &lt;url&gt;'.</value>
+  </data>
+  <data name="InvalidServerAddress" xml:space="preserve">
+    <value>Некорректный адрес сервера: '{0}'.</value>
+  </data>
+  <data name="CannotReachServer" xml:space="preserve">
+    <value>Не удалось подключиться к серверу: {0}</value>
+  </data>
+  <data name="FileIdArgumentDescription" xml:space="preserve">
+    <value>Идентификатор файла.</value>
+  </data>
+  <data name="FileNotFound" xml:space="preserve">
+    <value>Файл {0} не найден.</value>
+  </data>
+  <data name="UploadDescription" xml:space="preserve">
+    <value>Загрузить файл и вывести его идентификатор.</value>
+  </data>
+  <data name="UploadFileArgumentDescription" xml:space="preserve">
+    <value>Файл для загрузки.</value>
+  </data>
+  <data name="UploadFileDoesNotExist" xml:space="preserve">
+    <value>Файл не найден: '{0}'.</value>
+  </data>
+  <data name="UploadCompleted" xml:space="preserve">
+    <value>Загружен файл {0} ({1})</value>
+  </data>
+  <data name="UploadIdLabel" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="InfoDescription" xml:space="preserve">
+    <value>Показать имя, тип и размер файла.</value>
+  </data>
+  <data name="InfoNameLabel" xml:space="preserve">
+    <value>Имя</value>
+  </data>
+  <data name="InfoTypeLabel" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="InfoSizeLabel" xml:space="preserve">
+    <value>Размер</value>
+  </data>
+  <data name="InfoSizeInBytes" xml:space="preserve">
+    <value>{0} ({1} байт)</value>
+  </data>
+  <data name="DownloadDescription" xml:space="preserve">
+    <value>Скачать файл.</value>
+  </data>
+  <data name="DownloadOutputOptionDescription" xml:space="preserve">
+    <value>Путь для сохранения файла. По умолчанию имя файла в текущем каталоге.</value>
+  </data>
+  <data name="DownloadForceOptionDescription" xml:space="preserve">
+    <value>Перезаписать файл, если он уже существует.</value>
+  </data>
+  <data name="DownloadFileExists" xml:space="preserve">
+    <value>Файл {0} уже существует. Укажите --force, чтобы перезаписать его, или --output, чтобы сохранить в другое место.</value>
+  </data>
+  <data name="DownloadCompleted" xml:space="preserve">
+    <value>Сохранён файл {0} ({1})</value>
+  </data>
+  <data name="ConfigDescription" xml:space="preserve">
+    <value>Показать или изменить настройки.</value>
+  </data>
+  <data name="ConfigSetDescription" xml:space="preserve">
+    <value>Сохранить настройку.</value>
+  </data>
+  <data name="ConfigGetDescription" xml:space="preserve">
+    <value>Показать настройку.</value>
+  </data>
+  <data name="ConfigSetServerDescription" xml:space="preserve">
+    <value>Сохранить адрес сервера.</value>
+  </data>
+  <data name="ConfigGetServerDescription" xml:space="preserve">
+    <value>Показать сохранённый адрес сервера.</value>
+  </data>
+  <data name="ConfigUrlArgumentDescription" xml:space="preserve">
+    <value>Адрес сервера.</value>
+  </data>
+  <data name="ConfigServerSaved" xml:space="preserve">
+    <value>Адрес сервера сохранён: {0}</value>
+  </data>
+  <data name="ConfigServerNotSaved" xml:space="preserve">
+    <value>Адрес сервера не задан.</value>
+  </data>
+  <data name="SizeUnitBytes" xml:space="preserve">
+    <value>Б</value>
+  </data>
+  <data name="SizeUnitKilobytes" xml:space="preserve">
+    <value>КБ</value>
+  </data>
+  <data name="SizeUnitMegabytes" xml:space="preserve">
+    <value>МБ</value>
+  </data>
+  <data name="SizeUnitGigabytes" xml:space="preserve">
+    <value>ГБ</value>
+  </data>
+  <data name="SizeUnitTerabytes" xml:space="preserve">
+    <value>ТБ</value>
+  </data>
+</root>
