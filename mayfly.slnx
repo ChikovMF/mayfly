@@ -7,6 +7,7 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Client/Client.csproj" />
+    <Project Path="src/Terminal/Terminal.csproj" />
   </Folder>
   <Folder Name="/src/Server/">
     <Project Path="src/Server/Server.Application/Server.Application.csproj" />
