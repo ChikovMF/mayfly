@@ -3,7 +3,9 @@ using Mayfly.Client.Models;
 
 namespace Integration.Tests;
 
-public sealed class MayflyClientTests(MayflyFactory factory) : IClassFixture<MayflyFactory>
+[Collection(MayflyCollection.Name)]
+[Trait("Category", "Integration")]
+public sealed class MayflyClientTests(MayflyFactory factory)
 {
     private readonly IMayflyClient _client = factory.Client;
 
