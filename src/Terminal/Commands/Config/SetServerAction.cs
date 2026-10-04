@@ -1,5 +1,6 @@
 using Mayfly.Terminal.Configuration;
 using Mayfly.Terminal.Output;
+using Mayfly.Terminal.Properties;
 
 namespace Mayfly.Terminal.Commands.Config;
 
@@ -9,7 +10,7 @@ internal sealed class SetServerAction(ConsoleOutput output)
     {
         ConfigFile.SaveServer(server);
 
-        output.Success($"Server set to {server}");
+        output.Success(string.Format(Resources.ConfigServerSaved, server));
         return 0;
     }
 }

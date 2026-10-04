@@ -1,5 +1,6 @@
 using Mayfly.Client;
 using Mayfly.Terminal.Output;
+using Mayfly.Terminal.Properties;
 
 namespace Mayfly.Terminal.Commands.Upload;
 
@@ -16,9 +17,9 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
             return 0;
         }
 
-        output.Success($"Uploaded {file.Name} ({ConsoleOutput.FormatSize(file.Length)})");
+        output.Success(string.Format(Resources.UploadCompleted, file.Name, ConsoleOutput.FormatSize(file.Length)));
         output.NewLine();
-        output.Fields(("ID", uploaded.Id));
+        output.Fields((Resources.UploadIdLabel, uploaded.Id));
         return 0;
     }
 }

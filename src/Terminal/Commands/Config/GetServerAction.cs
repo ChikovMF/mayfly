@@ -1,5 +1,6 @@
 using Mayfly.Terminal.Configuration;
 using Mayfly.Terminal.Output;
+using Mayfly.Terminal.Properties;
 using Microsoft.Extensions.Configuration;
 
 namespace Mayfly.Terminal.Commands.Config;
@@ -11,7 +12,7 @@ internal sealed class GetServerAction(IConfiguration configuration, ConsoleOutpu
         var server = configuration[ConfigFile.ServerKey];
         if (string.IsNullOrEmpty(server))
         {
-            output.Error("Server address is not set.");
+            output.Error(Resources.ConfigServerNotSaved);
             return 1;
         }
 

@@ -1,5 +1,6 @@
 using Mayfly.Client;
 using Mayfly.Terminal.Output;
+using Mayfly.Terminal.Properties;
 
 namespace Mayfly.Terminal.Commands.Info;
 
@@ -10,17 +11,20 @@ internal sealed class InfoAction(IMayflyClient client, ConsoleOutput output)
         var info = await client.GetInfoAsync(id, cancellationToken);
         if (info is null)
         {
-            output.Error($"File {id} not found.");
+            output.Error(string.Format(Resources.FileNotFound, id));
             return 1;
         }
 
         var size = ConsoleOutput.FormatSize(info.Size);
         if (info.Size >= 1024)
         {
-            size += $" ({info.Size} bytes)";
+            size = string.Format(Resources.InfoSizeInBytes, size, info.Size);
         }
 
-        output.Fields(("Name", info.FileName), ("Type", info.ContentType), ("Size", size));
+        output.Fields(
+            (Resources.InfoNameLabel, info.FileName),
+            (Resources.InfoTypeLabel, info.ContentType),
+            (Resources.InfoSizeLabel, size));
         return 0;
     }
 }

@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.CommandLine.Help;
 using System.CommandLine.Invocation;
 using Mayfly.Client;
 using Mayfly.Terminal.Commands.Config;
@@ -6,6 +7,7 @@ using Mayfly.Terminal.Commands.Download;
 using Mayfly.Terminal.Commands.Info;
 using Mayfly.Terminal.Commands.Upload;
 using Mayfly.Terminal.Output;
+using Mayfly.Terminal.Properties;
 
 namespace Mayfly.Terminal.Commands;
 
@@ -19,9 +21,12 @@ internal sealed class MayflyRootCommand : RootCommand
         DownloadCommand download,
         ConfigCommand config,
         ConsoleOutput output)
-        : base("Upload and download files on a Mayfly server.")
+        : base(Resources.RootDescription)
     {
         _output = output;
+
+        Options.OfType<HelpOption>().Single().Description = Resources.HelpOptionDescription;
+        Options.OfType<VersionOption>().Single().Description = Resources.VersionOptionDescription;
 
         Subcommands.Add(upload);
         Subcommands.Add(info);
@@ -47,7 +52,7 @@ internal sealed class MayflyRootCommand : RootCommand
         }
         catch (HttpRequestException ex)
         {
-            _output.Error($"Cannot reach the server: {ex.Message}");
+            _output.Error(string.Format(Resources.CannotReachServer, ex.Message));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

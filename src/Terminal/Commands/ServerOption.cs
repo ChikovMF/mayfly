@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using Mayfly.Terminal.Configuration;
+using Mayfly.Terminal.Properties;
 using Microsoft.Extensions.Configuration;
 
 namespace Mayfly.Terminal.Commands;
@@ -13,7 +14,7 @@ internal sealed class ServerOption : Option<Uri>
     {
         _configuration = configuration;
 
-        Description = "Server address for this command only. Defaults to the configured server.";
+        Description = Resources.ServerOptionDescription;
         HelpName = "url";
         CustomParser = ServerAddress.Parse;
     }
@@ -22,7 +23,7 @@ internal sealed class ServerOption : Option<Uri>
     {
         if (result.GetResult(this) is null && string.IsNullOrEmpty(_configuration[ConfigFile.ServerKey]))
         {
-            result.AddError("Server address is not set. Use --server <url> or 'mayfly config set server <url>'.");
+            result.AddError(Resources.ServerNotSet);
         }
     }
 }

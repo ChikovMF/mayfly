@@ -1,5 +1,6 @@
 using System.CommandLine;
 using Mayfly.Terminal.Configuration;
+using Mayfly.Terminal.Properties;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,15 +9,15 @@ namespace Mayfly.Terminal.Commands.Download;
 internal sealed class DownloadCommand : Command
 {
     public DownloadCommand(ServerOption serverOption, IConfiguration configuration, IServiceProvider services)
-        : base("download", "Download a file.")
+        : base("download", Resources.DownloadDescription)
     {
-        var idArgument = new Argument<string>("id") { Description = "File ID." };
+        var idArgument = new Argument<string>("id") { Description = Resources.FileIdArgumentDescription };
         var outputOption = new Option<FileInfo>("--output", "-o")
         {
-            Description = "Path to save the file to. Defaults to the file's name in the current directory.",
+            Description = Resources.DownloadOutputOptionDescription,
             HelpName = "path",
         };
-        var forceOption = new Option<bool>("--force", "-f") { Description = "Overwrite the file if it already exists." };
+        var forceOption = new Option<bool>("--force", "-f") { Description = Resources.DownloadForceOptionDescription };
 
         Arguments.Add(idArgument);
         Options.Add(outputOption);

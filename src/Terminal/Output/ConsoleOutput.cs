@@ -1,4 +1,4 @@
-using System.Globalization;
+using Mayfly.Terminal.Properties;
 
 namespace Mayfly.Terminal.Output;
 
@@ -8,8 +8,6 @@ internal sealed class ConsoleOutput
     private const string Red = "\e[31m";
     private const string Dim = "\e[2m";
     private const string Reset = "\e[0m";
-
-    private static readonly string[] SizeUnits = ["B", "KB", "MB", "GB", "TB"];
 
     private readonly bool _noColor = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("NO_COLOR"));
 
@@ -42,17 +40,24 @@ internal sealed class ConsoleOutput
 
     public static string FormatSize(long bytes)
     {
+        string[] units =
+        [
+            Resources.SizeUnitBytes,
+            Resources.SizeUnitKilobytes,
+            Resources.SizeUnitMegabytes,
+            Resources.SizeUnitGigabytes,
+            Resources.SizeUnitTerabytes,
+        ];
+
         var value = (double)bytes;
         var unit = 0;
-        while (value >= 1024 && unit < SizeUnits.Length - 1)
+        while (value >= 1024 && unit < units.Length - 1)
         {
             value /= 1024;
             unit++;
         }
 
-        return unit == 0
-            ? $"{bytes} B"
-            : $"{value.ToString("0.#", CultureInfo.InvariantCulture)} {SizeUnits[unit]}";
+        return $"{value.ToString(unit == 0 ? "0" : "0.#")} {units[unit]}";
     }
 
     private string Paint(string text, string color, bool redirected) =>

@@ -1,4 +1,5 @@
 using System.CommandLine.Parsing;
+using Mayfly.Terminal.Properties;
 
 namespace Mayfly.Terminal.Commands;
 
@@ -13,7 +14,7 @@ internal static class ServerAddress
             return uri;
         }
 
-        result.AddError($"'{value}' is not a valid server address.");
+        result.AddError(string.Format(Resources.InvalidServerAddress, value));
         return null;
     }
 }
