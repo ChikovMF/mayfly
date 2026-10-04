@@ -22,14 +22,16 @@ internal sealed class DownloadAction(IMayflyClient client, ConsoleOutput output)
             return 1;
         }
 
-        await using var stream = new FileStream(path, overwrite ? FileMode.Create : FileMode.CreateNew, FileAccess.Write);
+        var stream = new FileStream(path, overwrite ? FileMode.Create : FileMode.CreateNew, FileAccess.Write);
         try
         {
-            await file.Content.CopyToAsync(stream, cancellationToken);
+            await using (stream)
+            {
+                await file.Content.CopyToAsync(stream, cancellationToken);
+            }
         }
         catch
         {
-            await stream.DisposeAsync();
             File.Delete(path);
             throw;
         }
