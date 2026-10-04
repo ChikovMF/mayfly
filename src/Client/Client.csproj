@@ -6,6 +6,8 @@
         <AssemblyName>Mayfly.Client</AssemblyName>
         <RootNamespace>Mayfly.Client</RootNamespace>
         <Description>.NET client for the Mayfly file-storage-by-link service.</Description>
+        <IsAotCompatible>true</IsAotCompatible>
+        <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
     </PropertyGroup>
 
     <ItemGroup>

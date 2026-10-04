@@ -2,11 +2,12 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Mayfly.Client.Models;
 
 namespace Mayfly.Client;
 
-internal sealed class MayflyClient(HttpClient httpClient) : IMayflyClient
+internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClient
 {
     public async Task<UploadedFile> UploadAsync(
         Stream content,
@@ -25,7 +26,7 @@ internal sealed class MayflyClient(HttpClient httpClient) : IMayflyClient
 
         await ThrowIfUnsuccessfulAsync(response, cancellationToken);
 
-        return await response.Content.ReadFromJsonAsync<UploadedFile>(cancellationToken)
+        return await response.Content.ReadFromJsonAsync(JsonContext.Default.UploadedFile, cancellationToken)
                ?? throw new InvalidOperationException("The server returned an empty response.");
     }
 
@@ -97,7 +98,7 @@ internal sealed class MayflyClient(HttpClient httpClient) : IMayflyClient
         ProblemDetails? problem = null;
         try
         {
-            problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken);
+            problem = await response.Content.ReadFromJsonAsync(JsonContext.Default.ProblemDetails, cancellationToken);
         }
         catch (Exception ex) when (ex is JsonException or NotSupportedException)
         {
@@ -115,4 +116,9 @@ internal sealed class MayflyClient(HttpClient httpClient) : IMayflyClient
     }
 
     private sealed record ProblemDetails(string? Title, string? Detail, Dictionary<string, string[]>? Errors);
+
+    [JsonSourceGenerationOptions(JsonSerializerDefaults.Web)]
+    [JsonSerializable(typeof(UploadedFile))]
+    [JsonSerializable(typeof(ProblemDetails))]
+    private sealed partial class JsonContext : JsonSerializerContext;
 }
