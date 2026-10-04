@@ -23,7 +23,7 @@ internal static class FilesEndpoints
         return app;
     }
 
-    internal static async Task<IResult> UploadAsync(
+    private static async Task<IResult> UploadAsync(
         IFormFile? file,
         ISaveFileHandler handler,
         [FromServices] IContentTypeProvider contentTypeProvider,
