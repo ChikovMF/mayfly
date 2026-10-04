@@ -2,6 +2,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using Mayfly.Client;
 using Mayfly.Terminal.Commands.Config;
+using Mayfly.Terminal.Commands.Info;
 using Mayfly.Terminal.Commands.Upload;
 using Mayfly.Terminal.Output;
 
@@ -11,12 +12,13 @@ internal sealed class MayflyRootCommand : RootCommand
 {
     private readonly ConsoleOutput _output;
 
-    public MayflyRootCommand(UploadCommand upload, ConfigCommand config, ConsoleOutput output)
+    public MayflyRootCommand(UploadCommand upload, InfoCommand info, ConfigCommand config, ConsoleOutput output)
         : base("Share files by link.")
     {
         _output = output;
 
         Subcommands.Add(upload);
+        Subcommands.Add(info);
         Subcommands.Add(config);
     }
 

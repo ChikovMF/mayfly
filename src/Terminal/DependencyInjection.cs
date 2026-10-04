@@ -1,6 +1,7 @@
 using Mayfly.Client;
 using Mayfly.Terminal.Commands;
 using Mayfly.Terminal.Commands.Config;
+using Mayfly.Terminal.Commands.Info;
 using Mayfly.Terminal.Commands.Upload;
 using Mayfly.Terminal.Output;
 using Microsoft.Extensions.Configuration;
@@ -19,9 +20,11 @@ internal static class DependencyInjection
         services.AddSingleton<MayflyRootCommand>();
         services.AddSingleton<ServerOption>();
         services.AddSingleton<UploadCommand>();
+        services.AddSingleton<InfoCommand>();
         services.AddSingleton<ConfigCommand>();
 
         services.AddTransient<UploadAction>();
+        services.AddTransient<InfoAction>();
         services.AddTransient<SetServerAction>();
         services.AddTransient<GetServerAction>();
 

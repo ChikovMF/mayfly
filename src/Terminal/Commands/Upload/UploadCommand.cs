@@ -8,7 +8,7 @@ namespace Mayfly.Terminal.Commands.Upload;
 internal sealed class UploadCommand : Command
 {
     public UploadCommand(ServerOption serverOption, IConfiguration configuration, IServiceProvider services)
-        : base("upload", "Upload a file and print its link.")
+        : base("upload", "Upload a file and print its ID.")
     {
         var fileArgument = new Argument<FileInfo>("file") { Description = "File to upload." };
         fileArgument.Validators.Add(result =>
@@ -21,10 +21,14 @@ internal sealed class UploadCommand : Command
 
         Arguments.Add(fileArgument);
         Options.Add(serverOption);
+        Validators.Add(serverOption.ValidateAvailable);
 
         SetAction((parseResult, cancellationToken) =>
         {
-            configuration[ConfigFile.ServerKey] = parseResult.GetRequiredValue(serverOption).ToString();
+            if (parseResult.GetValue(serverOption) is { } server)
+            {
+                configuration[ConfigFile.ServerKey] = server.ToString();
+            }
 
             return services.GetRequiredService<UploadAction>()
                 .ExecuteAsync(parseResult.GetRequiredValue(fileArgument), cancellationToken);
