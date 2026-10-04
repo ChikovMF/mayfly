@@ -1,4 +1,5 @@
 using System.CommandLine.Parsing;
+using System.Globalization;
 using Mayfly.Terminal.Properties;
 
 namespace Mayfly.Terminal.Commands;
@@ -14,7 +15,7 @@ internal static class ServerAddress
             return uri;
         }
 
-        result.AddError(string.Format(Resources.InvalidServerAddress, value));
+        result.AddError(string.Format(CultureInfo.CurrentCulture, Resources.InvalidServerAddress, value));
         return null;
     }
 }

@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.CommandLine.Help;
 using System.CommandLine.Invocation;
+using System.Globalization;
 using Mayfly.Client;
 using Mayfly.Terminal.Commands.Config;
 using Mayfly.Terminal.Commands.Download;
@@ -52,7 +53,7 @@ internal sealed class MayflyRootCommand : RootCommand
         }
         catch (HttpRequestException ex)
         {
-            _output.Error(string.Format(Resources.CannotReachServer, ex.Message));
+            _output.Error(string.Format(CultureInfo.CurrentCulture, Resources.CannotReachServer, ex.Message));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {

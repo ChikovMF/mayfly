@@ -16,7 +16,7 @@ internal sealed class GetServerAction(IConfiguration configuration, ConsoleOutpu
             return 1;
         }
 
-        output.Value(server);
+        ConsoleOutput.Value(server);
         return 0;
     }
 }

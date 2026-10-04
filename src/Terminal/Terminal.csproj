@@ -6,6 +6,7 @@
         <RootNamespace>Mayfly.Terminal</RootNamespace>
         <Version>0.1.0</Version>
         <PublishAot>true</PublishAot>
+        <NeutralLanguage>en</NeutralLanguage>
         <SatelliteResourceLanguages>ru</SatelliteResourceLanguages>
     </PropertyGroup>
 

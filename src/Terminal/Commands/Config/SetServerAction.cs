@@ -1,3 +1,4 @@
+using System.Globalization;
 using Mayfly.Terminal.Configuration;
 using Mayfly.Terminal.Output;
 using Mayfly.Terminal.Properties;
@@ -10,7 +11,7 @@ internal sealed class SetServerAction(ConsoleOutput output)
     {
         ConfigFile.SaveServer(server);
 
-        output.Success(string.Format(Resources.ConfigServerSaved, server));
+        output.Success(string.Format(CultureInfo.CurrentCulture, Resources.ConfigServerSaved, server));
         return 0;
     }
 }

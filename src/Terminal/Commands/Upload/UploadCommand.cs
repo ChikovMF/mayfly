@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.Globalization;
 using Mayfly.Terminal.Configuration;
 using Mayfly.Terminal.Properties;
 using Microsoft.Extensions.Configuration;
@@ -16,7 +17,7 @@ internal sealed class UploadCommand : Command
         {
             if (result.GetValueOrDefault<FileInfo>() is { Exists: false } file)
             {
-                result.AddError(string.Format(Resources.UploadFileDoesNotExist, file));
+                result.AddError(string.Format(CultureInfo.CurrentCulture, Resources.UploadFileDoesNotExist, file));
             }
         });
 

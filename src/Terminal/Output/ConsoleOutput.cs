@@ -1,3 +1,4 @@
+using System.Globalization;
 using Mayfly.Terminal.Properties;
 
 namespace Mayfly.Terminal.Output;
@@ -11,11 +12,11 @@ internal sealed class ConsoleOutput
 
     private readonly bool _noColor = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("NO_COLOR"));
 
-    public bool IsRedirected => Console.IsOutputRedirected;
+    public static bool IsRedirected => Console.IsOutputRedirected;
 
-    public void Value(string value) => Console.Out.WriteLine(value);
+    public static void Value(string value) => Console.Out.WriteLine(value);
 
-    public void NewLine() => Console.Out.WriteLine();
+    public static void NewLine() => Console.Out.WriteLine();
 
     public void Success(string message) =>
         Console.Out.WriteLine($"{Paint("✓", Green, Console.IsOutputRedirected)} {message}");
@@ -57,7 +58,7 @@ internal sealed class ConsoleOutput
             unit++;
         }
 
-        return $"{value.ToString(unit == 0 ? "0" : "0.#")} {units[unit]}";
+        return $"{value.ToString(unit == 0 ? "0" : "0.#", CultureInfo.CurrentCulture)} {units[unit]}";
     }
 
     private string Paint(string text, string color, bool redirected) =>

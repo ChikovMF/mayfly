@@ -1,3 +1,4 @@
+using System.Globalization;
 using Mayfly.Client;
 using Mayfly.Terminal.Output;
 using Mayfly.Terminal.Properties;
@@ -11,14 +12,14 @@ internal sealed class InfoAction(IMayflyClient client, ConsoleOutput output)
         var info = await client.GetInfoAsync(id, cancellationToken);
         if (info is null)
         {
-            output.Error(string.Format(Resources.FileNotFound, id));
+            output.Error(string.Format(CultureInfo.CurrentCulture, Resources.FileNotFound, id));
             return 1;
         }
 
         var size = ConsoleOutput.FormatSize(info.Size);
         if (info.Size >= 1024)
         {
-            size = string.Format(Resources.InfoSizeInBytes, size, info.Size);
+            size = string.Format(CultureInfo.CurrentCulture, Resources.InfoSizeInBytes, size, info.Size);
         }
 
         output.Fields(
