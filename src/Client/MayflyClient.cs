@@ -22,7 +22,11 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
 
         using var form = new MultipartFormDataContent();
         form.Add(fileContent, "file", fileName);
-        using var response = await httpClient.PostAsync("api/files", form, cancellationToken);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "api/files");
+        request.Content = form;
+        request.Headers.ExpectContinue = true;
+        using var response = await httpClient.SendAsync(request, cancellationToken);
 
         await ThrowIfUnsuccessfulAsync(response, cancellationToken);
 
