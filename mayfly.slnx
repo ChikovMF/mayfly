@@ -15,6 +15,7 @@
     <Project Path="src/Server/Server.Infrastructure/Server.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Integration.Tests/Integration.Tests.csproj" />
     <Project Path="tests/Server.Tests/Server.Tests.csproj" />
   </Folder>
 </Solution>
