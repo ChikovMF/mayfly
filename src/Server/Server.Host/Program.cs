@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.StaticFiles;
 using Server.Application;
 using Server.Domain.Abstractions;
 using Server.Host;
@@ -14,6 +15,7 @@ builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = 
 builder.Services.Configure<FormOptions>(form => form.MultipartBodyLengthLimit = upload.MaxRequestBodySize);
 
 builder.Services.AddProblemDetails();
+builder.Services.AddSingleton<IContentTypeProvider, FileExtensionContentTypeProvider>();
 
 var app = builder.Build();
 

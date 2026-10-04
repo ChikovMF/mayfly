@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Net.Http.Headers;
 using Server.Application.GetFile;
 using Server.Application.GetFileInfo;
@@ -21,9 +23,10 @@ internal static class FilesEndpoints
         return app;
     }
 
-    private static async Task<IResult> UploadAsync(
+    internal static async Task<IResult> UploadAsync(
         IFormFile? file,
         ISaveFileHandler handler,
+        [FromServices] IContentTypeProvider contentTypeProvider,
         CancellationToken cancellationToken)
     {
         if (file is null)
@@ -38,8 +41,7 @@ internal static class FilesEndpoints
             errors.Add("The file name is not valid.");
         }
 
-        var contentTypeValue = string.IsNullOrEmpty(file.ContentType) ? DefaultContentType : file.ContentType;
-        if (!ContentType.TryParse(contentTypeValue, out var contentType))
+        if (!ContentType.TryParse(ResolveContentType(file, contentTypeProvider), out var contentType))
         {
             errors.Add("The content type is not valid.");
         }
@@ -98,6 +100,16 @@ internal static class FilesEndpoints
         WriteFileHeaders(response, info.FileName, info.ContentType, info.Size);
 
         return Results.Empty;
+    }
+
+    private static string ResolveContentType(IFormFile file, IContentTypeProvider contentTypeProvider)
+    {
+        if (!string.IsNullOrEmpty(file.ContentType))
+        {
+            return file.ContentType;
+        }
+
+        return contentTypeProvider.TryGetContentType(file.FileName, out var contentType) ? contentType : DefaultContentType;
     }
 
     private static void WriteFileHeaders(HttpResponse response, FileName fileName, ContentType contentType, FileSize size)
