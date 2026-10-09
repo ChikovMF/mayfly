@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using Mayfly.Client.Models;
 
 namespace Mayfly.Client;
@@ -39,8 +40,8 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
 
         await ThrowIfUnsuccessfulAsync(response, cancellationToken);
 
-        return await response.Content.ReadFromJsonAsync(JsonContext.Default.UploadedFile, cancellationToken)
-               ?? throw new InvalidOperationException("The server returned an empty response.");
+        return await TryReadJsonAsync(response.Content, JsonContext.Default.UploadedFile, cancellationToken)
+               ?? throw UnexpectedResponse(response, "The server returned an unexpected response.");
     }
 
     public async Task<RemoteFileInfo?> GetInfoAsync(string id, CancellationToken cancellationToken = default)
@@ -95,17 +96,41 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
         var fileName = disposition?.FileNameStar ?? disposition?.FileName?.Trim('"');
         if (fileName is null || headers.ContentType is null || headers.ContentLength is null)
         {
-            throw new InvalidOperationException("The server response does not describe the file.");
+            throw UnexpectedResponse(response, "The server response does not describe the file.");
         }
 
         DateTimeOffset? expiresAt = null;
         if (response.Headers.TryGetValues(ExpiresAtHeader, out var values))
         {
-            expiresAt = DateTimeOffset.Parse(values.First(), CultureInfo.InvariantCulture);
+            if (!DateTimeOffset.TryParse(values.First(), CultureInfo.InvariantCulture, out var parsed))
+            {
+                throw UnexpectedResponse(response, "The server response describes the file incorrectly.");
+            }
+
+            expiresAt = parsed;
         }
 
         return new RemoteFileInfo(fileName, headers.ContentType.ToString(), headers.ContentLength.Value, expiresAt);
     }
+
+    private static async Task<T?> TryReadJsonAsync<T>(
+        HttpContent content,
+        JsonTypeInfo<T> typeInfo,
+        CancellationToken cancellationToken)
+        where T : class
+    {
+        try
+        {
+            return await content.ReadFromJsonAsync(typeInfo, cancellationToken);
+        }
+        catch (Exception ex) when (ex is JsonException or NotSupportedException)
+        {
+            return null;
+        }
+    }
+
+    private static MayflyApiException UnexpectedResponse(HttpResponseMessage response, string message) =>
+        new(response.StatusCode, message, []);
 
     private static async Task ThrowIfUnsuccessfulAsync(HttpResponseMessage response, CancellationToken cancellationToken)
     {
@@ -114,15 +139,7 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
             return;
         }
 
-        ProblemDetails? problem = null;
-        try
-        {
-            problem = await response.Content.ReadFromJsonAsync(JsonContext.Default.ProblemDetails, cancellationToken);
-        }
-        catch (Exception ex) when (ex is JsonException or NotSupportedException)
-        {
-            // The body is not problem details (e.g. an error from a proxy); the status code is still reported.
-        }
+        var problem = await TryReadJsonAsync(response.Content, JsonContext.Default.ProblemDetails, cancellationToken);
 
         var message = problem?.Detail
                       ?? problem?.Title
