@@ -14,6 +14,9 @@ var upload = builder.Configuration.GetSection(UploadOptions.SectionName).Get<Upl
 builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = upload.MaxRequestBodySize);
 builder.Services.Configure<FormOptions>(form => form.MultipartBodyLengthLimit = upload.MaxRequestBodySize);
 
+builder.Services.Configure<CleanupOptions>(builder.Configuration.GetSection(CleanupOptions.SectionName));
+builder.Services.AddHostedService<ExpiredFilesCleanupService>();
+
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<BadHttpRequestExceptionHandler>();
 builder.Services.AddSingleton<IContentTypeProvider, FileExtensionContentTypeProvider>();

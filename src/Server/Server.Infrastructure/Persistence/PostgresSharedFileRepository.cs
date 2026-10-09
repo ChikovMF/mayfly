@@ -39,6 +39,25 @@ internal sealed class PostgresSharedFileRepository(NpgsqlDataSource dataSource) 
         return record?.ToDomain();
     }
 
+    public async Task<IReadOnlyList<ShareId>> GetExpiredIdsAsync(int limit, CancellationToken cancellationToken)
+    {
+        const string sql = """
+            SELECT id
+            FROM shared_files
+            WHERE expires_at <= now()
+            ORDER BY expires_at
+            LIMIT @Limit
+            """;
+
+        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        var ids = await connection.QueryAsync<string>(new CommandDefinition(
+            sql,
+            new { Limit = limit },
+            cancellationToken: cancellationToken));
+
+        return [.. ids.Select(ShareId.Parse)];
+    }
+
     public async Task DeleteAsync(ShareId id, CancellationToken cancellationToken)
     {
         const string sql = "DELETE FROM shared_files WHERE id = @Id";

@@ -8,5 +8,7 @@ public interface ISharedFileRepository
 
     Task<SharedFile?> GetAsync(ShareId id, CancellationToken cancellationToken);
 
+    Task<IReadOnlyList<ShareId>> GetExpiredIdsAsync(int limit, CancellationToken cancellationToken);
+
     Task DeleteAsync(ShareId id, CancellationToken cancellationToken);
 }
