@@ -20,7 +20,7 @@ internal sealed partial class ExpiredFilesCleanupService(
                 var handler = scope.ServiceProvider.GetRequiredService<IDeleteExpiredFilesHandler>();
                 await handler.HandleAsync(stoppingToken);
             }
-            catch (Exception exception) when (exception is not OperationCanceledException)
+            catch (Exception exception) when (!stoppingToken.IsCancellationRequested)
             {
                 LogCleanupFailed(exception);
             }
