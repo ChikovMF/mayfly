@@ -21,7 +21,15 @@ internal sealed class UploadCommand : Command
             }
         });
 
+        var expiresInOption = new Option<TimeSpan?>("--expires-in", "-e")
+        {
+            Description = Resources.UploadExpiresInOptionDescription,
+            HelpName = "period",
+            CustomParser = ExpirationPeriod.Parse,
+        };
+
         Arguments.Add(fileArgument);
+        Options.Add(expiresInOption);
         Options.Add(serverOption);
         Validators.Add(serverOption.ValidateAvailable);
 
@@ -33,7 +41,7 @@ internal sealed class UploadCommand : Command
             }
 
             return services.GetRequiredService<UploadAction>()
-                .ExecuteAsync(parseResult.GetRequiredValue(fileArgument), cancellationToken);
+                .ExecuteAsync(parseResult.GetRequiredValue(fileArgument), parseResult.GetValue(expiresInOption), cancellationToken);
         });
     }
 }

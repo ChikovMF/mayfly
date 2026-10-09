@@ -61,6 +61,9 @@ internal sealed class ConsoleOutput
         return $"{value.ToString(unit == 0 ? "0" : "0.#", CultureInfo.CurrentCulture)} {units[unit]}";
     }
 
+    public static string FormatDate(DateTimeOffset value) =>
+        value.ToLocalTime().ToString("g", CultureInfo.CurrentCulture);
+
     private string Paint(string text, string color, bool redirected) =>
         _noColor || redirected ? text : $"{color}{text}{Reset}";
 }

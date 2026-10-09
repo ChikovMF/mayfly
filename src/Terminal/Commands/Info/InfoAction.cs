@@ -22,10 +22,19 @@ internal sealed class InfoAction(IMayflyClient client, ConsoleOutput output)
             size = string.Format(CultureInfo.CurrentCulture, Resources.InfoSizeInBytes, size, info.Size);
         }
 
-        output.Fields(
+        var fields = new List<(string Label, string Value)>
+        {
             (Resources.InfoNameLabel, info.FileName),
             (Resources.InfoTypeLabel, info.ContentType),
-            (Resources.InfoSizeLabel, size));
+            (Resources.InfoSizeLabel, size),
+        };
+
+        if (info.ExpiresAt.HasValue)
+        {
+            fields.Add((Resources.ExpiresLabel, ConsoleOutput.FormatDate(info.ExpiresAt.Value)));
+        }
+
+        output.Fields([.. fields]);
         return 0;
     }
 }
