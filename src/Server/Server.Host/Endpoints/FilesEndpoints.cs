@@ -25,13 +25,14 @@ internal static class FilesEndpoints
 
     private static async Task<IResult> UploadAsync(
         IFormFile? file,
-        ISaveFileHandler handler,
+        [FromForm] DateTimeOffset? expiresAt,
+        [FromServices] ISaveFileHandler handler,
         [FromServices] IContentTypeProvider contentTypeProvider,
         CancellationToken cancellationToken)
     {
         if (file is null)
         {
-            return ValidationError("A file is required.");
+            return ValidationError("file", "A file is required.");
         }
 
         var errors = new List<string>();
@@ -48,13 +49,18 @@ internal static class FilesEndpoints
 
         if (fileName is null || contentType is null)
         {
-            return ValidationError([.. errors]);
+            return ValidationError("file", [.. errors]);
+        }
+
+        if (expiresAt <= DateTimeOffset.UtcNow)
+        {
+            return ValidationError("expiresAt", "The expiration must be in the future.");
         }
 
         await using var content = file.OpenReadStream();
-        var id = await handler.HandleAsync(new SaveFileCommand(fileName, contentType, content), cancellationToken);
+        var id = await handler.HandleAsync(new SaveFileCommand(fileName, contentType, content, expiresAt), cancellationToken);
 
-        return Results.Created($"/api/files/{id}", new FileUploadedResponse(id.ToString()));
+        return Results.Created($"/api/files/{id}", new FileUploadedResponse(id.ToString(), expiresAt));
     }
 
     private static async Task<IResult> DownloadAsync(
@@ -122,6 +128,6 @@ internal static class FilesEndpoints
         response.Headers.ContentDisposition = contentDisposition.ToString();
     }
 
-    private static IResult ValidationError(params string[] messages) =>
-        Results.ValidationProblem(new Dictionary<string, string[]> { ["file"] = messages });
+    private static IResult ValidationError(string field, params string[] messages) =>
+        Results.ValidationProblem(new Dictionary<string, string[]> { [field] = messages });
 }
