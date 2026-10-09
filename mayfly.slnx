@@ -18,5 +18,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/Integration.Tests/Integration.Tests.csproj" />
     <Project Path="tests/Server.Tests/Server.Tests.csproj" />
+    <Project Path="tests/Terminal.Tests/Terminal.Tests.csproj" />
   </Folder>
 </Solution>
