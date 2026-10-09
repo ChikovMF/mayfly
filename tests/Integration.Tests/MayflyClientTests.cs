@@ -40,4 +40,19 @@ public sealed class MayflyClientTests(MayflyFactory factory)
         await file.Content.CopyToAsync(downloaded);
         Assert.Equal(content, downloaded.ToArray());
     }
+
+    [Fact]
+    public async Task GetInfoAsync_FileUploadedWithExpiration_ReturnsExpiration()
+    {
+        // Arrange
+        var expiresAt = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(2), TimeSpan.Zero);
+        var uploaded = await _client.UploadAsync(new MemoryStream("Hello, Mayfly!"u8.ToArray()), "hello.txt", expiresAt: expiresAt);
+
+        // Act
+        var info = await _client.GetInfoAsync(uploaded.Id);
+
+        // Assert
+        Assert.NotNull(info);
+        Assert.Equal(expiresAt, info.ExpiresAt);
+    }
 }
