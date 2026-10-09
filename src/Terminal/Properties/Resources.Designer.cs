@@ -184,6 +184,15 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expires.
+        /// </summary>
+        internal static string ExpiresLabel {
+            get {
+                return ResourceManager.GetString("ExpiresLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File ID..
         /// </summary>
         internal static string FileIdArgumentDescription {
@@ -261,6 +270,15 @@ namespace Mayfly.Terminal.Properties {
         internal static string InvalidServerAddress {
             get {
                 return ResourceManager.GetString("InvalidServerAddress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid expiration '{0}'. Use a positive number and a unit: s, m, h or d (for example, 30m or 7d).
+        /// </summary>
+        internal static string InvalidExpiresIn {
+            get {
+                return ResourceManager.GetString("InvalidExpiresIn", resourceCulture);
             }
         }
         
@@ -351,6 +369,15 @@ namespace Mayfly.Terminal.Properties {
         internal static string UploadDescription {
             get {
                 return ResourceManager.GetString("UploadDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to How long to keep the file: a number and a unit s, m, h or d (for example, 30m, 12h, 7d). By default the file is kept forever.
+        /// </summary>
+        internal static string UploadExpiresInOptionDescription {
+            get {
+                return ResourceManager.GetString("UploadExpiresInOptionDescription", resourceCulture);
             }
         }
         

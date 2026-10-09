@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Server.Application.DeleteExpiredFiles;
 using Server.Application.GetFile;
 using Server.Application.GetFileInfo;
 using Server.Application.SaveFile;
@@ -9,6 +10,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        services.AddScoped<IDeleteExpiredFilesHandler, DeleteExpiredFilesHandler>();
         services.AddScoped<IGetFileHandler, GetFileHandler>();
         services.AddScoped<IGetFileInfoHandler, GetFileInfoHandler>();
         services.AddScoped<ISaveFileHandler, SaveFileHandler>();

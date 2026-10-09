@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Options;
 using Server.Application;
 using Server.Domain.Abstractions;
 using Server.Host;
@@ -14,7 +15,14 @@ var upload = builder.Configuration.GetSection(UploadOptions.SectionName).Get<Upl
 builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = upload.MaxRequestBodySize);
 builder.Services.Configure<FormOptions>(form => form.MultipartBodyLengthLimit = upload.MaxRequestBodySize);
 
+builder.Services.AddOptions<CleanupOptions>()
+    .Bind(builder.Configuration.GetSection(CleanupOptions.SectionName))
+    .ValidateOnStart();
+builder.Services.AddSingleton<IValidateOptions<CleanupOptions>, CleanupOptionsValidator>();
+builder.Services.AddHostedService<ExpiredFilesCleanupService>();
+
 builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<BadHttpRequestExceptionHandler>();
 builder.Services.AddSingleton<IContentTypeProvider, FileExtensionContentTypeProvider>();
 
 var app = builder.Build();

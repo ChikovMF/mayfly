@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Net.Http.Headers;
@@ -11,6 +12,7 @@ namespace Server.Host.Endpoints;
 internal static class FilesEndpoints
 {
     private const string DefaultContentType = "application/octet-stream";
+    private const string ExpiresAtHeader = "Mayfly-Expires-At";
 
     public static IEndpointRouteBuilder MapFilesEndpoints(this IEndpointRouteBuilder app)
     {
@@ -25,13 +27,14 @@ internal static class FilesEndpoints
 
     private static async Task<IResult> UploadAsync(
         IFormFile? file,
-        ISaveFileHandler handler,
+        [FromForm] DateTimeOffset? expiresAt,
+        [FromServices] ISaveFileHandler handler,
         [FromServices] IContentTypeProvider contentTypeProvider,
         CancellationToken cancellationToken)
     {
         if (file is null)
         {
-            return ValidationError("A file is required.");
+            return ValidationError("file", "A file is required.");
         }
 
         var errors = new List<string>();
@@ -48,13 +51,18 @@ internal static class FilesEndpoints
 
         if (fileName is null || contentType is null)
         {
-            return ValidationError([.. errors]);
+            return ValidationError("file", [.. errors]);
+        }
+
+        if (expiresAt <= DateTimeOffset.UtcNow)
+        {
+            return ValidationError("expiresAt", "The expiration must be in the future.");
         }
 
         await using var content = file.OpenReadStream();
-        var id = await handler.HandleAsync(new SaveFileCommand(fileName, contentType, content), cancellationToken);
+        var id = await handler.HandleAsync(new SaveFileCommand(fileName, contentType, content, expiresAt), cancellationToken);
 
-        return Results.Created($"/api/files/{id}", new FileUploadedResponse(id.ToString()));
+        return Results.Created($"/api/files/{id}", new FileUploadedResponse(id.ToString(), expiresAt));
     }
 
     private static async Task<IResult> DownloadAsync(
@@ -74,7 +82,7 @@ internal static class FilesEndpoints
             return Results.NotFound();
         }
 
-        WriteFileHeaders(response, file.FileName, file.ContentType, file.Size);
+        WriteFileHeaders(response, file.FileName, file.ContentType, file.Size, file.ExpiresAt);
         await file.CopyContentToAsync(response.Body, cancellationToken);
 
         return Results.Empty;
@@ -97,7 +105,7 @@ internal static class FilesEndpoints
             return Results.NotFound();
         }
 
-        WriteFileHeaders(response, info.FileName, info.ContentType, info.Size);
+        WriteFileHeaders(response, info.FileName, info.ContentType, info.Size, info.ExpiresAt);
 
         return Results.Empty;
     }
@@ -112,7 +120,12 @@ internal static class FilesEndpoints
         return contentTypeProvider.TryGetContentType(file.FileName, out var contentType) ? contentType : DefaultContentType;
     }
 
-    private static void WriteFileHeaders(HttpResponse response, FileName fileName, ContentType contentType, FileSize size)
+    private static void WriteFileHeaders(
+        HttpResponse response,
+        FileName fileName,
+        ContentType contentType,
+        FileSize size,
+        DateTimeOffset? expiresAt)
     {
         var contentDisposition = new ContentDispositionHeaderValue("attachment");
         contentDisposition.SetHttpFileName(fileName.ToString());
@@ -120,8 +133,13 @@ internal static class FilesEndpoints
         response.ContentType = contentType.ToString();
         response.ContentLength = size.Bytes;
         response.Headers.ContentDisposition = contentDisposition.ToString();
+
+        if (expiresAt.HasValue)
+        {
+            response.Headers[ExpiresAtHeader] = expiresAt.Value.UtcDateTime.ToString("O", CultureInfo.InvariantCulture);
+        }
     }
 
-    private static IResult ValidationError(params string[] messages) =>
-        Results.ValidationProblem(new Dictionary<string, string[]> { ["file"] = messages });
+    private static IResult ValidationError(string field, params string[] messages) =>
+        Results.ValidationProblem(new Dictionary<string, string[]> { [field] = messages });
 }

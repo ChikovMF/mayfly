@@ -81,4 +81,48 @@ public class GetFileHandlerTests
         // Assert
         Assert.Null(result);
     }
+
+    [Fact]
+    public async Task HandleAsync_FileExpired_ReturnsNull()
+    {
+        // Arrange
+        var id = ShareId.New();
+        var file = new SharedFile(
+            id,
+            FileName.Parse("report.pdf"),
+            ContentType.Parse("application/pdf"),
+            FileSize.Parse(5),
+            DateTimeOffset.UtcNow.AddMinutes(-1));
+        _repository.GetAsync(id, CancellationToken.None).Returns(file);
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task HandleAsync_FileWithExpiration_ReturnsExpiresAt()
+    {
+        // Arrange
+        var id = ShareId.New();
+        var expiresAt = DateTimeOffset.UtcNow.AddHours(1);
+        var file = new SharedFile(
+            id,
+            FileName.Parse("report.pdf"),
+            ContentType.Parse("application/pdf"),
+            FileSize.Parse(5),
+            expiresAt);
+        _repository.GetAsync(id, CancellationToken.None).Returns(file);
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(expiresAt, result.ExpiresAt);
+    }
 }

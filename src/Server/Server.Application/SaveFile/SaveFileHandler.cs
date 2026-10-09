@@ -15,7 +15,7 @@ internal sealed class SaveFileHandler(ISharedFileRepository repository, IFileSto
 
         var id = ShareId.New();
         var size = FileSize.Parse(command.Content.Length - command.Content.Position);
-        var file = new SharedFile(id, command.FileName, command.ContentType, size);
+        var file = new SharedFile(id, command.FileName, command.ContentType, size, command.ExpiresAt);
 
         await repository.AddAsync(file, cancellationToken);
 

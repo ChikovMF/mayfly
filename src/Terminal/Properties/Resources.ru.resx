@@ -123,4 +123,13 @@
   <data name="SizeUnitTerabytes" xml:space="preserve">
     <value>ТБ</value>
   </data>
+  <data name="ExpiresLabel" xml:space="preserve">
+    <value>Истекает</value>
+  </data>
+  <data name="InvalidExpiresIn" xml:space="preserve">
+    <value>Некорректный срок хранения '{0}'. Укажите положительное число и единицу: s, m, h или d (например, 30m или 7d).</value>
+  </data>
+  <data name="UploadExpiresInOptionDescription" xml:space="preserve">
+    <value>Время хранения файла: число и единица s, m, h или d (например, 30m, 12h, 7d). По умолчанию файл хранится бессрочно.</value>
+  </data>
 </root>

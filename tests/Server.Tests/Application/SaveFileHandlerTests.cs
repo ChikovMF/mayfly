@@ -48,6 +48,33 @@ public class SaveFileHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_ExpiresAtGiven_AddsFileWithGivenExpiration()
+    {
+        // Arrange
+        var expiresAt = DateTimeOffset.UtcNow.AddHours(1);
+        var command = CreateCommand(new MemoryStream(), expiresAt);
+
+        // Act
+        await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        await _repository.Received(1).AddAsync(Arg.Is<SharedFile>(f => f.ExpiresAt == expiresAt), CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ExpiresAtNotGiven_AddsFileWithoutExpiration()
+    {
+        // Arrange
+        var command = CreateCommand(new MemoryStream());
+
+        // Act
+        await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        await _repository.Received(1).AddAsync(Arg.Is<SharedFile>(f => f.ExpiresAt == null), CancellationToken.None);
+    }
+
+    [Fact]
     public async Task HandleAsync_NonSeekableContent_ThrowsArgumentException()
     {
         // Arrange
@@ -91,6 +118,6 @@ public class SaveFileHandlerTests
         await _repository.Received(1).DeleteAsync(added!.Id, Arg.Any<CancellationToken>());
     }
 
-    private static SaveFileCommand CreateCommand(Stream content) =>
-        new(FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), content);
+    private static SaveFileCommand CreateCommand(Stream content, DateTimeOffset? expiresAt = null) =>
+        new(FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), content, expiresAt);
 }
