@@ -19,5 +19,5 @@ public sealed class SharedFile(
 
     public DateTimeOffset? ExpiresAt { get; } = expiresAt;
 
-    public bool IsExpired(DateTimeOffset now) => ExpiresAt <= now;
+    public bool IsExpired() => ExpiresAt <= DateTimeOffset.UtcNow;
 }
