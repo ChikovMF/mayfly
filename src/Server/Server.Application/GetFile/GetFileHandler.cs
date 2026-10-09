@@ -21,6 +21,7 @@ internal sealed class GetFileHandler(ISharedFileRepository repository, IFileStor
             file.FileName,
             file.ContentType,
             file.Size,
+            file.ExpiresAt,
             (destination, ct) => storage.CopyToAsync(query.Id, destination, ct));
     }
 }

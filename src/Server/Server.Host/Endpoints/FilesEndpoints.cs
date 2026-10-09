@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Net.Http.Headers;
@@ -11,6 +12,7 @@ namespace Server.Host.Endpoints;
 internal static class FilesEndpoints
 {
     private const string DefaultContentType = "application/octet-stream";
+    private const string ExpiresAtHeader = "Mayfly-Expires-At";
 
     public static IEndpointRouteBuilder MapFilesEndpoints(this IEndpointRouteBuilder app)
     {
@@ -80,7 +82,7 @@ internal static class FilesEndpoints
             return Results.NotFound();
         }
 
-        WriteFileHeaders(response, file.FileName, file.ContentType, file.Size);
+        WriteFileHeaders(response, file.FileName, file.ContentType, file.Size, file.ExpiresAt);
         await file.CopyContentToAsync(response.Body, cancellationToken);
 
         return Results.Empty;
@@ -103,7 +105,7 @@ internal static class FilesEndpoints
             return Results.NotFound();
         }
 
-        WriteFileHeaders(response, info.FileName, info.ContentType, info.Size);
+        WriteFileHeaders(response, info.FileName, info.ContentType, info.Size, info.ExpiresAt);
 
         return Results.Empty;
     }
@@ -118,7 +120,12 @@ internal static class FilesEndpoints
         return contentTypeProvider.TryGetContentType(file.FileName, out var contentType) ? contentType : DefaultContentType;
     }
 
-    private static void WriteFileHeaders(HttpResponse response, FileName fileName, ContentType contentType, FileSize size)
+    private static void WriteFileHeaders(
+        HttpResponse response,
+        FileName fileName,
+        ContentType contentType,
+        FileSize size,
+        DateTimeOffset? expiresAt)
     {
         var contentDisposition = new ContentDispositionHeaderValue("attachment");
         contentDisposition.SetHttpFileName(fileName.ToString());
@@ -126,6 +133,11 @@ internal static class FilesEndpoints
         response.ContentType = contentType.ToString();
         response.ContentLength = size.Bytes;
         response.Headers.ContentDisposition = contentDisposition.ToString();
+
+        if (expiresAt.HasValue)
+        {
+            response.Headers[ExpiresAtHeader] = expiresAt.Value.UtcDateTime.ToString("O", CultureInfo.InvariantCulture);
+        }
     }
 
     private static IResult ValidationError(string field, params string[] messages) =>

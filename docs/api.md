@@ -85,6 +85,7 @@ GET /api/files/{id}
 | `Content-Type` | MIME-тип файла |
 | `Content-Length` | Размер файла в байтах |
 | `Content-Disposition` | `attachment` с именем файла |
+| `Mayfly-Expires-At` | Момент, после которого файл недоступен (ISO 8601, UTC). Только для файлов с ограниченным сроком хранения |
 
 ---
 
@@ -114,6 +115,7 @@ HEAD /api/files/{id}
 | `Content-Type` | MIME-тип файла |
 | `Content-Length` | Размер файла в байтах |
 | `Content-Disposition` | `attachment` с именем файла |
+| `Mayfly-Expires-At` | Момент, после которого файл недоступен (ISO 8601, UTC). Только для файлов с ограниченным сроком хранения |
 
 ---
 

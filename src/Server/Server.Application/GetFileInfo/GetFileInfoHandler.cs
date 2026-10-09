@@ -12,6 +12,6 @@ internal sealed class GetFileInfoHandler(ISharedFileRepository repository, IFile
             return null;
         }
 
-        return new GetFileInfoResult(file.FileName, file.ContentType, file.Size);
+        return new GetFileInfoResult(file.FileName, file.ContentType, file.Size, file.ExpiresAt);
     }
 }
