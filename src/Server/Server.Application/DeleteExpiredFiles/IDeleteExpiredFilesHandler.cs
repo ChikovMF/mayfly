@@ -2,5 +2,5 @@ namespace Server.Application.DeleteExpiredFiles;
 
 public interface IDeleteExpiredFilesHandler
 {
-    Task HandleAsync(CancellationToken cancellationToken);
+    Task HandleAsync(DeleteExpiredFilesCommand command, CancellationToken cancellationToken);
 }

@@ -18,15 +18,16 @@ public class DeleteExpiredFilesHandlerTests
         NullLogger<DeleteExpiredFilesHandler>.Instance);
 
     [Fact]
-    public async Task HandleAsync_ExpiredFilesExist_DeletesContentBeforeRecord()
+    public async Task HandleAsync_ExpiredFileClaimed_DeletesContentBeforeRecord()
     {
         // Arrange
         var id = ShareId.New();
-        IReadOnlyList<ShareId> noMoreExpired = [];
-        _repository.GetExpiredIdsAsync(Arg.Any<int>(), CancellationToken.None).Returns([id], noMoreExpired);
+        IReadOnlyList<ExpiredFileClaim> claimed = [new ExpiredFileClaim(id, 0)];
+        IReadOnlyList<ExpiredFileClaim> noMoreClaimed = [];
+        _repository.ClaimExpiredAsync(default, default, default, default).ReturnsForAnyArgs(claimed, noMoreClaimed);
 
         // Act
-        await _handler.HandleAsync(CancellationToken.None);
+        await _handler.HandleAsync(CreateCommand(), CancellationToken.None);
 
         // Assert
         Received.InOrder(() =>
@@ -37,13 +38,33 @@ public class DeleteExpiredFilesHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_ValidCommand_ClaimsWithCommandLeaseAndMaxAttempts()
+    {
+        // Arrange
+        var command = new DeleteExpiredFilesCommand(TimeSpan.FromMinutes(7), 3);
+        IReadOnlyList<ExpiredFileClaim> noneClaimed = [];
+        _repository.ClaimExpiredAsync(default, default, default, default).ReturnsForAnyArgs(noneClaimed);
+
+        // Act
+        await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        await _repository.Received(1).ClaimExpiredAsync(
+            Arg.Any<int>(),
+            command.Lease,
+            command.MaxAttempts,
+            CancellationToken.None);
+    }
+
+    [Fact]
     public async Task HandleAsync_NoExpiredFiles_DeletesNothing()
     {
         // Arrange
-        _repository.GetExpiredIdsAsync(Arg.Any<int>(), CancellationToken.None).Returns([]);
+        IReadOnlyList<ExpiredFileClaim> noneClaimed = [];
+        _repository.ClaimExpiredAsync(default, default, default, default).ReturnsForAnyArgs(noneClaimed);
 
         // Act
-        await _handler.HandleAsync(CancellationToken.None);
+        await _handler.HandleAsync(CreateCommand(), CancellationToken.None);
 
         // Assert
         await _storage.DidNotReceiveWithAnyArgs().DeleteAsync(default!, default);
@@ -51,18 +72,64 @@ public class DeleteExpiredFilesHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_StorageDeleteFails_KeepsRecord()
+    public async Task HandleAsync_DeletionFails_PostponesFileAndKeepsRecord()
     {
         // Arrange
         var id = ShareId.New();
-        _repository.GetExpiredIdsAsync(Arg.Any<int>(), CancellationToken.None).Returns([id]);
+        IReadOnlyList<ExpiredFileClaim> claimed = [new ExpiredFileClaim(id, 0)];
+        IReadOnlyList<ExpiredFileClaim> noMoreClaimed = [];
+        _repository.ClaimExpiredAsync(default, default, default, default).ReturnsForAnyArgs(claimed, noMoreClaimed);
         _storage.DeleteAsync(id, CancellationToken.None).Returns(Task.FromException(new IOException()));
 
         // Act
-        var act = () => _handler.HandleAsync(CancellationToken.None);
+        await _handler.HandleAsync(CreateCommand(), CancellationToken.None);
 
         // Assert
-        await Assert.ThrowsAsync<IOException>(act);
+        await _repository.Received(1).PostponeDeletionAsync(id, Arg.Any<TimeSpan>(), CancellationToken.None);
         await _repository.DidNotReceiveWithAnyArgs().DeleteAsync(default!, default);
     }
+
+    [Fact]
+    public async Task HandleAsync_DeletionFails_DeletesNextFile()
+    {
+        // Arrange
+        var failing = ShareId.New();
+        var next = ShareId.New();
+        IReadOnlyList<ExpiredFileClaim> claimed = [new ExpiredFileClaim(failing, 0), new ExpiredFileClaim(next, 0)];
+        IReadOnlyList<ExpiredFileClaim> noMoreClaimed = [];
+        _repository.ClaimExpiredAsync(default, default, default, default).ReturnsForAnyArgs(claimed, noMoreClaimed);
+        _storage.DeleteAsync(failing, CancellationToken.None).Returns(Task.FromException(new IOException()));
+
+        // Act
+        await _handler.HandleAsync(CreateCommand(), CancellationToken.None);
+
+        // Assert
+        await _repository.Received(1).DeleteAsync(next, CancellationToken.None);
+    }
+
+    [Theory]
+    [InlineData(0, 1)]
+    [InlineData(1, 2)]
+    [InlineData(3, 8)]
+    [InlineData(30, 24 * 60)]
+    public async Task HandleAsync_DeletionFails_PostponesByGrowingDelay(int failedAttempts, int expectedMinutes)
+    {
+        // Arrange
+        var id = ShareId.New();
+        IReadOnlyList<ExpiredFileClaim> claimed = [new ExpiredFileClaim(id, failedAttempts)];
+        IReadOnlyList<ExpiredFileClaim> noMoreClaimed = [];
+        _repository.ClaimExpiredAsync(default, default, default, default).ReturnsForAnyArgs(claimed, noMoreClaimed);
+        _storage.DeleteAsync(id, CancellationToken.None).Returns(Task.FromException(new IOException()));
+
+        // Act
+        await _handler.HandleAsync(CreateCommand(), CancellationToken.None);
+
+        // Assert
+        await _repository.Received(1).PostponeDeletionAsync(
+            id,
+            TimeSpan.FromMinutes(expectedMinutes),
+            CancellationToken.None);
+    }
+
+    private static DeleteExpiredFilesCommand CreateCommand() => new(TimeSpan.FromMinutes(5), 10);
 }

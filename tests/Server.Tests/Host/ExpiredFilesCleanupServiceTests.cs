@@ -15,7 +15,7 @@ public class ExpiredFilesCleanupServiceTests
         // Arrange
         var secondRun = new TaskCompletionSource();
         var handler = Substitute.For<IDeleteExpiredFilesHandler>();
-        handler.HandleAsync(Arg.Any<CancellationToken>()).Returns(
+        handler.HandleAsync(Arg.Any<DeleteExpiredFilesCommand>(), Arg.Any<CancellationToken>()).Returns(
             _ => Task.FromException(new TaskCanceledException()),
             _ =>
             {

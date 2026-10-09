@@ -11,6 +11,7 @@ internal sealed partial class ExpiredFilesCleanupService(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var timer = new PeriodicTimer(options.Value.Interval);
+        var command = new DeleteExpiredFilesCommand(options.Value.Lease, options.Value.MaxAttempts);
 
         do
         {
@@ -18,7 +19,7 @@ internal sealed partial class ExpiredFilesCleanupService(
             {
                 await using var scope = scopeFactory.CreateAsyncScope();
                 var handler = scope.ServiceProvider.GetRequiredService<IDeleteExpiredFilesHandler>();
-                await handler.HandleAsync(stoppingToken);
+                await handler.HandleAsync(command, stoppingToken);
             }
             catch (Exception exception) when (!stoppingToken.IsCancellationRequested)
             {
