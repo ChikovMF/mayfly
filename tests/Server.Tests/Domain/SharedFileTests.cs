@@ -23,4 +23,50 @@ public class SharedFileTests
         Assert.Same(contentType, file.ContentType);
         Assert.Same(size, file.Size);
     }
+
+    [Fact]
+    public void IsExpired_NoExpiration_ReturnsFalse()
+    {
+        // Arrange
+        var file = CreateFile(expiresAt: null);
+
+        // Act
+        var result = file.IsExpired();
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void IsExpired_ExpirationInFuture_ReturnsFalse()
+    {
+        // Arrange
+        var file = CreateFile(DateTimeOffset.UtcNow.AddMinutes(1));
+
+        // Act
+        var result = file.IsExpired();
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void IsExpired_ExpirationInPast_ReturnsTrue()
+    {
+        // Arrange
+        var file = CreateFile(DateTimeOffset.UtcNow.AddMinutes(-1));
+
+        // Act
+        var result = file.IsExpired();
+
+        // Assert
+        Assert.True(result);
+    }
+
+    private static SharedFile CreateFile(DateTimeOffset? expiresAt) => new(
+        ShareId.New(),
+        FileName.Parse("report.pdf"),
+        ContentType.Parse("application/pdf"),
+        FileSize.Parse(1024),
+        expiresAt);
 }
