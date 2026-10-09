@@ -20,7 +20,7 @@ public sealed class MayflyClientTests(MayflyFactory factory)
         var info = await _client.GetInfoAsync(uploaded.Id);
 
         // Assert
-        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length), info);
+        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null), info);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public sealed class MayflyClientTests(MayflyFactory factory)
 
         // Assert
         Assert.NotNull(file);
-        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length), file.Info);
+        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null), file.Info);
         using var downloaded = new MemoryStream();
         await file.Content.CopyToAsync(downloaded);
         Assert.Equal(content, downloaded.ToArray());

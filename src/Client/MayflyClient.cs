@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -9,10 +10,13 @@ namespace Mayfly.Client;
 
 internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClient
 {
+    private const string ExpiresAtHeader = "Mayfly-Expires-At";
+
     public async Task<UploadedFile> UploadAsync(
         Stream content,
         string fileName,
         string? contentType = null,
+        DateTimeOffset? expiresAt = null,
         CancellationToken cancellationToken = default)
     {
         var mediaType = contentType is null ? null : MediaTypeHeaderValue.Parse(contentType);
@@ -22,6 +26,11 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
 
         using var form = new MultipartFormDataContent();
         form.Add(fileContent, "file", fileName);
+
+        if (expiresAt.HasValue)
+        {
+            form.Add(new StringContent(expiresAt.Value.ToString("O", CultureInfo.InvariantCulture)), "expiresAt");
+        }
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "api/files");
         request.Content = form;
@@ -89,7 +98,13 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
             throw new InvalidOperationException("The server response does not describe the file.");
         }
 
-        return new RemoteFileInfo(fileName, headers.ContentType.ToString(), headers.ContentLength.Value);
+        DateTimeOffset? expiresAt = null;
+        if (response.Headers.TryGetValues(ExpiresAtHeader, out var values))
+        {
+            expiresAt = DateTimeOffset.Parse(values.First(), CultureInfo.InvariantCulture);
+        }
+
+        return new RemoteFileInfo(fileName, headers.ContentType.ToString(), headers.ContentLength.Value, expiresAt);
     }
 
     private static async Task ThrowIfUnsuccessfulAsync(HttpResponseMessage response, CancellationToken cancellationToken)
