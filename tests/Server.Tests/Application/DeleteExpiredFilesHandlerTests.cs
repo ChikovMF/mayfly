@@ -22,7 +22,8 @@ public class DeleteExpiredFilesHandlerTests
     {
         // Arrange
         var id = ShareId.New();
-        _repository.GetExpiredIdsAsync(Arg.Any<int>(), CancellationToken.None).Returns([id], []);
+        IReadOnlyList<ShareId> noMoreExpired = [];
+        _repository.GetExpiredIdsAsync(Arg.Any<int>(), CancellationToken.None).Returns([id], noMoreExpired);
 
         // Act
         await _handler.HandleAsync(CancellationToken.None);
