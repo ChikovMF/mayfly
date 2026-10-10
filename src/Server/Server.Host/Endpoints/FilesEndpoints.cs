@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Net.Http.Headers;
@@ -13,6 +14,7 @@ internal static class FilesEndpoints
 {
     private const string DefaultContentType = "application/octet-stream";
     private const string ExpiresAtHeader = "Mayfly-Expires-At";
+    private const string PasswordHeader = "Mayfly-Password";
 
     public static IEndpointRouteBuilder MapFilesEndpoints(this IEndpointRouteBuilder app)
     {
@@ -28,6 +30,7 @@ internal static class FilesEndpoints
     private static async Task<IResult> UploadAsync(
         IFormFile? file,
         [FromForm] DateTimeOffset? expiresAt,
+        [FromForm] string? password,
         [FromServices] ISaveFileHandler handler,
         [FromServices] IContentTypeProvider contentTypeProvider,
         CancellationToken cancellationToken)
@@ -59,14 +62,23 @@ internal static class FilesEndpoints
             return ValidationError("expiresAt", "The expiration must be in the future.");
         }
 
+        Password? filePassword = null;
+        if (password is not null && !Password.TryParse(password, out filePassword))
+        {
+            return ValidationError("password", "The password is not valid.");
+        }
+
         await using var content = file.OpenReadStream();
-        var id = await handler.HandleAsync(new SaveFileCommand(fileName, contentType, content, expiresAt), cancellationToken);
+        var id = await handler.HandleAsync(
+            new SaveFileCommand(fileName, contentType, content, expiresAt, filePassword),
+            cancellationToken);
 
         return Results.Created($"/api/files/{id}", new FileUploadedResponse(id.ToString(), expiresAt));
     }
 
     private static async Task<IResult> DownloadAsync(
         string id,
+        [FromHeader(Name = PasswordHeader)] string? password,
         IGetFileHandler handler,
         HttpResponse response,
         CancellationToken cancellationToken)
@@ -76,7 +88,7 @@ internal static class FilesEndpoints
             return Results.NotFound();
         }
 
-        var result = await handler.HandleAsync(new GetFileQuery(shareId), cancellationToken);
+        var result = await handler.HandleAsync(new GetFileQuery(shareId, ReadPassword(password)), cancellationToken);
         switch (result)
         {
             case GetFileResult.Found file:
@@ -92,6 +104,7 @@ internal static class FilesEndpoints
 
     private static async Task<IResult> GetInfoAsync(
         string id,
+        [FromHeader(Name = PasswordHeader)] string? password,
         IGetFileInfoHandler handler,
         HttpResponse response,
         CancellationToken cancellationToken)
@@ -101,7 +114,7 @@ internal static class FilesEndpoints
             return Results.NotFound();
         }
 
-        var result = await handler.HandleAsync(new GetFileInfoQuery(shareId), cancellationToken);
+        var result = await handler.HandleAsync(new GetFileInfoQuery(shareId, ReadPassword(password)), cancellationToken);
         switch (result)
         {
             case GetFileInfoResult.Found info:
@@ -122,6 +135,22 @@ internal static class FilesEndpoints
         }
 
         return contentTypeProvider.TryGetContentType(file.FileName, out var contentType) ? contentType : DefaultContentType;
+    }
+
+    private static Password? ReadPassword(string? header)
+    {
+        if (header is null)
+        {
+            return null;
+        }
+
+        var bytes = new byte[header.Length];
+        if (!Convert.TryFromBase64String(header, bytes, out var written))
+        {
+            return null;
+        }
+
+        return Password.TryParse(Encoding.UTF8.GetString(bytes, 0, written), out var password) ? password : null;
     }
 
     private static void WriteFileHeaders(
