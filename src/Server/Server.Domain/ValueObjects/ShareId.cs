@@ -6,9 +6,7 @@ namespace Server.Domain.ValueObjects;
 
 public sealed record ShareId
 {
-    private const int MinLength = 8;
-    private const int MaxLength = 16;
-    private const int DefaultLength = 10;
+    private const int Length = 10;
 
     private const string Alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
     private static readonly SearchValues<char> AlphabetValues = SearchValues.Create(Alphabet);
@@ -17,7 +15,7 @@ public sealed record ShareId
 
     private ShareId(string value) => _value = value;
 
-    public static ShareId New() => new(RandomNumberGenerator.GetString(Alphabet, DefaultLength));
+    public static ShareId New() => new(RandomNumberGenerator.GetString(Alphabet, Length));
 
     /// <exception cref="ArgumentNullException"><paramref name="s"/> is <see langword="null"/>.</exception>
     /// <exception cref="FormatException"><paramref name="s"/> is not a valid share id.</exception>
@@ -31,7 +29,7 @@ public sealed record ShareId
 
     public static bool TryParse([NotNullWhen(true)] string? s, [MaybeNullWhen(false)] out ShareId result)
     {
-        if (s is null || s.Length is < MinLength or > MaxLength || s.AsSpan().ContainsAnyExcept(AlphabetValues))
+        if (s is null || s.Length != Length || s.AsSpan().ContainsAnyExcept(AlphabetValues))
         {
             result = null;
             return false;

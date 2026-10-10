@@ -4,7 +4,8 @@ namespace Server.Domain.Abstractions;
 
 public interface ISharedFileRepository
 {
-    Task AddAsync(SharedFile file, CancellationToken cancellationToken);
+    /// <returns><see langword="false"/> if a file with the same id already exists.</returns>
+    Task<bool> AddAsync(SharedFile file, CancellationToken cancellationToken);
 
     Task<SharedFile?> GetAsync(ShareId id, CancellationToken cancellationToken);
 

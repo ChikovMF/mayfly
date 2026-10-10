@@ -8,18 +8,21 @@ namespace Server.Infrastructure.Persistence;
 
 internal sealed class PostgresSharedFileRepository(NpgsqlDataSource dataSource) : ISharedFileRepository
 {
-    public async Task AddAsync(SharedFile file, CancellationToken cancellationToken)
+    public async Task<bool> AddAsync(SharedFile file, CancellationToken cancellationToken)
     {
         const string sql = """
             INSERT INTO shared_files (id, file_name, content_type, size, expires_at)
             VALUES (@Id, @FileName, @ContentType, @Size, @ExpiresAt)
+            ON CONFLICT (id) DO NOTHING
             """;
 
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
-        await connection.ExecuteAsync(new CommandDefinition(
+        var inserted = await connection.ExecuteAsync(new CommandDefinition(
             sql,
             SharedFileRecord.From(file),
             cancellationToken: cancellationToken));
+
+        return inserted == 1;
     }
 
     public async Task<SharedFile?> GetAsync(ShareId id, CancellationToken cancellationToken)

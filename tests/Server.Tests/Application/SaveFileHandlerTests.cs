@@ -13,7 +13,11 @@ public class SaveFileHandlerTests
     private readonly IFileStorage _storage = Substitute.For<IFileStorage>();
     private readonly SaveFileHandler _handler;
 
-    public SaveFileHandlerTests() => _handler = new SaveFileHandler(_repository, _storage);
+    public SaveFileHandlerTests()
+    {
+        _repository.AddAsync(Arg.Any<SharedFile>(), Arg.Any<CancellationToken>()).Returns(true);
+        _handler = new SaveFileHandler(_repository, _storage);
+    }
 
     [Fact]
     public async Task HandleAsync_ValidCommand_AddsFileWithCommandData()
@@ -102,11 +106,42 @@ public class SaveFileHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_IdAlreadyTaken_AddsFileWithAnotherId()
+    {
+        // Arrange
+        var ids = new List<ShareId>();
+        _repository.AddAsync(Arg.Do<SharedFile>(f => ids.Add(f.Id)), Arg.Any<CancellationToken>())
+            .Returns(false, true);
+
+        // Act
+        var id = await _handler.HandleAsync(CreateCommand(new MemoryStream()), CancellationToken.None);
+
+        // Assert
+        Assert.Equal(2, ids.Count);
+        Assert.NotEqual(ids[0], ids[1]);
+        Assert.Equal(ids[1], id);
+    }
+
+    [Fact]
+    public async Task HandleAsync_NoFreeId_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        _repository.AddAsync(Arg.Any<SharedFile>(), Arg.Any<CancellationToken>()).Returns(false);
+
+        // Act
+        var act = () => _handler.HandleAsync(CreateCommand(new MemoryStream()), CancellationToken.None);
+
+        // Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(act);
+        await _storage.DidNotReceiveWithAnyArgs().SaveAsync(default!, default!, default);
+    }
+
+    [Fact]
     public async Task HandleAsync_SaveFails_DeletesAddedFile()
     {
         // Arrange
         SharedFile? added = null;
-        await _repository.AddAsync(Arg.Do<SharedFile>(f => added = f), Arg.Any<CancellationToken>());
+        _repository.AddAsync(Arg.Do<SharedFile>(f => added = f), Arg.Any<CancellationToken>()).Returns(true);
         _storage.SaveAsync(Arg.Any<ShareId>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
             .ThrowsAsync<IOException>();
 

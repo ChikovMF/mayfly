@@ -6,6 +6,8 @@ namespace Server.Application.SaveFile;
 
 internal sealed class SaveFileHandler(ISharedFileRepository repository, IFileStorage storage) : ISaveFileHandler
 {
+    private const int MaxIdAttempts = 5;
+
     public async Task<ShareId> HandleAsync(SaveFileCommand command, CancellationToken cancellationToken)
     {
         if (!command.Content.CanSeek)
@@ -13,22 +15,31 @@ internal sealed class SaveFileHandler(ISharedFileRepository repository, IFileSto
             throw new ArgumentException("Content stream must support seeking.", nameof(command));
         }
 
-        var id = ShareId.New();
         var size = FileSize.Parse(command.Content.Length - command.Content.Position);
-        var file = new SharedFile(id, command.FileName, command.ContentType, size, command.ExpiresAt);
 
-        await repository.AddAsync(file, cancellationToken);
-
-        try
+        for (var attempt = 0; attempt < MaxIdAttempts; attempt++)
         {
-            await storage.SaveAsync(id, command.Content, cancellationToken);
-        }
-        catch
-        {
-            await repository.DeleteAsync(id, CancellationToken.None);
-            throw;
+            var id = ShareId.New();
+            var file = new SharedFile(id, command.FileName, command.ContentType, size, command.ExpiresAt);
+
+            if (!await repository.AddAsync(file, cancellationToken))
+            {
+                continue;
+            }
+
+            try
+            {
+                await storage.SaveAsync(id, command.Content, cancellationToken);
+            }
+            catch
+            {
+                await repository.DeleteAsync(id, CancellationToken.None);
+                throw;
+            }
+
+            return id;
         }
 
-        return id;
+        throw new InvalidOperationException("Could not generate a free share id.");
     }
 }
