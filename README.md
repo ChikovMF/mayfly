@@ -24,7 +24,7 @@
 |---|---|
 | ASP.NET Core Runtime | 10.0 |
 | PostgreSQL | 17 |
-| MinIO | RELEASE.2026-08-04T00-00-00Z |
+| MinIO | последняя |
 
 ### Клиентская библиотека
 
