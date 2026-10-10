@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Minio;
 using Server.Domain.Abstractions;
 using Server.Infrastructure.Persistence;
+using Server.Infrastructure.Security;
 using Server.Infrastructure.Storage;
 
 namespace Server.Infrastructure;
@@ -30,6 +31,8 @@ public static class DependencyInjection
                 .Build();
         });
         services.AddSingleton<IFileStorage, MinioFileStorage>();
+
+        services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 
         return services;
     }
