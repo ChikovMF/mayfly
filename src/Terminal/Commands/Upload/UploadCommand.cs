@@ -28,8 +28,11 @@ internal sealed class UploadCommand : Command
             CustomParser = ExpirationPeriod.Parse,
         };
 
+        var passwordOption = new Option<bool>("--password", "-p") { Description = Resources.UploadPasswordOptionDescription };
+
         Arguments.Add(fileArgument);
         Options.Add(expiresInOption);
+        Options.Add(passwordOption);
         Options.Add(serverOption);
         Validators.Add(serverOption.ValidateAvailable);
 
@@ -40,8 +43,11 @@ internal sealed class UploadCommand : Command
                 configuration[ConfigFile.ServerKey] = server.ToString();
             }
 
-            return services.GetRequiredService<UploadAction>()
-                .ExecuteAsync(parseResult.GetRequiredValue(fileArgument), parseResult.GetValue(expiresInOption), cancellationToken);
+            return services.GetRequiredService<UploadAction>().ExecuteAsync(
+                parseResult.GetRequiredValue(fileArgument),
+                parseResult.GetValue(expiresInOption),
+                parseResult.GetValue(passwordOption),
+                cancellationToken);
         });
     }
 }

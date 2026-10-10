@@ -283,6 +283,15 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The password must not be empty..
+        /// </summary>
+        internal static string PasswordEmpty {
+            get {
+                return ResourceManager.GetString("PasswordEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Password.
         /// </summary>
         internal static string PasswordPromptLabel {
@@ -306,6 +315,15 @@ namespace Mayfly.Terminal.Properties {
         internal static string PasswordPromptUnavailable {
             get {
                 return ResourceManager.GetString("PasswordPromptUnavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The passwords do not match..
+        /// </summary>
+        internal static string PasswordsDoNotMatch {
+            get {
+                return ResourceManager.GetString("PasswordsDoNotMatch", resourceCulture);
             }
         }
         
@@ -432,6 +450,15 @@ namespace Mayfly.Terminal.Properties {
         internal static string UploadIdLabel {
             get {
                 return ResourceManager.GetString("UploadIdLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Protect the file with a password. The password is asked for when the command runs..
+        /// </summary>
+        internal static string UploadPasswordOptionDescription {
+            get {
+                return ResourceManager.GetString("UploadPasswordOptionDescription", resourceCulture);
             }
         }
         

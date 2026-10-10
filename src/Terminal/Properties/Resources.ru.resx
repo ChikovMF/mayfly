@@ -141,4 +141,13 @@
   <data name="PasswordPromptUnavailable" xml:space="preserve">
     <value>Пароль можно ввести только в интерактивном терминале.</value>
   </data>
+  <data name="PasswordEmpty" xml:space="preserve">
+    <value>Пароль не может быть пустым.</value>
+  </data>
+  <data name="PasswordsDoNotMatch" xml:space="preserve">
+    <value>Пароли не совпадают.</value>
+  </data>
+  <data name="UploadPasswordOptionDescription" xml:space="preserve">
+    <value>Защитить файл паролем. Пароль запрашивается при выполнении команды.</value>
+  </data>
 </root>

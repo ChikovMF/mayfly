@@ -141,4 +141,13 @@
   <data name="PasswordPromptUnavailable" xml:space="preserve">
     <value>A password can only be entered in an interactive terminal.</value>
   </data>
+  <data name="PasswordEmpty" xml:space="preserve">
+    <value>The password must not be empty.</value>
+  </data>
+  <data name="PasswordsDoNotMatch" xml:space="preserve">
+    <value>The passwords do not match.</value>
+  </data>
+  <data name="UploadPasswordOptionDescription" xml:space="preserve">
+    <value>Protect the file with a password. The password is asked for when the command runs.</value>
+  </data>
 </root>
