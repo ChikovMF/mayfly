@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
@@ -12,12 +13,14 @@ namespace Mayfly.Client;
 internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClient
 {
     private const string ExpiresAtHeader = "Mayfly-Expires-At";
+    private const string PasswordHeader = "Mayfly-Password";
 
     public async Task<UploadedFile> UploadAsync(
         Stream content,
         string fileName,
         string? contentType = null,
         DateTimeOffset? expiresAt = null,
+        string? password = null,
         CancellationToken cancellationToken = default)
     {
         var mediaType = contentType is null ? null : MediaTypeHeaderValue.Parse(contentType);
@@ -33,6 +36,11 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
             form.Add(new StringContent(expiresAt.Value.ToString("O", CultureInfo.InvariantCulture)), "expiresAt");
         }
 
+        if (password is not null)
+        {
+            form.Add(new StringContent(password), "password");
+        }
+
         using var request = new HttpRequestMessage(HttpMethod.Post, "api/files");
         request.Content = form;
         request.Headers.ExpectContinue = true;
@@ -44,9 +52,12 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
                ?? throw UnexpectedResponse(response, "The server returned an unexpected response.");
     }
 
-    public async Task<RemoteFileInfo?> GetInfoAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<RemoteFileInfo?> GetInfoAsync(
+        string id,
+        string? password = null,
+        CancellationToken cancellationToken = default)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Head, FileUri(id));
+        using var request = CreateFileRequest(HttpMethod.Head, id, password);
         using var response = await httpClient.SendAsync(request, cancellationToken);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
@@ -59,9 +70,12 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
         return ReadInfo(response);
     }
 
-    public async Task<DownloadedFile?> DownloadAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<DownloadedFile?> DownloadAsync(
+        string id,
+        string? password = null,
+        CancellationToken cancellationToken = default)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, FileUri(id));
+        using var request = CreateFileRequest(HttpMethod.Get, id, password);
         var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
         try
@@ -86,7 +100,16 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
         }
     }
 
-    private static string FileUri(string id) => $"api/files/{Uri.EscapeDataString(id)}";
+    private static HttpRequestMessage CreateFileRequest(HttpMethod method, string id, string? password)
+    {
+        var request = new HttpRequestMessage(method, $"api/files/{Uri.EscapeDataString(id)}");
+        if (password is not null)
+        {
+            request.Headers.Add(PasswordHeader, Convert.ToBase64String(Encoding.UTF8.GetBytes(password)));
+        }
+
+        return request;
+    }
 
     private static RemoteFileInfo ReadInfo(HttpResponseMessage response)
     {
