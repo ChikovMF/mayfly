@@ -76,16 +76,18 @@ internal static class FilesEndpoints
             return Results.NotFound();
         }
 
-        var file = await handler.HandleAsync(new GetFileQuery(shareId), cancellationToken);
-        if (file is null)
+        var result = await handler.HandleAsync(new GetFileQuery(shareId), cancellationToken);
+        switch (result)
         {
-            return Results.NotFound();
+            case GetFileResult.Found file:
+                WriteFileHeaders(response, file.FileName, file.ContentType, file.Size, file.ExpiresAt);
+                await file.CopyContentToAsync(response.Body, cancellationToken);
+                return Results.Empty;
+            case GetFileResult.AccessDenied:
+                return Results.StatusCode(StatusCodes.Status403Forbidden);
+            default:
+                return Results.NotFound();
         }
-
-        WriteFileHeaders(response, file.FileName, file.ContentType, file.Size, file.ExpiresAt);
-        await file.CopyContentToAsync(response.Body, cancellationToken);
-
-        return Results.Empty;
     }
 
     private static async Task<IResult> GetInfoAsync(
