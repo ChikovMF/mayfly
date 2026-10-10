@@ -9,7 +9,7 @@ internal sealed class DownloadAction(IMayflyClient client, ConsoleOutput output)
 {
     public async Task<int> ExecuteAsync(string id, FileInfo? target, bool overwrite, CancellationToken cancellationToken)
     {
-        using var file = await client.DownloadAsync(id, cancellationToken: cancellationToken);
+        using var file = await PasswordRetry.RunAsync(password => client.DownloadAsync(id, password, cancellationToken));
         if (file is null)
         {
             output.Error(string.Format(CultureInfo.CurrentCulture, Resources.FileNotFound, id));

@@ -9,7 +9,7 @@ internal sealed class InfoAction(IMayflyClient client, ConsoleOutput output)
 {
     public async Task<int> ExecuteAsync(string id, CancellationToken cancellationToken)
     {
-        var info = await client.GetInfoAsync(id, cancellationToken: cancellationToken);
+        var info = await PasswordRetry.RunAsync(password => client.GetInfoAsync(id, password, cancellationToken));
         if (info is null)
         {
             output.Error(string.Format(CultureInfo.CurrentCulture, Resources.FileNotFound, id));

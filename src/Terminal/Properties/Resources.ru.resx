@@ -150,4 +150,7 @@
   <data name="UploadPasswordOptionDescription" xml:space="preserve">
     <value>Защитить файл паролем. Пароль запрашивается при выполнении команды.</value>
   </data>
+  <data name="WrongPassword" xml:space="preserve">
+    <value>Неверный пароль.</value>
+  </data>
 </root>

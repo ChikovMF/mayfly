@@ -150,4 +150,7 @@
   <data name="UploadPasswordOptionDescription" xml:space="preserve">
     <value>Protect the file with a password. The password is asked for when the command runs.</value>
   </data>
+  <data name="WrongPassword" xml:space="preserve">
+    <value>Wrong password.</value>
+  </data>
 </root>

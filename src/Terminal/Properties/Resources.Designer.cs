@@ -470,5 +470,14 @@ namespace Mayfly.Terminal.Properties {
                 return ResourceManager.GetString("VersionOptionDescription", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrong password..
+        /// </summary>
+        internal static string WrongPassword {
+            get {
+                return ResourceManager.GetString("WrongPassword", resourceCulture);
+            }
+        }
     }
 }

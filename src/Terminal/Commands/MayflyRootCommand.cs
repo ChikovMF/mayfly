@@ -51,6 +51,10 @@ internal sealed class MayflyRootCommand : RootCommand
         {
             _output.Error(ex.Message, ex.Errors);
         }
+        catch (AccessDeniedException ex)
+        {
+            _output.Error(ex.Message);
+        }
         catch (HttpRequestException ex)
         {
             _output.Error(string.Format(CultureInfo.CurrentCulture, Resources.CannotReachServer, ex.Message));
