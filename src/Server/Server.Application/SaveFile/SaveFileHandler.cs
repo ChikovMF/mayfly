@@ -4,7 +4,10 @@ using Server.Domain.ValueObjects;
 
 namespace Server.Application.SaveFile;
 
-internal sealed class SaveFileHandler(ISharedFileRepository repository, IFileStorage storage) : ISaveFileHandler
+internal sealed class SaveFileHandler(
+    ISharedFileRepository repository,
+    IFileStorage storage,
+    IPasswordHasher passwordHasher) : ISaveFileHandler
 {
     private const int MaxIdAttempts = 5;
 
@@ -17,10 +20,12 @@ internal sealed class SaveFileHandler(ISharedFileRepository repository, IFileSto
 
         var size = FileSize.Parse(command.Content.Length - command.Content.Position);
 
+        var passwordHash = command.Password is null ? null : passwordHasher.Hash(command.Password);
+
         for (var attempt = 0; attempt < MaxIdAttempts; attempt++)
         {
             var id = ShareId.New();
-            var file = new SharedFile(id, command.FileName, command.ContentType, size, command.ExpiresAt);
+            var file = new SharedFile(id, command.FileName, command.ContentType, size, command.ExpiresAt, passwordHash);
 
             if (!await repository.AddAsync(file, cancellationToken))
             {

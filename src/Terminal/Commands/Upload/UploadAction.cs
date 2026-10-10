@@ -1,5 +1,6 @@
 using System.Globalization;
 using Mayfly.Client;
+using Mayfly.Terminal.Input;
 using Mayfly.Terminal.Output;
 using Mayfly.Terminal.Properties;
 
@@ -7,8 +8,22 @@ namespace Mayfly.Terminal.Commands.Upload;
 
 internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
 {
-    public async Task<int> ExecuteAsync(FileInfo file, TimeSpan? expiresIn, CancellationToken cancellationToken)
+    public async Task<int> ExecuteAsync(
+        FileInfo file,
+        TimeSpan? expiresIn,
+        bool protect,
+        CancellationToken cancellationToken)
     {
+        string? password = null;
+        if (protect)
+        {
+            password = ReadNewPassword();
+            if (password is null)
+            {
+                return 1;
+            }
+        }
+
         await using var content = file.OpenRead();
 
         DateTimeOffset? expiresAt = null;
@@ -17,7 +32,12 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
             expiresAt = DateTimeOffset.UtcNow + expiresIn.Value;
         }
 
-        var uploaded = await client.UploadAsync(content, file.Name, expiresAt: expiresAt, cancellationToken: cancellationToken);
+        var uploaded = await client.UploadAsync(
+            content,
+            file.Name,
+            expiresAt: expiresAt,
+            password: password,
+            cancellationToken: cancellationToken);
 
         if (ConsoleOutput.IsRedirected)
         {
@@ -36,5 +56,29 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
 
         output.Fields([.. fields]);
         return 0;
+    }
+
+    private string? ReadNewPassword()
+    {
+        if (!PasswordPrompt.IsAvailable)
+        {
+            output.Error(Resources.PasswordPromptUnavailable);
+            return null;
+        }
+
+        var password = PasswordPrompt.Read(Resources.PasswordPromptLabel);
+        if (password.Length == 0)
+        {
+            output.Error(Resources.PasswordEmpty);
+            return null;
+        }
+
+        if (PasswordPrompt.Read(Resources.PasswordPromptRepeatLabel) != password)
+        {
+            output.Error(Resources.PasswordsDoNotMatch);
+            return null;
+        }
+
+        return password;
     }
 }

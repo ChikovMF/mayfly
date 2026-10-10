@@ -7,7 +7,8 @@ public sealed class SharedFile(
     FileName fileName,
     ContentType contentType,
     FileSize size,
-    DateTimeOffset? expiresAt = null)
+    DateTimeOffset? expiresAt = null,
+    string? passwordHash = null)
 {
     public ShareId Id { get; } = id;
 
@@ -18,6 +19,8 @@ public sealed class SharedFile(
     public FileSize Size { get; } = size;
 
     public DateTimeOffset? ExpiresAt { get; } = expiresAt;
+
+    public string? PasswordHash { get; } = passwordHash;
 
     public bool IsExpired() => ExpiresAt <= DateTimeOffset.UtcNow;
 }

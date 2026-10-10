@@ -10,9 +10,10 @@ public class GetFileInfoHandlerTests
 {
     private readonly ISharedFileRepository _repository = Substitute.For<ISharedFileRepository>();
     private readonly IFileStorage _storage = Substitute.For<IFileStorage>();
+    private readonly IPasswordHasher _passwordHasher = Substitute.For<IPasswordHasher>();
     private readonly GetFileInfoHandler _handler;
 
-    public GetFileInfoHandlerTests() => _handler = new GetFileInfoHandler(_repository, _storage);
+    public GetFileInfoHandlerTests() => _handler = new GetFileInfoHandler(_repository, _storage, _passwordHasher);
 
     [Fact]
     public async Task HandleAsync_FileExists_ReturnsFileInfo()
@@ -27,14 +28,14 @@ public class GetFileInfoHandlerTests
         var result = await _handler.HandleAsync(new GetFileInfoQuery(id), CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(file.FileName, result.FileName);
-        Assert.Equal(file.ContentType, result.ContentType);
-        Assert.Equal(file.Size, result.Size);
+        var found = Assert.IsType<GetFileInfoResult.Found>(result);
+        Assert.Equal(file.FileName, found.FileName);
+        Assert.Equal(file.ContentType, found.ContentType);
+        Assert.Equal(file.Size, found.Size);
     }
 
     [Fact]
-    public async Task HandleAsync_FileNotInRepository_ReturnsNull()
+    public async Task HandleAsync_FileNotInRepository_ReturnsNotFound()
     {
         // Arrange
         var id = ShareId.New();
@@ -44,11 +45,11 @@ public class GetFileInfoHandlerTests
         var result = await _handler.HandleAsync(new GetFileInfoQuery(id), CancellationToken.None);
 
         // Assert
-        Assert.Null(result);
+        Assert.IsType<GetFileInfoResult.NotFound>(result);
     }
 
     [Fact]
-    public async Task HandleAsync_FileNotInStorage_ReturnsNull()
+    public async Task HandleAsync_FileNotInStorage_ReturnsNotFound()
     {
         // Arrange
         var id = ShareId.New();
@@ -60,11 +61,11 @@ public class GetFileInfoHandlerTests
         var result = await _handler.HandleAsync(new GetFileInfoQuery(id), CancellationToken.None);
 
         // Assert
-        Assert.Null(result);
+        Assert.IsType<GetFileInfoResult.NotFound>(result);
     }
 
     [Fact]
-    public async Task HandleAsync_FileExpired_ReturnsNull()
+    public async Task HandleAsync_FileExpired_ReturnsNotFound()
     {
         // Arrange
         var id = ShareId.New();
@@ -81,7 +82,7 @@ public class GetFileInfoHandlerTests
         var result = await _handler.HandleAsync(new GetFileInfoQuery(id), CancellationToken.None);
 
         // Assert
-        Assert.Null(result);
+        Assert.IsType<GetFileInfoResult.NotFound>(result);
     }
 
     [Fact]
@@ -103,7 +104,63 @@ public class GetFileInfoHandlerTests
         var result = await _handler.HandleAsync(new GetFileInfoQuery(id), CancellationToken.None);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(expiresAt, result.ExpiresAt);
+        var found = Assert.IsType<GetFileInfoResult.Found>(result);
+        Assert.Equal(expiresAt, found.ExpiresAt);
     }
+
+    [Fact]
+    public async Task HandleAsync_ProtectedFileWithMatchingPassword_ReturnsFound()
+    {
+        // Arrange
+        var id = ShareId.New();
+        _repository.GetAsync(id, CancellationToken.None).Returns(CreateProtectedFile(id, "hash"));
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
+        var password = Password.Parse("secret");
+        _passwordHasher.Verify(password, "hash").Returns(true);
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileInfoQuery(id, password), CancellationToken.None);
+
+        // Assert
+        Assert.IsType<GetFileInfoResult.Found>(result);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ProtectedFileWithWrongPassword_ReturnsAccessDenied()
+    {
+        // Arrange
+        var id = ShareId.New();
+        _repository.GetAsync(id, CancellationToken.None).Returns(CreateProtectedFile(id, "hash"));
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
+        var password = Password.Parse("wrong");
+        _passwordHasher.Verify(password, "hash").Returns(false);
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileInfoQuery(id, password), CancellationToken.None);
+
+        // Assert
+        Assert.IsType<GetFileInfoResult.AccessDenied>(result);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ProtectedFileWithoutPassword_ReturnsAccessDenied()
+    {
+        // Arrange
+        var id = ShareId.New();
+        _repository.GetAsync(id, CancellationToken.None).Returns(CreateProtectedFile(id, "hash"));
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileInfoQuery(id), CancellationToken.None);
+
+        // Assert
+        Assert.IsType<GetFileInfoResult.AccessDenied>(result);
+    }
+
+    private static SharedFile CreateProtectedFile(ShareId id, string passwordHash) => new(
+        id,
+        FileName.Parse("report.pdf"),
+        ContentType.Parse("application/pdf"),
+        FileSize.Parse(5),
+        passwordHash: passwordHash);
 }

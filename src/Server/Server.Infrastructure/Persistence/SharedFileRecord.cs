@@ -3,14 +3,21 @@ using Server.Domain.ValueObjects;
 
 namespace Server.Infrastructure.Persistence;
 
-internal sealed record SharedFileRecord(string Id, string FileName, string ContentType, long Size, DateTime? ExpiresAt)
+internal sealed record SharedFileRecord(
+    string Id,
+    string FileName,
+    string ContentType,
+    long Size,
+    DateTime? ExpiresAt,
+    string? PasswordHash)
 {
     public static SharedFileRecord From(SharedFile file) => new(
         file.Id.ToString(),
         file.FileName.ToString(),
         file.ContentType.ToString(),
         file.Size.Bytes,
-        file.ExpiresAt?.UtcDateTime
+        file.ExpiresAt?.UtcDateTime,
+        file.PasswordHash
     );
 
     public SharedFile ToDomain()
@@ -26,7 +33,8 @@ internal sealed record SharedFileRecord(string Id, string FileName, string Conte
             Domain.ValueObjects.FileName.Parse(FileName),
             Domain.ValueObjects.ContentType.Parse(ContentType),
             FileSize.Parse(Size),
-            expiresAt
+            expiresAt,
+            PasswordHash
         );
     }
 }

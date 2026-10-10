@@ -283,6 +283,51 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The password must not be empty..
+        /// </summary>
+        internal static string PasswordEmpty {
+            get {
+                return ResourceManager.GetString("PasswordEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password.
+        /// </summary>
+        internal static string PasswordPromptLabel {
+            get {
+                return ResourceManager.GetString("PasswordPromptLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Repeat password.
+        /// </summary>
+        internal static string PasswordPromptRepeatLabel {
+            get {
+                return ResourceManager.GetString("PasswordPromptRepeatLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A password can only be entered in an interactive terminal..
+        /// </summary>
+        internal static string PasswordPromptUnavailable {
+            get {
+                return ResourceManager.GetString("PasswordPromptUnavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The passwords do not match..
+        /// </summary>
+        internal static string PasswordsDoNotMatch {
+            get {
+                return ResourceManager.GetString("PasswordsDoNotMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Upload and download files on a Mayfly server..
         /// </summary>
         internal static string RootDescription {
@@ -409,11 +454,29 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Protect the file with a password. The password is asked for when the command runs..
+        /// </summary>
+        internal static string UploadPasswordOptionDescription {
+            get {
+                return ResourceManager.GetString("UploadPasswordOptionDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Show version information.
         /// </summary>
         internal static string VersionOptionDescription {
             get {
                 return ResourceManager.GetString("VersionOptionDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrong password..
+        /// </summary>
+        internal static string WrongPassword {
+            get {
+                return ResourceManager.GetString("WrongPassword", resourceCulture);
             }
         }
     }

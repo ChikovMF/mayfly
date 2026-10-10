@@ -11,12 +11,13 @@ public class SaveFileHandlerTests
 {
     private readonly ISharedFileRepository _repository = Substitute.For<ISharedFileRepository>();
     private readonly IFileStorage _storage = Substitute.For<IFileStorage>();
+    private readonly IPasswordHasher _passwordHasher = Substitute.For<IPasswordHasher>();
     private readonly SaveFileHandler _handler;
 
     public SaveFileHandlerTests()
     {
         _repository.AddAsync(Arg.Any<SharedFile>(), Arg.Any<CancellationToken>()).Returns(true);
-        _handler = new SaveFileHandler(_repository, _storage);
+        _handler = new SaveFileHandler(_repository, _storage, _passwordHasher);
     }
 
     [Fact]
@@ -76,6 +77,34 @@ public class SaveFileHandlerTests
 
         // Assert
         await _repository.Received(1).AddAsync(Arg.Is<SharedFile>(f => f.ExpiresAt == null), CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task HandleAsync_PasswordGiven_AddsFileWithPasswordHash()
+    {
+        // Arrange
+        var password = Password.Parse("secret");
+        _passwordHasher.Hash(password).Returns("hash");
+        var command = CreateCommand(new MemoryStream(), password: password);
+
+        // Act
+        await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        await _repository.Received(1).AddAsync(Arg.Is<SharedFile>(f => f.PasswordHash == "hash"), CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task HandleAsync_PasswordNotGiven_AddsFileWithoutPasswordHash()
+    {
+        // Arrange
+        var command = CreateCommand(new MemoryStream());
+
+        // Act
+        await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        await _repository.Received(1).AddAsync(Arg.Is<SharedFile>(f => f.PasswordHash == null), CancellationToken.None);
     }
 
     [Fact]
@@ -153,6 +182,9 @@ public class SaveFileHandlerTests
         await _repository.Received(1).DeleteAsync(added!.Id, Arg.Any<CancellationToken>());
     }
 
-    private static SaveFileCommand CreateCommand(Stream content, DateTimeOffset? expiresAt = null) =>
-        new(FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), content, expiresAt);
+    private static SaveFileCommand CreateCommand(
+        Stream content,
+        DateTimeOffset? expiresAt = null,
+        Password? password = null) =>
+        new(FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), content, expiresAt, password);
 }

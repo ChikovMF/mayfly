@@ -1,3 +1,4 @@
+using System.Net;
 using Mayfly.Client;
 using Mayfly.Client.Models;
 
@@ -54,5 +55,50 @@ public sealed class MayflyClientTests(MayflyFactory factory)
         // Assert
         Assert.NotNull(info);
         Assert.Equal(expiresAt, info.ExpiresAt);
+    }
+
+    [Fact]
+    public async Task GetInfoAsync_ProtectedFileWithItsPassword_ReturnsFileInfo()
+    {
+        // Arrange
+        var content = "Hello, Mayfly!"u8.ToArray();
+        var uploaded = await _client.UploadAsync(new MemoryStream(content), "hello.txt", "text/plain", password: "пароль 1");
+
+        // Act
+        var info = await _client.GetInfoAsync(uploaded.Id, "пароль 1");
+
+        // Assert
+        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null), info);
+    }
+
+    [Fact]
+    public async Task DownloadAsync_ProtectedFileWithItsPassword_ReturnsFile()
+    {
+        // Arrange
+        var content = "Hello, Mayfly!"u8.ToArray();
+        var uploaded = await _client.UploadAsync(new MemoryStream(content), "hello.txt", "text/plain", password: "пароль 1");
+
+        // Act
+        using var file = await _client.DownloadAsync(uploaded.Id, "пароль 1");
+
+        // Assert
+        Assert.NotNull(file);
+        using var downloaded = new MemoryStream();
+        await file.Content.CopyToAsync(downloaded);
+        Assert.Equal(content, downloaded.ToArray());
+    }
+
+    [Fact]
+    public async Task DownloadAsync_ProtectedFileWithoutPassword_ThrowsForbidden()
+    {
+        // Arrange
+        var uploaded = await _client.UploadAsync(new MemoryStream("Hello, Mayfly!"u8.ToArray()), "hello.txt", password: "пароль 1");
+
+        // Act
+        var act = () => _client.DownloadAsync(uploaded.Id);
+
+        // Assert
+        var exception = await Assert.ThrowsAsync<MayflyApiException>(act);
+        Assert.Equal(HttpStatusCode.Forbidden, exception.StatusCode);
     }
 }

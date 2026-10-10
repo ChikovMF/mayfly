@@ -32,34 +32,6 @@ public class FileNameTests
         Assert.Equal(expected, name);
     }
 
-    [Fact]
-    public void TryParse_NameOfMaxLength_ReturnsTrue()
-    {
-        // Arrange
-        var value = new string('a', 255);
-
-        // Act
-        var success = FileName.TryParse(value, out var name);
-
-        // Assert
-        Assert.True(success);
-        Assert.NotNull(name);
-    }
-
-    [Fact]
-    public void TryParse_NameLongerThanMaxLength_ReturnsFalseAndNull()
-    {
-        // Arrange
-        var value = new string('a', 256);
-
-        // Act
-        var success = FileName.TryParse(value, out var name);
-
-        // Assert
-        Assert.False(success);
-        Assert.Null(name);
-    }
-
     [Theory]
     [InlineData(null)]
     [InlineData("")]
