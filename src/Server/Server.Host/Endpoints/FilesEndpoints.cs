@@ -99,15 +99,17 @@ internal static class FilesEndpoints
             return Results.NotFound();
         }
 
-        var info = await handler.HandleAsync(new GetFileInfoQuery(shareId), cancellationToken);
-        if (info is null)
+        var result = await handler.HandleAsync(new GetFileInfoQuery(shareId), cancellationToken);
+        switch (result)
         {
-            return Results.NotFound();
+            case GetFileInfoResult.Found info:
+                WriteFileHeaders(response, info.FileName, info.ContentType, info.Size, info.ExpiresAt);
+                return Results.Empty;
+            case GetFileInfoResult.AccessDenied:
+                return Results.StatusCode(StatusCodes.Status403Forbidden);
+            default:
+                return Results.NotFound();
         }
-
-        WriteFileHeaders(response, info.FileName, info.ContentType, info.Size, info.ExpiresAt);
-
-        return Results.Empty;
     }
 
     private static string ResolveContentType(IFormFile file, IContentTypeProvider contentTypeProvider)

@@ -28,7 +28,7 @@ public class Pbkdf2PasswordHasherTests
         var hash = _hasher.Hash(Password.Parse("secret"));
 
         // Act
-        var result = _hasher.Verify("secret", hash);
+        var result = _hasher.Verify(Password.Parse("secret"), hash);
 
         // Assert
         Assert.True(result);
@@ -41,7 +41,7 @@ public class Pbkdf2PasswordHasherTests
         var hash = _hasher.Hash(Password.Parse("secret"));
 
         // Act
-        var result = _hasher.Verify("another", hash);
+        var result = _hasher.Verify(Password.Parse("another"), hash);
 
         // Assert
         Assert.False(result);

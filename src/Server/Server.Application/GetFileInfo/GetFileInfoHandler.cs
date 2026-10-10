@@ -2,16 +2,30 @@ using Server.Domain.Abstractions;
 
 namespace Server.Application.GetFileInfo;
 
-internal sealed class GetFileInfoHandler(ISharedFileRepository repository, IFileStorage storage) : IGetFileInfoHandler
+internal sealed class GetFileInfoHandler(
+    ISharedFileRepository repository,
+    IFileStorage storage,
+    IPasswordHasher passwordHasher) : IGetFileInfoHandler
 {
-    public async Task<GetFileInfoResult?> HandleAsync(GetFileInfoQuery query, CancellationToken cancellationToken)
+    public async Task<GetFileInfoResult> HandleAsync(GetFileInfoQuery query, CancellationToken cancellationToken)
     {
         var file = await repository.GetAsync(query.Id, cancellationToken);
-        if (file is null || file.IsExpired() || !await storage.ExistsAsync(query.Id, cancellationToken))
+        if (file is null || file.IsExpired())
         {
-            return null;
+            return new GetFileInfoResult.NotFound();
         }
 
-        return new GetFileInfoResult(file.FileName, file.ContentType, file.Size, file.ExpiresAt);
+        if (file.PasswordHash is not null &&
+            (query.Password is null || !passwordHasher.Verify(query.Password, file.PasswordHash)))
+        {
+            return new GetFileInfoResult.AccessDenied();
+        }
+
+        if (!await storage.ExistsAsync(query.Id, cancellationToken))
+        {
+            return new GetFileInfoResult.NotFound();
+        }
+
+        return new GetFileInfoResult.Found(file.FileName, file.ContentType, file.Size, file.ExpiresAt);
     }
 }
