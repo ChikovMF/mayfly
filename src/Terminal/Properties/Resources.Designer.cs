@@ -283,6 +283,33 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Password.
+        /// </summary>
+        internal static string PasswordPromptLabel {
+            get {
+                return ResourceManager.GetString("PasswordPromptLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Repeat password.
+        /// </summary>
+        internal static string PasswordPromptRepeatLabel {
+            get {
+                return ResourceManager.GetString("PasswordPromptRepeatLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A password can only be entered in an interactive terminal..
+        /// </summary>
+        internal static string PasswordPromptUnavailable {
+            get {
+                return ResourceManager.GetString("PasswordPromptUnavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Upload and download files on a Mayfly server..
         /// </summary>
         internal static string RootDescription {

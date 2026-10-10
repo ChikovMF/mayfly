@@ -132,4 +132,13 @@
   <data name="UploadExpiresInOptionDescription" xml:space="preserve">
     <value>Время хранения файла: число и единица s, m, h или d (например, 30m, 12h, 7d). По умолчанию файл хранится бессрочно.</value>
   </data>
+  <data name="PasswordPromptLabel" xml:space="preserve">
+    <value>Пароль</value>
+  </data>
+  <data name="PasswordPromptRepeatLabel" xml:space="preserve">
+    <value>Повторите пароль</value>
+  </data>
+  <data name="PasswordPromptUnavailable" xml:space="preserve">
+    <value>Пароль можно ввести только в интерактивном терминале.</value>
+  </data>
 </root>
