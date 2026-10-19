@@ -16,6 +16,9 @@ internal static class StorageDependencyInjection
             case StorageProvider.Minio:
                 services.AddMinioStorage(configuration);
                 break;
+            case StorageProvider.YandexDisk:
+                services.AddYandexDiskStorage(configuration);
+                break;
             default:
                 throw new InvalidOperationException(
                     $"{StorageOptions.SectionName}:{nameof(StorageOptions.Provider)} must be one of: {string.Join(", ", Enum.GetNames<StorageProvider>())}.");
@@ -41,5 +44,19 @@ internal static class StorageDependencyInjection
                 .Build();
         });
         services.AddSingleton<IFileStorage, MinioFileStorage>();
+    }
+
+    private static void AddYandexDiskStorage(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<YandexDiskOptions>()
+            .Bind(configuration.GetSection(YandexDiskOptions.SectionName))
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<YandexDiskOptions>, YandexDiskOptionsValidator>();
+
+        services.AddHttpClient<IFileStorage, YandexDiskFileStorage>((sp, client) =>
+        {
+            client.BaseAddress = YandexDiskFileStorage.ApiAddress;
+            client.Timeout = sp.GetRequiredService<IOptions<YandexDiskOptions>>().Value.Timeout;
+        });
     }
 }
