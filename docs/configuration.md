@@ -5,11 +5,12 @@
 | Параметр | Обязательный | По умолчанию | Описание |
 |---|---|---|---|
 | `Postgres:ConnectionString` | Да | | Строка подключения к PostgreSQL |
-| `Minio:Endpoint` | Да | | Адрес MinIO, например `localhost:9000` |
-| `Minio:AccessKey` | Да | | Ключ доступа MinIO |
-| `Minio:SecretKey` | Да | | Секретный ключ MinIO |
-| `Minio:UseSsl` | Нет | `false` | Подключаться к MinIO по HTTPS |
-| `Minio:BucketName` | Да | | Имя существующего бакета |
+| `Storage:Provider` | Да | | Хранилище файлов: `Minio` |
+| `Storage:Minio:Endpoint` | Для MinIO | | Адрес MinIO, например `localhost:9000` |
+| `Storage:Minio:AccessKey` | Для MinIO | | Ключ доступа MinIO |
+| `Storage:Minio:SecretKey` | Для MinIO | | Секретный ключ MinIO |
+| `Storage:Minio:UseSsl` | Нет | `false` | Подключаться к MinIO по HTTPS |
+| `Storage:Minio:BucketName` | Для MinIO | | Имя существующего бакета |
 | `Upload:MaxRequestBodySize` | Нет | `134217728` (128 МиБ) | Максимальный размер загружаемого файла в байтах |
 | `Cleanup:Interval` | Нет | `00:01:00` | Интервал между удалениями файлов с истёкшим сроком хранения, `чч:мм:сс` |
 | `Cleanup:Lease` | Нет | `00:05:00` | Время на обработку файлов одним экземпляром сервера, `чч:мм:сс` |
@@ -20,11 +21,14 @@
   "Postgres": {
     "ConnectionString": "Host=localhost;Port=5432;Database=mayfly;Username=postgres;Password=postgres"
   },
-  "Minio": {
-    "Endpoint": "localhost:9000",
-    "AccessKey": "minioadmin",
-    "SecretKey": "minioadmin",
-    "BucketName": "mayfly"
+  "Storage": {
+    "Provider": "Minio",
+    "Minio": {
+      "Endpoint": "localhost:9000",
+      "AccessKey": "minioadmin",
+      "SecretKey": "minioadmin",
+      "BucketName": "mayfly"
+    }
   }
 }
 ```
