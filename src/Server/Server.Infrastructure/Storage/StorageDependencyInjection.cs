@@ -55,10 +55,10 @@ internal static class StorageDependencyInjection
             .ValidateOnStart();
         services.AddSingleton<IValidateOptions<YandexDiskOptions>, YandexDiskOptionsValidator>();
 
-        services.AddHttpClient<IFileStorage, YandexDiskFileStorage>((sp, client) =>
+        services.AddHttpClient<IFileStorage, YandexDiskFileStorage>(client =>
         {
             client.BaseAddress = YandexDiskFileStorage.ApiAddress;
-            client.Timeout = sp.GetRequiredService<IOptions<YandexDiskOptions>>().Value.Timeout;
+            client.Timeout = Timeout.InfiniteTimeSpan;
         });
     }
 }
