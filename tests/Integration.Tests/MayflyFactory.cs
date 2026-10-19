@@ -7,6 +7,7 @@ using Minio;
 using Minio.DataModel.Args;
 using Server.Infrastructure.Persistence;
 using Server.Infrastructure.Storage;
+using Server.Infrastructure.Storage.Minio;
 using Testcontainers.Minio;
 using Testcontainers.PostgreSql;
 

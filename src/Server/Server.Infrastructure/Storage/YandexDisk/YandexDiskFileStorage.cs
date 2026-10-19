@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using Server.Domain.Abstractions;
 using Server.Domain.ValueObjects;
 
-namespace Server.Infrastructure.Storage;
+namespace Server.Infrastructure.Storage.YandexDisk;
 
 internal sealed class YandexDiskFileStorage(HttpClient client, IOptions<YandexDiskOptions> options) : IFileStorage
 {

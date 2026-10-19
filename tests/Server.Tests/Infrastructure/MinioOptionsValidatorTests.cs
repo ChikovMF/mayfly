@@ -1,4 +1,4 @@
-using Server.Infrastructure.Storage;
+using Server.Infrastructure.Storage.Minio;
 
 namespace Server.Tests.Infrastructure;
 

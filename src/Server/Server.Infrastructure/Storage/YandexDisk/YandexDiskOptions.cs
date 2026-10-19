@@ -1,4 +1,4 @@
-namespace Server.Infrastructure.Storage;
+namespace Server.Infrastructure.Storage.YandexDisk;
 
 internal sealed class YandexDiskOptions
 {

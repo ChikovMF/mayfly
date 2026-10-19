@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace Server.Infrastructure.Storage;
+namespace Server.Infrastructure.Storage.YandexDisk;
 
 internal sealed class YandexDiskOptionsValidator : IValidateOptions<YandexDiskOptions>
 {

@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Minio;
 using Server.Domain.Abstractions;
+using Server.Infrastructure.Storage.Minio;
+using Server.Infrastructure.Storage.YandexDisk;
 
 namespace Server.Infrastructure.Storage;
 

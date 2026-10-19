@@ -1,5 +1,5 @@
 using System.Globalization;
-using Server.Infrastructure.Storage;
+using Server.Infrastructure.Storage.YandexDisk;
 
 namespace Server.Tests.Infrastructure;
 
