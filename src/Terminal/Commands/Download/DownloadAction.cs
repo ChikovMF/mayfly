@@ -7,6 +7,8 @@ namespace Mayfly.Terminal.Commands.Download;
 
 internal sealed class DownloadAction(IMayflyClient client, ConsoleOutput output)
 {
+    private const int BufferSize = 81920;
+
     public async Task<int> ExecuteAsync(string id, FileInfo? target, bool overwrite, CancellationToken cancellationToken)
     {
         using var file = await PasswordRetry.RunAsync(password => client.DownloadAsync(id, password, cancellationToken));
@@ -27,8 +29,9 @@ internal sealed class DownloadAction(IMayflyClient client, ConsoleOutput output)
         try
         {
             await using (stream)
+            await using (var progress = output.StartProgress(Path.GetFileName(path), file.Info.Size))
             {
-                await file.Content.CopyToAsync(stream, cancellationToken);
+                await CopyAsync(file.Content, stream, progress, cancellationToken);
             }
         }
         catch
@@ -45,5 +48,18 @@ internal sealed class DownloadAction(IMayflyClient client, ConsoleOutput output)
 
         output.Success(string.Format(CultureInfo.CurrentCulture, Resources.DownloadCompleted, path, ConsoleOutput.FormatSize(file.Info.Size)));
         return 0;
+    }
+
+    private static async Task CopyAsync(Stream source, Stream destination, TransferProgress progress, CancellationToken cancellationToken)
+    {
+        var buffer = new byte[BufferSize];
+        var copied = 0L;
+        int read;
+        while ((read = await source.ReadAsync(buffer, cancellationToken)) > 0)
+        {
+            await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+            copied += read;
+            progress.Report(copied);
+        }
     }
 }

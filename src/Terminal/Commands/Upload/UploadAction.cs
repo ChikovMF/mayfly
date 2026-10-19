@@ -1,5 +1,6 @@
 using System.Globalization;
 using Mayfly.Client;
+using Mayfly.Client.Models;
 using Mayfly.Terminal.Input;
 using Mayfly.Terminal.Output;
 using Mayfly.Terminal.Properties;
@@ -24,20 +25,23 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
             }
         }
 
-        await using var content = file.OpenRead();
-
         DateTimeOffset? expiresAt = null;
         if (expiresIn.HasValue)
         {
             expiresAt = DateTimeOffset.UtcNow + expiresIn.Value;
         }
 
-        var uploaded = await client.UploadAsync(
-            content,
-            file.Name,
-            expiresAt: expiresAt,
-            password: password,
-            cancellationToken: cancellationToken);
+        UploadedFile uploaded;
+        await using (var progress = output.StartProgress(file.Name, file.Length, Resources.ProgressWaitingForServer))
+        await using (var content = new ProgressStream(file.OpenRead(), progress))
+        {
+            uploaded = await client.UploadAsync(
+                content,
+                file.Name,
+                expiresAt: expiresAt,
+                password: password,
+                cancellationToken: cancellationToken);
+        }
 
         if (ConsoleOutput.IsRedirected)
         {

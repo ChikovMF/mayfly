@@ -159,4 +159,13 @@
   <data name="CompletionShellArgumentDescription" xml:space="preserve">
     <value>Shell to print the script for.</value>
   </data>
+  <data name="ProgressSpeed" xml:space="preserve">
+    <value>{0}/s</value>
+  </data>
+  <data name="ProgressTimeLeft" xml:space="preserve">
+    <value>{0} left</value>
+  </data>
+  <data name="ProgressWaitingForServer" xml:space="preserve">
+    <value>Waiting for the server</value>
+  </data>
 </root>

@@ -346,6 +346,33 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0}/s.
+        /// </summary>
+        internal static string ProgressSpeed {
+            get {
+                return ResourceManager.GetString("ProgressSpeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} left.
+        /// </summary>
+        internal static string ProgressTimeLeft {
+            get {
+                return ResourceManager.GetString("ProgressTimeLeft", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Waiting for the server.
+        /// </summary>
+        internal static string ProgressWaitingForServer {
+            get {
+                return ResourceManager.GetString("ProgressWaitingForServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Upload and download files on a Mayfly server..
         /// </summary>
         internal static string RootDescription {

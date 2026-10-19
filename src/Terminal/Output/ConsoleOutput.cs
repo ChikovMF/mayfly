@@ -39,6 +39,14 @@ internal sealed class ConsoleOutput
         }
     }
 
+    public TransferProgress StartProgress(string label, long total, string? waitingText = null) =>
+        new(
+            label,
+            total,
+            waitingText,
+            colors: !_noColor,
+            enabled: !Console.IsErrorRedirected && Environment.GetEnvironmentVariable("TERM") != "dumb");
+
     public static string FormatSize(long bytes)
     {
         string[] units =
