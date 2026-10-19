@@ -32,8 +32,4 @@
         <ProjectReference Include="..\Client\Client.csproj"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <InternalsVisibleTo Include="Terminal.Tests"/>
-    </ItemGroup>
-
 </Project>
