@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.IO.Compression;
 using Mayfly.Client;
 using Mayfly.Client.Models;
 using Mayfly.Terminal.Input;
@@ -10,11 +11,24 @@ namespace Mayfly.Terminal.Commands.Upload;
 internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
 {
     public async Task<int> ExecuteAsync(
-        FileInfo file,
+        FileSystemInfo path,
         TimeSpan? expiresIn,
         bool protect,
         CancellationToken cancellationToken)
     {
+        var directory = path as DirectoryInfo;
+        var name = directory is null ? path.Name : $"{directory.Name}.zip";
+        if (directory is not null)
+        {
+            if (!directory.EnumerateFileSystemInfos().Any())
+            {
+                output.Error(string.Format(CultureInfo.CurrentCulture, Resources.UploadDirectoryEmpty, directory));
+                return 1;
+            }
+
+            output.Info(string.Format(CultureInfo.CurrentCulture, Resources.UploadDirectoryArchived, directory, name));
+        }
+
         string? password = null;
         if (protect)
         {
@@ -31,13 +45,18 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
             expiresAt = DateTimeOffset.UtcNow + expiresIn.Value;
         }
 
+        await using var source = directory is null
+            ? ((FileInfo)path).OpenRead()
+            : await ArchiveAsync(directory, name, cancellationToken);
+        var size = source.Length;
+
         UploadedFile uploaded;
-        await using (var progress = output.StartProgress(file.Name, file.Length, Resources.ProgressWaitingForServer))
-        await using (var content = new ProgressStream(file.OpenRead(), progress))
+        await using (var progress = output.StartProgress(name, size, Resources.ProgressWaitingForServer))
+        await using (var content = new ProgressStream(source, progress))
         {
             uploaded = await client.UploadAsync(
                 content,
-                file.Name,
+                name,
                 expiresAt: expiresAt,
                 password: password,
                 cancellationToken: cancellationToken);
@@ -49,7 +68,7 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
             return 0;
         }
 
-        output.Success(string.Format(CultureInfo.CurrentCulture, Resources.UploadCompleted, file.Name, ConsoleOutput.FormatSize(file.Length)));
+        output.Success(string.Format(CultureInfo.CurrentCulture, Resources.UploadCompleted, name, ConsoleOutput.FormatSize(size)));
         ConsoleOutput.NewLine();
 
         var fields = new List<(string Label, string Value)> { (Resources.UploadIdLabel, output.Highlight(uploaded.Id)) };
@@ -60,6 +79,38 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
 
         output.Fields([.. fields]);
         return 0;
+    }
+
+    private async Task<FileStream> ArchiveAsync(DirectoryInfo directory, string name, CancellationToken cancellationToken)
+    {
+        var archive = new FileStream(
+            Path.GetTempFileName(),
+            FileMode.Create,
+            FileAccess.ReadWrite,
+            FileShare.None,
+            bufferSize: 4096,
+            FileOptions.DeleteOnClose);
+
+        try
+        {
+            await using (output.StartProgress(name, 0, Resources.ProgressArchiving))
+            {
+                await ZipFile.CreateFromDirectoryAsync(
+                    directory.FullName,
+                    archive,
+                    CompressionLevel.Optimal,
+                    includeBaseDirectory: false,
+                    cancellationToken);
+            }
+
+            archive.Position = 0;
+            return archive;
+        }
+        catch
+        {
+            await archive.DisposeAsync();
+            throw;
+        }
     }
 
     private string? ReadNewPassword()

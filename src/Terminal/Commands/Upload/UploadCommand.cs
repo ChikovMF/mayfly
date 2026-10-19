@@ -12,12 +12,12 @@ internal sealed class UploadCommand : Command
     public UploadCommand(ServerOption serverOption, IConfiguration configuration, IServiceProvider services)
         : base("upload", Resources.UploadDescription)
     {
-        var fileArgument = new Argument<FileInfo>("file") { Description = Resources.UploadFileArgumentDescription };
-        fileArgument.Validators.Add(result =>
+        var pathArgument = new Argument<FileSystemInfo>("path") { Description = Resources.UploadFileArgumentDescription };
+        pathArgument.Validators.Add(result =>
         {
-            if (result.GetValueOrDefault<FileInfo>() is { Exists: false } file)
+            if (result.GetValueOrDefault<FileSystemInfo>() is { Exists: false } path)
             {
-                result.AddError(string.Format(CultureInfo.CurrentCulture, Resources.UploadFileDoesNotExist, file));
+                result.AddError(string.Format(CultureInfo.CurrentCulture, Resources.UploadFileDoesNotExist, path));
             }
         });
 
@@ -30,7 +30,7 @@ internal sealed class UploadCommand : Command
 
         var passwordOption = new Option<bool>("--password", "-p") { Description = Resources.UploadPasswordOptionDescription };
 
-        Arguments.Add(fileArgument);
+        Arguments.Add(pathArgument);
         Options.Add(expiresInOption);
         Options.Add(passwordOption);
         Options.Add(serverOption);
@@ -44,7 +44,7 @@ internal sealed class UploadCommand : Command
             }
 
             return services.GetRequiredService<UploadAction>().ExecuteAsync(
-                parseResult.GetRequiredValue(fileArgument),
+                parseResult.GetRequiredValue(pathArgument),
                 parseResult.GetValue(expiresInOption),
                 parseResult.GetValue(passwordOption),
                 cancellationToken);

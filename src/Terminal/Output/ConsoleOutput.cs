@@ -22,6 +22,9 @@ internal sealed class ConsoleOutput
     public void Success(string message) =>
         Console.Out.WriteLine($"{Paint("✓", Green, Console.IsOutputRedirected)} {message}");
 
+    public void Info(string message) =>
+        Console.Error.WriteLine($"{Paint("→", Dim, Console.IsErrorRedirected)} {message}");
+
     public string Highlight(string text) => Paint(text, BoldCyan, Console.IsOutputRedirected);
 
     public void Fields(params (string Label, string Value)[] fields)

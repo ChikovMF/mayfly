@@ -346,6 +346,15 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Creating the archive.
+        /// </summary>
+        internal static string ProgressArchiving {
+            get {
+                return ResourceManager.GetString("ProgressArchiving", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0}/s.
         /// </summary>
         internal static string ProgressSpeed {
@@ -463,6 +472,24 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is a directory and will be packed into {1}..
+        /// </summary>
+        internal static string UploadDirectoryArchived {
+            get {
+                return ResourceManager.GetString("UploadDirectoryArchived", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Directory is empty: &apos;{0}&apos;..
+        /// </summary>
+        internal static string UploadDirectoryEmpty {
+            get {
+                return ResourceManager.GetString("UploadDirectoryEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to How long to keep the file: a number and a unit s, m, h or d (for example, 30m, 12h, 7d). By default the file is kept forever.
         /// </summary>
         internal static string UploadExpiresInOptionDescription {
@@ -472,7 +499,7 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to File to upload..
+        ///   Looks up a localized string similar to Path to upload..
         /// </summary>
         internal static string UploadFileArgumentDescription {
             get {
@@ -481,7 +508,7 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to File not found: &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Path not found: &apos;{0}&apos;..
         /// </summary>
         internal static string UploadFileDoesNotExist {
             get {

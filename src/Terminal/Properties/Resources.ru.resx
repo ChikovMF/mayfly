@@ -43,10 +43,16 @@
     <value>Загрузить файл и вывести его идентификатор.</value>
   </data>
   <data name="UploadFileArgumentDescription" xml:space="preserve">
-    <value>Файл для загрузки.</value>
+    <value>Путь для загрузки.</value>
   </data>
   <data name="UploadFileDoesNotExist" xml:space="preserve">
-    <value>Файл не найден: '{0}'.</value>
+    <value>Путь не найден: '{0}'.</value>
+  </data>
+  <data name="UploadDirectoryEmpty" xml:space="preserve">
+    <value>Каталог пуст: '{0}'.</value>
+  </data>
+  <data name="UploadDirectoryArchived" xml:space="preserve">
+    <value>Указан каталог '{0}', он будет упакован в архив {1}.</value>
   </data>
   <data name="UploadCompleted" xml:space="preserve">
     <value>Загружен файл {0} ({1})</value>
@@ -164,6 +170,9 @@
   </data>
   <data name="ProgressTimeLeft" xml:space="preserve">
     <value>ещё {0}</value>
+  </data>
+  <data name="ProgressArchiving" xml:space="preserve">
+    <value>Создание архива</value>
   </data>
   <data name="ProgressWaitingForServer" xml:space="preserve">
     <value>Ожидание ответа сервера</value>

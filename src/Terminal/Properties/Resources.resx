@@ -43,10 +43,16 @@
     <value>Upload a file and print its ID.</value>
   </data>
   <data name="UploadFileArgumentDescription" xml:space="preserve">
-    <value>File to upload.</value>
+    <value>Path to upload.</value>
   </data>
   <data name="UploadFileDoesNotExist" xml:space="preserve">
-    <value>File not found: '{0}'.</value>
+    <value>Path not found: '{0}'.</value>
+  </data>
+  <data name="UploadDirectoryEmpty" xml:space="preserve">
+    <value>Directory is empty: '{0}'.</value>
+  </data>
+  <data name="UploadDirectoryArchived" xml:space="preserve">
+    <value>'{0}' is a directory and will be packed into {1}.</value>
   </data>
   <data name="UploadCompleted" xml:space="preserve">
     <value>Uploaded {0} ({1})</value>
@@ -164,6 +170,9 @@
   </data>
   <data name="ProgressTimeLeft" xml:space="preserve">
     <value>{0} left</value>
+  </data>
+  <data name="ProgressArchiving" xml:space="preserve">
+    <value>Creating the archive</value>
   </data>
   <data name="ProgressWaitingForServer" xml:space="preserve">
     <value>Waiting for the server</value>
