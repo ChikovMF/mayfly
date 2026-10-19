@@ -5,7 +5,7 @@ using Minio.Exceptions;
 using Server.Domain.Abstractions;
 using Server.Domain.ValueObjects;
 
-namespace Server.Infrastructure.Storage;
+namespace Server.Infrastructure.Storage.Minio;
 
 internal sealed class MinioFileStorage(IMinioClient client, IOptions<MinioOptions> options) : IFileStorage
 {

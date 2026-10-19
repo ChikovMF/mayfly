@@ -11,6 +11,8 @@
 
     <ItemGroup>
         <InternalsVisibleTo Include="Server.Tests"/>
+        <InternalsVisibleTo Include="Integration.Tests"/>
+        <InternalsVisibleTo Include="Terminal.Tests"/>
     </ItemGroup>
 
 </Project>
