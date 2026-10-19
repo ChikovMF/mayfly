@@ -15,12 +15,6 @@ internal sealed class YandexDiskOptionsValidator : IValidateOptions<YandexDiskOp
             failures.Add($"{YandexDiskOptions.SectionName}:{nameof(YandexDiskOptions.OAuthToken)} must be set.");
         }
 
-        var path = options.Path?.Trim('/');
-        if (!string.IsNullOrEmpty(path) && path.Split('/').Any(segment => segment.Length == 0 || segment is "." or ".."))
-        {
-            failures.Add($"{YandexDiskOptions.SectionName}:{nameof(YandexDiskOptions.Path)} must not contain empty, '.' or '..' segments.");
-        }
-
         if (options.Timeout <= TimeSpan.Zero || options.Timeout > MaxTimeout)
         {
             failures.Add($"{YandexDiskOptions.SectionName}:{nameof(YandexDiskOptions.Timeout)} must be greater than zero and at most {MaxTimeout}.");

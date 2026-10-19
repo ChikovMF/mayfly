@@ -12,8 +12,6 @@ internal sealed class YandexDiskFileStorage(HttpClient client, IOptions<YandexDi
 {
     public static readonly Uri ApiAddress = new("https://cloud-api.yandex.net/v1/disk/");
 
-    private readonly string _folder = BuildFolder(options.Value.Path);
-
     public async Task SaveAsync(ShareId id, Stream content, CancellationToken cancellationToken)
     {
         var uploadUrl = await GetLinkAsync($"resources/upload?path={EscapedPath(id)}&overwrite=false", cancellationToken);
@@ -63,13 +61,7 @@ internal sealed class YandexDiskFileStorage(HttpClient client, IOptions<YandexDi
         await EnsureSuccessAsync(response, cancellationToken);
     }
 
-    private static string BuildFolder(string? path)
-    {
-        var folder = path?.Trim('/');
-        return string.IsNullOrEmpty(folder) ? "app:/" : $"app:/{folder}/";
-    }
-
-    private string EscapedPath(ShareId id) => Uri.EscapeDataString(_folder + id);
+    private static string EscapedPath(ShareId id) => Uri.EscapeDataString($"app:/{id}");
 
     private HttpRequestMessage CreateApiRequest(HttpMethod method, string relativeUrl)
     {
