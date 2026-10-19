@@ -1,4 +1,4 @@
-namespace Server.Host;
+namespace Server.Host.Cleanup;
 
 internal sealed class CleanupOptions
 {

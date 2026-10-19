@@ -4,7 +4,9 @@ using Microsoft.Extensions.Options;
 using Server.Application;
 using Server.Domain.Abstractions;
 using Server.Host;
+using Server.Host.Cleanup;
 using Server.Host.Endpoints;
+using Server.Host.ErrorHandling;
 using Server.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);

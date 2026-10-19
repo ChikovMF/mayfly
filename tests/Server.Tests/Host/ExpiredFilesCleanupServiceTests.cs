@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using Server.Application.DeleteExpiredFiles;
-using Server.Host;
+using Server.Host.Cleanup;
 
 namespace Server.Tests.Host;
 

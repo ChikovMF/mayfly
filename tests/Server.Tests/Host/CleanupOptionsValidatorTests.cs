@@ -1,4 +1,4 @@
-using Server.Host;
+using Server.Host.Cleanup;
 
 namespace Server.Tests.Host;
 

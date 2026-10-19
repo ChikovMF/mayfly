@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 using Server.Application.DeleteExpiredFiles;
 
-namespace Server.Host;
+namespace Server.Host.Cleanup;
 
 internal sealed partial class ExpiredFilesCleanupService(
     IServiceScopeFactory scopeFactory,

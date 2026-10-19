@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace Server.Host;
+namespace Server.Host.Cleanup;
 
 internal sealed class CleanupOptionsValidator : IValidateOptions<CleanupOptions>
 {
