@@ -153,4 +153,10 @@
   <data name="WrongPassword" xml:space="preserve">
     <value>Wrong password.</value>
   </data>
+  <data name="CompletionDescription" xml:space="preserve">
+    <value>Print the shell completion script.</value>
+  </data>
+  <data name="CompletionShellArgumentDescription" xml:space="preserve">
+    <value>Shell to print the script for.</value>
+  </data>
 </root>

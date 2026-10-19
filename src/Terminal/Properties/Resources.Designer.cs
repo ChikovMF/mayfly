@@ -67,6 +67,24 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Print the shell completion script..
+        /// </summary>
+        internal static string CompletionDescription {
+            get {
+                return ResourceManager.GetString("CompletionDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shell to print the script for..
+        /// </summary>
+        internal static string CompletionShellArgumentDescription {
+            get {
+                return ResourceManager.GetString("CompletionShellArgumentDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Show or change settings..
         /// </summary>
         internal static string ConfigDescription {

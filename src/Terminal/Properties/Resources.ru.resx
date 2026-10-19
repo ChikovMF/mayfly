@@ -153,4 +153,10 @@
   <data name="WrongPassword" xml:space="preserve">
     <value>Неверный пароль.</value>
   </data>
+  <data name="CompletionDescription" xml:space="preserve">
+    <value>Вывести скрипт автодополнения для оболочки.</value>
+  </data>
+  <data name="CompletionShellArgumentDescription" xml:space="preserve">
+    <value>Оболочка, для которой вывести скрипт.</value>
+  </data>
 </root>

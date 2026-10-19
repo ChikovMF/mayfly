@@ -1,5 +1,6 @@
 using Mayfly.Client;
 using Mayfly.Terminal.Commands;
+using Mayfly.Terminal.Commands.Completion;
 using Mayfly.Terminal.Commands.Config;
 using Mayfly.Terminal.Commands.Download;
 using Mayfly.Terminal.Commands.Info;
@@ -24,6 +25,7 @@ internal static class DependencyInjection
         services.AddSingleton<InfoCommand>();
         services.AddSingleton<DownloadCommand>();
         services.AddSingleton<ConfigCommand>();
+        services.AddSingleton<CompletionCommand>();
 
         services.AddTransient<UploadAction>();
         services.AddTransient<InfoAction>();

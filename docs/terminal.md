@@ -11,6 +11,7 @@ mayfly <команда> [аргументы] [опции]
 | [`download <id>`](#download) | Скачать файл |
 | [`config set server <url>`](#config-set-server) | Сохранить адрес сервера |
 | [`config get server`](#config-get-server) | Показать сохранённый адрес сервера |
+| [`completion <shell>`](#completion) | Вывести скрипт автодополнения для оболочки |
 
 ### Общие опции
 
@@ -130,3 +131,27 @@ mayfly config set server <url>
 ```
 mayfly config get server
 ```
+
+---
+
+## completion
+
+Вывести скрипт автодополнения команд и опций по Tab.
+
+```
+mayfly completion <shell>
+```
+
+### Аргументы
+
+| Аргумент | Описание |
+|---|---|
+| `shell` | Оболочка: `bash`, `zsh` или `powershell` |
+
+### Подключение
+
+| Оболочка | Строка в файле настроек |
+|---|---|
+| bash (`~/.bashrc`) | `eval "$(mayfly completion bash)"` |
+| zsh (`~/.zshrc`, после `compinit`) | `eval "$(mayfly completion zsh)"` |
+| PowerShell (`$PROFILE`) | `mayfly completion powershell \| Out-String \| Invoke-Expression` |

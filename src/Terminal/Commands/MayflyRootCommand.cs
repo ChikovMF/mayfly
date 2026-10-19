@@ -3,6 +3,7 @@ using System.CommandLine.Help;
 using System.CommandLine.Invocation;
 using System.Globalization;
 using Mayfly.Client;
+using Mayfly.Terminal.Commands.Completion;
 using Mayfly.Terminal.Commands.Config;
 using Mayfly.Terminal.Commands.Download;
 using Mayfly.Terminal.Commands.Info;
@@ -21,6 +22,7 @@ internal sealed class MayflyRootCommand : RootCommand
         InfoCommand info,
         DownloadCommand download,
         ConfigCommand config,
+        CompletionCommand completion,
         ConsoleOutput output)
         : base(Resources.RootDescription)
     {
@@ -33,6 +35,7 @@ internal sealed class MayflyRootCommand : RootCommand
         Subcommands.Add(info);
         Subcommands.Add(download);
         Subcommands.Add(config);
+        Subcommands.Add(completion);
     }
 
     public async Task<int> RunAsync(string[] args)
