@@ -150,8 +150,22 @@ mayfly completion <shell>
 
 ### Подключение
 
-| Оболочка | Строка в файле настроек |
-|---|---|
-| bash (`~/.bashrc`) | `eval "$(mayfly completion bash)"` |
-| zsh (`~/.zshrc`, после `compinit`) | `eval "$(mayfly completion zsh)"` |
-| PowerShell (`$PROFILE`) | `mayfly completion powershell \| Out-String \| Invoke-Expression` |
+Выполнить один раз, затем открыть новый терминал.
+
+bash:
+
+```bash
+echo 'eval "$(mayfly completion bash)"' >> ~/.bashrc
+```
+
+zsh:
+
+```zsh
+echo 'eval "$(mayfly completion zsh)"' >> ~/.zshrc
+```
+
+PowerShell:
+
+```powershell
+Add-Content $PROFILE 'mayfly completion powershell | Out-String | Invoke-Expression'
+```
