@@ -8,6 +8,7 @@ internal sealed class ConsoleOutput
     private const string Green = "\e[32m";
     private const string Red = "\e[31m";
     private const string Dim = "\e[2m";
+    private const string BoldCyan = "\e[1;36m";
     private const string Reset = "\e[0m";
 
     private readonly bool _noColor = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("NO_COLOR"));
@@ -20,6 +21,8 @@ internal sealed class ConsoleOutput
 
     public void Success(string message) =>
         Console.Out.WriteLine($"{Paint("✓", Green, Console.IsOutputRedirected)} {message}");
+
+    public string Highlight(string text) => Paint(text, BoldCyan, Console.IsOutputRedirected);
 
     public void Fields(params (string Label, string Value)[] fields)
     {

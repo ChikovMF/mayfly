@@ -52,7 +52,7 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
         output.Success(string.Format(CultureInfo.CurrentCulture, Resources.UploadCompleted, file.Name, ConsoleOutput.FormatSize(file.Length)));
         ConsoleOutput.NewLine();
 
-        var fields = new List<(string Label, string Value)> { (Resources.UploadIdLabel, uploaded.Id) };
+        var fields = new List<(string Label, string Value)> { (Resources.UploadIdLabel, output.Highlight(uploaded.Id)) };
         if (uploaded.ExpiresAt.HasValue)
         {
             fields.Add((Resources.ExpiresLabel, ConsoleOutput.FormatDate(uploaded.ExpiresAt.Value)));
