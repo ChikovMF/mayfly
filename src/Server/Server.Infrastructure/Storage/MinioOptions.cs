@@ -2,7 +2,7 @@ namespace Server.Infrastructure.Storage;
 
 internal sealed class MinioOptions
 {
-    public const string SectionName = "Minio";
+    public const string SectionName = $"{StorageOptions.SectionName}:{nameof(StorageProvider.Minio)}";
 
     public string Endpoint { get; init; } = "";
 
