@@ -28,6 +28,7 @@ builder.Services.AddOptions<PasswordRateLimitOptions>()
     .Bind(builder.Configuration.GetSection(PasswordRateLimitOptions.SectionName))
     .ValidateOnStart();
 builder.Services.AddSingleton<IValidateOptions<PasswordRateLimitOptions>, PasswordRateLimitOptionsValidator>();
+builder.Services.AddPasswordRateLimiter();
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<BadHttpRequestExceptionHandler>();
@@ -39,6 +40,7 @@ app.Services.GetRequiredService<IDatabaseMigrator>().Migrate();
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.UseRateLimiter();
 
 app.MapFilesEndpoints();
 app.MapHealthEndpoints();
