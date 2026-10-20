@@ -11,8 +11,8 @@ internal sealed class PostgresSharedFileRepository(NpgsqlDataSource dataSource) 
     public async Task<bool> AddAsync(SharedFile file, CancellationToken cancellationToken)
     {
         const string sql = """
-            INSERT INTO shared_files (id, file_name, content_type, size, expires_at, password_hash)
-            VALUES (@Id, @FileName, @ContentType, @Size, @ExpiresAt, @PasswordHash)
+            INSERT INTO shared_files (id, file_name, content_type, size, expires_at, password_hash, downloads_left)
+            VALUES (@Id, @FileName, @ContentType, @Size, @ExpiresAt, @PasswordHash, @DownloadsLeft)
             ON CONFLICT (id) DO NOTHING
             """;
 
@@ -29,7 +29,7 @@ internal sealed class PostgresSharedFileRepository(NpgsqlDataSource dataSource) 
     {
         const string sql = """
             SELECT id AS Id, file_name AS FileName, content_type AS ContentType, size AS Size, expires_at AS ExpiresAt,
-                   password_hash AS PasswordHash
+                   password_hash AS PasswordHash, downloads_left AS DownloadsLeft
             FROM shared_files
             WHERE id = @Id
             """;
@@ -41,6 +41,25 @@ internal sealed class PostgresSharedFileRepository(NpgsqlDataSource dataSource) 
             cancellationToken: cancellationToken));
 
         return record?.ToDomain();
+    }
+
+    public async Task<DownloadsLeft?> SpendDownloadAsync(ShareId id, CancellationToken cancellationToken)
+    {
+        const string sql = """
+            UPDATE shared_files
+            SET downloads_left = downloads_left - 1,
+                downloads_exhausted_at = CASE WHEN downloads_left = 1 THEN now() END
+            WHERE id = @Id AND downloads_left > 0
+            RETURNING downloads_left
+            """;
+
+        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        var count = await connection.QuerySingleOrDefaultAsync<int?>(new CommandDefinition(
+            sql,
+            new { Id = id.ToString() },
+            cancellationToken: cancellationToken));
+
+        return count.HasValue ? DownloadsLeft.Parse(count.Value) : null;
     }
 
     public async Task<IReadOnlyList<ExpiredFileClaim>> ClaimExpiredAsync(

@@ -9,6 +9,9 @@ public interface ISharedFileRepository
 
     Task<SharedFile?> GetAsync(ShareId id, CancellationToken cancellationToken);
 
+    /// <returns>The number of downloads left after this one, or <see langword="null"/> if none was left to spend.</returns>
+    Task<DownloadsLeft?> SpendDownloadAsync(ShareId id, CancellationToken cancellationToken);
+
     Task<IReadOnlyList<ExpiredFileClaim>> ClaimExpiredAsync(
         int limit,
         TimeSpan lease,
