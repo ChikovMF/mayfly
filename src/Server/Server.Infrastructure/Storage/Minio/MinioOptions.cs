@@ -1,8 +1,10 @@
+using Server.Infrastructure.Configuration;
+
 namespace Server.Infrastructure.Storage.Minio;
 
-internal sealed class MinioOptions
+internal sealed class MinioOptions : ISectionOptions
 {
-    public const string SectionName = $"{StorageOptions.SectionName}:{nameof(StorageProvider.Minio)}";
+    public static string SectionName => $"{StorageOptions.SectionName}:{nameof(StorageProvider.Minio)}";
 
     public string Endpoint { get; init; } = "";
 

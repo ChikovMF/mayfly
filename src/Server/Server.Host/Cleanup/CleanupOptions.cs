@@ -1,8 +1,10 @@
+using Server.Infrastructure.Configuration;
+
 namespace Server.Host.Cleanup;
 
-internal sealed class CleanupOptions
+internal sealed class CleanupOptions : ISectionOptions
 {
-    public const string SectionName = "Cleanup";
+    public static string SectionName => "Cleanup";
 
     public TimeSpan Interval { get; init; } = TimeSpan.FromMinutes(1);
 
