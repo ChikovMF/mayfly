@@ -10,7 +10,7 @@ internal sealed class GetFileInfoHandler(
     public async Task<GetFileInfoResult> HandleAsync(GetFileInfoQuery query, CancellationToken cancellationToken)
     {
         var file = await repository.GetAsync(query.Id, cancellationToken);
-        if (file is null || file.IsExpired())
+        if (file is null || file.IsExpired() || file.IsExhausted())
         {
             return new GetFileInfoResult.NotFound();
         }
@@ -26,6 +26,6 @@ internal sealed class GetFileInfoHandler(
             return new GetFileInfoResult.NotFound();
         }
 
-        return new GetFileInfoResult.Found(file.FileName, file.ContentType, file.Size, file.ExpiresAt);
+        return new GetFileInfoResult.Found(file.FileName, file.ContentType, file.Size, file.ExpiresAt, file.DownloadsLeft);
     }
 }

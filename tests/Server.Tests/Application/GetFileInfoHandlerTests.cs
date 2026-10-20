@@ -157,6 +157,45 @@ public class GetFileInfoHandlerTests
         Assert.IsType<GetFileInfoResult.AccessDenied>(result);
     }
 
+    [Fact]
+    public async Task HandleAsync_FileExhausted_ReturnsNotFound()
+    {
+        // Arrange
+        var id = ShareId.New();
+        _repository.GetAsync(id, CancellationToken.None).Returns(CreateLimitedFile(id, 0));
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileInfoQuery(id), CancellationToken.None);
+
+        // Assert
+        Assert.IsType<GetFileInfoResult.NotFound>(result);
+    }
+
+    [Fact]
+    public async Task HandleAsync_LimitedFile_ReturnsDownloadsLeftWithoutSpending()
+    {
+        // Arrange
+        var id = ShareId.New();
+        _repository.GetAsync(id, CancellationToken.None).Returns(CreateLimitedFile(id, 3));
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileInfoQuery(id), CancellationToken.None);
+
+        // Assert
+        var found = Assert.IsType<GetFileInfoResult.Found>(result);
+        Assert.Equal(DownloadsLeft.Parse(3), found.DownloadsLeft);
+        await _repository.DidNotReceive().SpendDownloadAsync(Arg.Any<ShareId>(), Arg.Any<CancellationToken>());
+    }
+
+    private static SharedFile CreateLimitedFile(ShareId id, int downloadsLeft) => new(
+        id,
+        FileName.Parse("report.pdf"),
+        ContentType.Parse("application/pdf"),
+        FileSize.Parse(5),
+        downloadsLeft: DownloadsLeft.Parse(downloadsLeft));
+
     private static SharedFile CreateProtectedFile(ShareId id, string passwordHash) => new(
         id,
         FileName.Parse("report.pdf"),

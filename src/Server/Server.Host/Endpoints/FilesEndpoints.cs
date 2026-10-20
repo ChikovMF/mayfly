@@ -15,6 +15,7 @@ internal static class FilesEndpoints
 {
     private const string DefaultContentType = "application/octet-stream";
     private const string ExpiresAtHeader = "Mayfly-Expires-At";
+    private const string DownloadsLeftHeader = "Mayfly-Downloads-Left";
     internal const string PasswordHeader = "Mayfly-Password";
 
     public static IEndpointRouteBuilder MapFilesEndpoints(this IEndpointRouteBuilder app)
@@ -105,7 +106,7 @@ internal static class FilesEndpoints
         switch (result)
         {
             case GetFileResult.Found file:
-                WriteFileHeaders(response, file.FileName, file.ContentType, file.Size, file.ExpiresAt);
+                WriteFileHeaders(response, file.FileName, file.ContentType, file.Size, file.ExpiresAt, file.DownloadsLeft);
                 await file.CopyContentToAsync(response.Body, cancellationToken);
                 return Results.Empty;
             case GetFileResult.AccessDenied:
@@ -131,7 +132,7 @@ internal static class FilesEndpoints
         switch (result)
         {
             case GetFileInfoResult.Found info:
-                WriteFileHeaders(response, info.FileName, info.ContentType, info.Size, info.ExpiresAt);
+                WriteFileHeaders(response, info.FileName, info.ContentType, info.Size, info.ExpiresAt, info.DownloadsLeft);
                 return Results.Empty;
             case GetFileInfoResult.AccessDenied:
                 return Results.StatusCode(StatusCodes.Status403Forbidden);
@@ -171,7 +172,8 @@ internal static class FilesEndpoints
         FileName fileName,
         ContentType contentType,
         FileSize size,
-        DateTimeOffset? expiresAt)
+        DateTimeOffset? expiresAt,
+        DownloadsLeft? downloadsLeft)
     {
         var contentDisposition = new ContentDispositionHeaderValue("attachment");
         contentDisposition.SetHttpFileName(fileName.ToString());
@@ -183,6 +185,11 @@ internal static class FilesEndpoints
         if (expiresAt.HasValue)
         {
             response.Headers[ExpiresAtHeader] = expiresAt.Value.UtcDateTime.ToString("O", CultureInfo.InvariantCulture);
+        }
+
+        if (downloadsLeft != null)
+        {
+            response.Headers[DownloadsLeftHeader] = downloadsLeft.Count.ToString(CultureInfo.InvariantCulture);
         }
     }
 
