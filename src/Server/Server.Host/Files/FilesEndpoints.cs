@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using Server.Application.GetFile;
 using Server.Application.GetFileInfo;
@@ -36,6 +37,7 @@ internal static class FilesEndpoints
         [FromForm] int? maxDownloads,
         [FromServices] ISaveFileHandler handler,
         [FromServices] IContentTypeProvider contentTypeProvider,
+        [FromServices] IOptions<RetentionOptions> retention,
         CancellationToken cancellationToken)
     {
         await using var content = file?.OpenReadStream();
@@ -47,6 +49,7 @@ internal static class FilesEndpoints
                 expiresAt,
                 password,
                 maxDownloads,
+                retention.Value,
                 out var command,
                 out var errors))
         {

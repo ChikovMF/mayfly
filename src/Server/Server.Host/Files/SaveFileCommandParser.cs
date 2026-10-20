@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Server.Application.SaveFile;
 using Server.Domain.ValueObjects;
 
@@ -13,6 +14,7 @@ internal static class SaveFileCommandParser
         DateTimeOffset? expiresAt,
         string? password,
         int? maxDownloads,
+        RetentionOptions retention,
         [NotNullWhen(true)] out SaveFileCommand? command,
         out Dictionary<string, string[]> errors)
     {
@@ -44,9 +46,21 @@ internal static class SaveFileCommandParser
             }
         }
 
-        if (expiresAt <= DateTimeOffset.UtcNow)
+        if (expiresAt.HasValue)
         {
-            errors["expiresAt"] = ["The expiration must be in the future."];
+            var lifetime = expiresAt.Value - DateTimeOffset.UtcNow;
+            if (lifetime <= TimeSpan.Zero)
+            {
+                errors["expiresAt"] = ["The expiration must be in the future."];
+            }
+            else if (lifetime > retention.MaxLifetime)
+            {
+                errors["expiresAt"] = [$"The expiration must be at most {retention.MaxLifetime.Value.ToString("c", CultureInfo.InvariantCulture)} from now."];
+            }
+        }
+        else if (retention.RequireExpiration)
+        {
+            errors["expiresAt"] = ["An expiration is required."];
         }
 
         Password? parsedPassword = null;
