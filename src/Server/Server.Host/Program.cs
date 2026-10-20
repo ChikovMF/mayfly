@@ -7,12 +7,15 @@ using Server.Host.ErrorHandling;
 using Server.Host.Files;
 using Server.Host.Health;
 using Server.Host.RateLimiting;
+using Server.Host.Telemetry;
 using Server.Infrastructure;
 using Server.Infrastructure.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddOtlpLogging(builder.Configuration);
 
 var upload = builder.Configuration.GetSection(UploadOptions.SectionName).Get<UploadOptions>() ?? new UploadOptions();
 builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = upload.MaxRequestBodySize);
