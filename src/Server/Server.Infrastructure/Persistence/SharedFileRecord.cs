@@ -11,7 +11,7 @@ internal sealed record SharedFileRecord(
     DateTime? ExpiresAt,
     string? PasswordHash,
     int? DownloadsLeft,
-    byte[]? Sha256)
+    byte[] Sha256)
 {
     public static SharedFileRecord From(SharedFile file) => new(
         file.Id.ToString(),
@@ -21,7 +21,7 @@ internal sealed record SharedFileRecord(
         file.ExpiresAt?.UtcDateTime,
         file.PasswordHash,
         file.DownloadsLeft?.Count,
-        file.Sha256?.ToBytes()
+        file.Sha256.ToBytes()
     );
 
     public SharedFile ToDomain()
@@ -43,10 +43,10 @@ internal sealed record SharedFileRecord(
             Domain.ValueObjects.FileName.Parse(FileName),
             Domain.ValueObjects.ContentType.Parse(ContentType),
             FileSize.Parse(Size),
+            Domain.ValueObjects.Sha256.Parse(Sha256),
             expiresAt,
             PasswordHash,
-            downloadsLeft,
-            Sha256 is null ? null : Domain.ValueObjects.Sha256.Parse(Sha256)
+            downloadsLeft
         );
     }
 }

@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Server.Domain;
 using Server.Domain.Abstractions;
 using Server.Domain.ValueObjects;
@@ -20,29 +21,26 @@ internal sealed class SaveFileHandler(
 
         var size = FileSize.Parse(command.Content.Length - command.Content.Position);
 
+        var start = command.Content.Position;
+        var sha256 = Sha256.Parse(await SHA256.HashDataAsync(command.Content, cancellationToken));
+        command.Content.Position = start;
+
         var passwordHash = command.Password is null ? null : passwordHasher.Hash(command.Password);
 
         for (var attempt = 0; attempt < MaxIdAttempts; attempt++)
         {
             var id = ShareId.New();
-            var file = new SharedFile(id, command.FileName, command.ContentType, size, command.ExpiresAt, passwordHash, command.DownloadsLeft);
+            var file = new SharedFile(
+                id, command.FileName, command.ContentType, size, sha256, command.ExpiresAt, passwordHash, command.DownloadsLeft);
 
             if (!await repository.AddAsync(file, cancellationToken))
             {
                 continue;
             }
 
-            Sha256? sha256;
             try
             {
-                using var content = new HashingStream(command.Content);
-                await storage.SaveAsync(id, content, cancellationToken);
-
-                sha256 = content.GetHash();
-                if (sha256 is not null)
-                {
-                    await repository.SetSha256Async(id, sha256, cancellationToken);
-                }
+                await storage.SaveAsync(id, command.Content, cancellationToken);
             }
             catch
             {

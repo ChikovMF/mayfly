@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using NSubstitute;
 using Server.Application.GetFile;
 using Server.Domain;
@@ -20,7 +21,7 @@ public class GetFileHandlerTests
     {
         // Arrange
         var id = ShareId.New();
-        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
+        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5), Sha256.Parse(SHA256.HashData("hello"u8)));
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
         _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
 
@@ -39,7 +40,7 @@ public class GetFileHandlerTests
     {
         // Arrange
         var id = ShareId.New();
-        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
+        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5), Sha256.Parse(SHA256.HashData("hello"u8)));
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
         _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
         using var destination = new MemoryStream();
@@ -72,7 +73,7 @@ public class GetFileHandlerTests
     {
         // Arrange
         var id = ShareId.New();
-        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
+        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5), Sha256.Parse(SHA256.HashData("hello"u8)));
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
         _storage.ExistsAsync(id, CancellationToken.None).Returns(false);
 
@@ -93,6 +94,7 @@ public class GetFileHandlerTests
             FileName.Parse("report.pdf"),
             ContentType.Parse("application/pdf"),
             FileSize.Parse(5),
+            Sha256.Parse(SHA256.HashData("hello"u8)),
             DateTimeOffset.UtcNow.AddMinutes(-1));
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
         _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
@@ -115,6 +117,7 @@ public class GetFileHandlerTests
             FileName.Parse("report.pdf"),
             ContentType.Parse("application/pdf"),
             FileSize.Parse(5),
+            Sha256.Parse(SHA256.HashData("hello"u8)),
             expiresAt);
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
         _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
@@ -230,7 +233,7 @@ public class GetFileHandlerTests
     {
         // Arrange
         var id = ShareId.New();
-        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
+        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5), Sha256.Parse(SHA256.HashData("hello"u8)));
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
         _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
 
@@ -254,6 +257,7 @@ public class GetFileHandlerTests
             FileName.Parse("report.pdf"),
             ContentType.Parse("application/pdf"),
             FileSize.Parse(5),
+            Sha256.Parse(SHA256.HashData("hello"u8)),
             passwordHash: "hash",
             downloadsLeft: DownloadsLeft.Parse(3));
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
@@ -287,6 +291,7 @@ public class GetFileHandlerTests
         FileName.Parse("report.pdf"),
         ContentType.Parse("application/pdf"),
         FileSize.Parse(5),
+        Sha256.Parse(SHA256.HashData("hello"u8)),
         downloadsLeft: DownloadsLeft.Parse(downloadsLeft));
 
     private static SharedFile CreateProtectedFile(ShareId id, string passwordHash) => new(
@@ -294,5 +299,6 @@ public class GetFileHandlerTests
         FileName.Parse("report.pdf"),
         ContentType.Parse("application/pdf"),
         FileSize.Parse(5),
+        Sha256.Parse(SHA256.HashData("hello"u8)),
         passwordHash: passwordHash);
 }

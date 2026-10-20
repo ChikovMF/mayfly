@@ -43,17 +43,6 @@ internal sealed class PostgresSharedFileRepository(NpgsqlDataSource dataSource) 
         return record?.ToDomain();
     }
 
-    public async Task SetSha256Async(ShareId id, Sha256 sha256, CancellationToken cancellationToken)
-    {
-        const string sql = "UPDATE shared_files SET sha256 = @Sha256 WHERE id = @Id";
-
-        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
-        await connection.ExecuteAsync(new CommandDefinition(
-            sql,
-            new { Id = id.ToString(), Sha256 = sha256.ToBytes() },
-            cancellationToken: cancellationToken));
-    }
-
     public async Task<DownloadsLeft?> SpendDownloadAsync(ShareId id, CancellationToken cancellationToken)
     {
         const string sql = """
