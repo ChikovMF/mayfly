@@ -3,7 +3,7 @@ using System.Net;
 namespace Mayfly.Client;
 
 /// <summary>The server responded with an unsuccessful status code.</summary>
-public sealed class MayflyApiException(
+public class MayflyApiException(
     HttpStatusCode statusCode,
     string message,
     IReadOnlyList<string> errors)

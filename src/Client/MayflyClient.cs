@@ -168,10 +168,14 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
                       ?? problem?.Title
                       ?? $"The server responded with {(int)response.StatusCode} {response.StatusCode}.";
 
-        throw new MayflyApiException(
-            response.StatusCode,
-            message,
-            problem?.Errors?.Values.SelectMany(messages => messages).ToList() ?? []);
+        IReadOnlyList<string> errors = problem?.Errors?.Values.SelectMany(messages => messages).ToList() ?? [];
+
+        if (response.StatusCode == HttpStatusCode.TooManyRequests)
+        {
+            throw new MayflyRateLimitException(message, errors, response.Headers.RetryAfter?.Delta);
+        }
+
+        throw new MayflyApiException(response.StatusCode, message, errors);
     }
 
     private sealed record ProblemDetails(string? Title, string? Detail, Dictionary<string, string[]>? Errors);
