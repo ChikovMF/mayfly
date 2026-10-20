@@ -58,6 +58,36 @@ public sealed class MayflyClientTests(MayflyFactory factory)
     }
 
     [Fact]
+    public async Task DownloadAsync_FileWithDownloadLimit_ReturnsDownloadsLeftAfterThisDownload()
+    {
+        // Arrange
+        var uploaded = await _client.UploadAsync(new MemoryStream("Hello, Mayfly!"u8.ToArray()), "hello.txt", maxDownloads: 3);
+
+        // Act
+        using var file = await _client.DownloadAsync(uploaded.Id);
+
+        // Assert
+        Assert.NotNull(file);
+        Assert.Equal(2, file.Info.DownloadsLeft);
+    }
+
+    [Fact]
+    public async Task DownloadAsync_DownloadsExhausted_ReturnsNull()
+    {
+        // Arrange
+        var uploaded = await _client.UploadAsync(new MemoryStream("Hello, Mayfly!"u8.ToArray()), "hello.txt", maxDownloads: 1);
+        using (await _client.DownloadAsync(uploaded.Id))
+        {
+        }
+
+        // Act
+        var file = await _client.DownloadAsync(uploaded.Id);
+
+        // Assert
+        Assert.Null(file);
+    }
+
+    [Fact]
     public async Task GetInfoAsync_ProtectedFileWithItsPassword_ReturnsFileInfo()
     {
         // Arrange
