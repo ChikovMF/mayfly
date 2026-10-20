@@ -36,6 +36,24 @@ public class GetFileInfoHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_FileExists_ReturnsSha256()
+    {
+        // Arrange
+        var id = ShareId.New();
+        var sha256 = Sha256.Parse(SHA256.HashData("world"u8));
+        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5), sha256);
+        _repository.GetAsync(id, CancellationToken.None).Returns(file);
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileInfoQuery(id), CancellationToken.None);
+
+        // Assert
+        var found = Assert.IsType<GetFileInfoResult.Found>(result);
+        Assert.Equal(sha256, found.Sha256);
+    }
+
+    [Fact]
     public async Task HandleAsync_FileNotInRepository_ReturnsNotFound()
     {
         // Arrange

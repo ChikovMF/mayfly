@@ -17,6 +17,7 @@ internal static class FilesEndpoints
     private const string DefaultContentType = "application/octet-stream";
     private const string ExpiresAtHeader = "Mayfly-Expires-At";
     private const string DownloadsLeftHeader = "Mayfly-Downloads-Left";
+    private const string ReprDigestHeader = "Repr-Digest";
     internal const string PasswordHeader = "Mayfly-Password";
 
     public static IEndpointRouteBuilder MapFilesEndpoints(this IEndpointRouteBuilder app)
@@ -58,7 +59,7 @@ internal static class FilesEndpoints
 
         var saved = await handler.HandleAsync(command, cancellationToken);
 
-        return Results.Created($"/api/files/{saved.Id}", new FileUploadedResponse(saved.Id.ToString(), expiresAt, maxDownloads));
+        return Results.Created($"/api/files/{saved.Id}", new FileUploadedResponse(saved.Id.ToString(), expiresAt, maxDownloads, saved.Sha256.Hex));
     }
 
     private static async Task<IResult> DownloadAsync(
@@ -77,7 +78,7 @@ internal static class FilesEndpoints
         switch (result)
         {
             case GetFileResult.Found file:
-                WriteFileHeaders(response, file.FileName, file.ContentType, file.Size, file.ExpiresAt, file.DownloadsLeft);
+                WriteFileHeaders(response, file.FileName, file.ContentType, file.Size, file.ExpiresAt, file.DownloadsLeft, file.Sha256);
                 await file.CopyContentToAsync(response.Body, cancellationToken);
                 return Results.Empty;
             case GetFileResult.AccessDenied:
@@ -103,7 +104,7 @@ internal static class FilesEndpoints
         switch (result)
         {
             case GetFileInfoResult.Found info:
-                WriteFileHeaders(response, info.FileName, info.ContentType, info.Size, info.ExpiresAt, info.DownloadsLeft);
+                WriteFileHeaders(response, info.FileName, info.ContentType, info.Size, info.ExpiresAt, info.DownloadsLeft, info.Sha256);
                 return Results.Empty;
             case GetFileInfoResult.AccessDenied:
                 return Results.StatusCode(StatusCodes.Status403Forbidden);
@@ -144,7 +145,8 @@ internal static class FilesEndpoints
         ContentType contentType,
         FileSize size,
         DateTimeOffset? expiresAt,
-        DownloadsLeft? downloadsLeft)
+        DownloadsLeft? downloadsLeft,
+        Sha256 sha256)
     {
         var contentDisposition = new ContentDispositionHeaderValue("attachment");
         contentDisposition.SetHttpFileName(fileName.ToString());
@@ -152,6 +154,7 @@ internal static class FilesEndpoints
         response.ContentType = contentType.ToString();
         response.ContentLength = size.Bytes;
         response.Headers.ContentDisposition = contentDisposition.ToString();
+        response.Headers[ReprDigestHeader] = $"sha-256=:{Convert.ToBase64String(sha256.ToBytes())}:";
 
         if (expiresAt.HasValue)
         {
