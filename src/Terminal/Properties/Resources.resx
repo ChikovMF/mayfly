@@ -177,4 +177,10 @@
   <data name="ProgressWaitingForServer" xml:space="preserve">
     <value>Waiting for the server</value>
   </data>
+  <data name="TooManyRequests" xml:space="preserve">
+    <value>Too many requests. Try again later.</value>
+  </data>
+  <data name="TooManyRequestsRetryAfter" xml:space="preserve">
+    <value>Too many requests. Try again in {0} s.</value>
+  </data>
 </root>

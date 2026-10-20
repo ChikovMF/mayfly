@@ -544,6 +544,24 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Too many requests. Try again later..
+        /// </summary>
+        internal static string TooManyRequests {
+            get {
+                return ResourceManager.GetString("TooManyRequests", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Too many requests. Try again in {0} s..
+        /// </summary>
+        internal static string TooManyRequestsRetryAfter {
+            get {
+                return ResourceManager.GetString("TooManyRequestsRetryAfter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Wrong password..
         /// </summary>
         internal static string WrongPassword {

@@ -50,6 +50,12 @@ internal sealed class MayflyRootCommand : RootCommand
         {
             return await parseResult.InvokeAsync(new InvocationConfiguration { EnableDefaultExceptionHandler = false });
         }
+        catch (MayflyRateLimitException ex)
+        {
+            _output.Error(ex.RetryAfter.HasValue
+                ? string.Format(CultureInfo.CurrentCulture, Resources.TooManyRequestsRetryAfter, Math.Ceiling(ex.RetryAfter.Value.TotalSeconds))
+                : Resources.TooManyRequests);
+        }
         catch (MayflyApiException ex)
         {
             _output.Error(ex.Message, ex.Errors);

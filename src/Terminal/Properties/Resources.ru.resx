@@ -177,4 +177,10 @@
   <data name="ProgressWaitingForServer" xml:space="preserve">
     <value>Ожидание ответа сервера</value>
   </data>
+  <data name="TooManyRequests" xml:space="preserve">
+    <value>Слишком много запросов. Повторите позже.</value>
+  </data>
+  <data name="TooManyRequestsRetryAfter" xml:space="preserve">
+    <value>Слишком много запросов. Повторите через {0} с.</value>
+  </data>
 </root>
