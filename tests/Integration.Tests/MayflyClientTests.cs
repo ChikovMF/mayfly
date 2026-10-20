@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Cryptography;
 using Mayfly.Client;
 using Mayfly.Client.Models;
 
@@ -21,7 +22,20 @@ public sealed class MayflyClientTests(MayflyFactory factory)
         var info = await _client.GetInfoAsync(uploaded.Id);
 
         // Assert
-        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null, null), info);
+        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null, null, Sha256Of(content)), info);
+    }
+
+    [Fact]
+    public async Task UploadAsync_ReturnsSha256OfContent()
+    {
+        // Arrange
+        var content = "Hello, Mayfly!"u8.ToArray();
+
+        // Act
+        var uploaded = await _client.UploadAsync(new MemoryStream(content), "hello.txt", "text/plain");
+
+        // Assert
+        Assert.Equal(Sha256Of(content), uploaded.Sha256);
     }
 
     [Fact]
@@ -36,7 +50,7 @@ public sealed class MayflyClientTests(MayflyFactory factory)
 
         // Assert
         Assert.NotNull(file);
-        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null, null), file.Info);
+        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null, null, Sha256Of(content)), file.Info);
         using var downloaded = new MemoryStream();
         await file.Content.CopyToAsync(downloaded);
         Assert.Equal(content, downloaded.ToArray());
@@ -98,7 +112,7 @@ public sealed class MayflyClientTests(MayflyFactory factory)
         var info = await _client.GetInfoAsync(uploaded.Id, "пароль 1");
 
         // Assert
-        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null, null), info);
+        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null, null, Sha256Of(content)), info);
     }
 
     [Fact]
@@ -131,4 +145,6 @@ public sealed class MayflyClientTests(MayflyFactory factory)
         var exception = await Assert.ThrowsAsync<MayflyApiException>(act);
         Assert.Equal(HttpStatusCode.Forbidden, exception.StatusCode);
     }
+
+    private static string Sha256Of(byte[] content) => Convert.ToHexStringLower(SHA256.HashData(content));
 }
