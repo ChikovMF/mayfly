@@ -8,5 +8,7 @@ internal sealed class CleanupOptions
 
     public TimeSpan Lease { get; init; } = TimeSpan.FromMinutes(5);
 
+    public TimeSpan ExhaustedFileDelay { get; init; } = TimeSpan.FromHours(1);
+
     public int MaxAttempts { get; init; } = 15;
 }

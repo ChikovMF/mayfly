@@ -21,6 +21,7 @@ internal sealed partial class DeleteExpiredFilesHandler(
             var files = await repository.ClaimExpiredAsync(
                 BatchSize,
                 command.Lease,
+                command.ExhaustedFileDelay,
                 command.MaxAttempts,
                 cancellationToken);
 
@@ -60,7 +61,14 @@ internal sealed partial class DeleteExpiredFilesHandler(
             return;
         }
 
-        LogFileDeleted(file.Id);
+        if (file.Reason == FileDeletionReason.Expired)
+        {
+            LogFileExpired(file.Id);
+        }
+        else
+        {
+            LogFileDownloadsExhausted(file.Id);
+        }
     }
 
     private static TimeSpan RetryDelay(int failedAttempts)
@@ -70,13 +78,16 @@ internal sealed partial class DeleteExpiredFilesHandler(
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "File {Id} deleted: expiration time has passed")]
-    private partial void LogFileDeleted(ShareId id);
+    private partial void LogFileExpired(ShareId id);
 
-    [LoggerMessage(Level = LogLevel.Warning, Message = "Failed to delete expired file {Id} (attempt {Attempt}), will retry later")]
+    [LoggerMessage(Level = LogLevel.Information, Message = "File {Id} deleted: no downloads left")]
+    private partial void LogFileDownloadsExhausted(ShareId id);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Failed to delete file {Id} (attempt {Attempt}), will retry later")]
     private partial void LogDeletionFailed(Exception exception, ShareId id, int attempt);
 
     [LoggerMessage(
         Level = LogLevel.Critical,
-        Message = "Failed to delete expired file {Id} after {Attempt} attempts, no more retries until the attempts are reset")]
+        Message = "Failed to delete file {Id} after {Attempt} attempts, no more retries until the attempts are reset")]
     private partial void LogDeletionAbandoned(Exception exception, ShareId id, int attempt);
 }

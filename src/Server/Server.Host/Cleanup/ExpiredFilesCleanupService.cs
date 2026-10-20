@@ -11,7 +11,10 @@ internal sealed partial class ExpiredFilesCleanupService(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var timer = new PeriodicTimer(options.Value.Interval);
-        var command = new DeleteExpiredFilesCommand(options.Value.Lease, options.Value.MaxAttempts);
+        var command = new DeleteExpiredFilesCommand(
+            options.Value.Lease,
+            options.Value.ExhaustedFileDelay,
+            options.Value.MaxAttempts);
 
         do
         {

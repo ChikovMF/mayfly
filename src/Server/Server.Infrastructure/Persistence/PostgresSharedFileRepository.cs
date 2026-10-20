@@ -65,6 +65,7 @@ internal sealed class PostgresSharedFileRepository(NpgsqlDataSource dataSource) 
     public async Task<IReadOnlyList<ExpiredFileClaim>> ClaimExpiredAsync(
         int limit,
         TimeSpan lease,
+        TimeSpan exhaustedDelay,
         int maxAttempts,
         CancellationToken cancellationToken)
     {
@@ -74,22 +75,25 @@ internal sealed class PostgresSharedFileRepository(NpgsqlDataSource dataSource) 
             WHERE id IN (
                 SELECT id
                 FROM shared_files
-                WHERE expires_at <= now()
+                WHERE (expires_at <= now() OR downloads_exhausted_at <= now() - @ExhaustedDelay)
                   AND (cleanup_after IS NULL OR cleanup_after <= now())
                   AND cleanup_attempts < @MaxAttempts
-                ORDER BY expires_at
+                ORDER BY LEAST(expires_at, downloads_exhausted_at)
                 LIMIT @Limit
                 FOR UPDATE SKIP LOCKED)
-            RETURNING id AS Id, cleanup_attempts AS FailedAttempts
+            RETURNING id AS Id, cleanup_attempts AS FailedAttempts, COALESCE(expires_at <= now(), false) AS Expired
             """;
 
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
         var claims = await connection.QueryAsync<ExpiredFileClaimRecord>(new CommandDefinition(
             sql,
-            new { Limit = limit, Lease = lease, MaxAttempts = maxAttempts },
+            new { Limit = limit, Lease = lease, ExhaustedDelay = exhaustedDelay, MaxAttempts = maxAttempts },
             cancellationToken: cancellationToken));
 
-        return [.. claims.Select(claim => new ExpiredFileClaim(ShareId.Parse(claim.Id), claim.FailedAttempts))];
+        return [.. claims.Select(claim => new ExpiredFileClaim(
+            ShareId.Parse(claim.Id),
+            claim.FailedAttempts,
+            claim.Expired ? FileDeletionReason.Expired : FileDeletionReason.DownloadsExhausted))];
     }
 
     public async Task PostponeDeletionAsync(ShareId id, TimeSpan delay, CancellationToken cancellationToken)
@@ -119,5 +123,5 @@ internal sealed class PostgresSharedFileRepository(NpgsqlDataSource dataSource) 
             cancellationToken: cancellationToken));
     }
 
-    private sealed record ExpiredFileClaimRecord(string Id, int FailedAttempts);
+    private sealed record ExpiredFileClaimRecord(string Id, int FailedAttempts, bool Expired);
 }

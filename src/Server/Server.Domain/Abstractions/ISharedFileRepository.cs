@@ -12,9 +12,11 @@ public interface ISharedFileRepository
     /// <returns>The number of downloads left after this one, or <see langword="null"/> if none was left to spend.</returns>
     Task<DownloadsLeft?> SpendDownloadAsync(ShareId id, CancellationToken cancellationToken);
 
+    /// <summary>Claims files that are expired, or whose downloads ran out at least <paramref name="exhaustedDelay"/> ago.</summary>
     Task<IReadOnlyList<ExpiredFileClaim>> ClaimExpiredAsync(
         int limit,
         TimeSpan lease,
+        TimeSpan exhaustedDelay,
         int maxAttempts,
         CancellationToken cancellationToken);
 
