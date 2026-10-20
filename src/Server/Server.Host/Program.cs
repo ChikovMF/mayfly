@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
 using Server.Application;
 using Server.Domain.Abstractions;
-using Server.Host;
 using Server.Host.Cleanup;
-using Server.Host.Endpoints;
 using Server.Host.ErrorHandling;
+using Server.Host.Files;
+using Server.Host.Health;
 using Server.Host.RateLimiting;
 using Server.Infrastructure;
 

@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Server.Application.SaveFile;
 using Server.Domain.ValueObjects;
 
-namespace Server.Host.Endpoints;
+namespace Server.Host.Files;
 
 internal static class SaveFileCommandParser
 {

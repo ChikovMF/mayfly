@@ -9,7 +9,7 @@ using Server.Application.SaveFile;
 using Server.Domain.ValueObjects;
 using Server.Host.RateLimiting;
 
-namespace Server.Host.Endpoints;
+namespace Server.Host.Files;
 
 internal static class FilesEndpoints
 {

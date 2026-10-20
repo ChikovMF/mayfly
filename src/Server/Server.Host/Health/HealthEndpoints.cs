@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
-namespace Server.Host.Endpoints;
+namespace Server.Host.Health;
 
 internal static class HealthEndpoints
 {

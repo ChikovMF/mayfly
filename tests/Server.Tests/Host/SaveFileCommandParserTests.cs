@@ -1,5 +1,5 @@
 using Server.Domain.ValueObjects;
-using Server.Host.Endpoints;
+using Server.Host.Files;
 
 namespace Server.Tests.Host;
 

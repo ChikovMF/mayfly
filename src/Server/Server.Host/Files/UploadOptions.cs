@@ -1,4 +1,4 @@
-namespace Server.Host;
+namespace Server.Host.Files;
 
 internal sealed class UploadOptions
 {

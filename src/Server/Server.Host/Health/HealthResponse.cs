@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Server.Host.Endpoints;
+namespace Server.Host.Health;
 
 internal sealed record HealthResponse(
     string Status,
