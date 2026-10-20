@@ -28,10 +28,27 @@ internal sealed class UploadCommand : Command
             CustomParser = ExpirationPeriod.Parse,
         };
 
+        var maxDownloadsOption = new Option<int?>("--max-downloads", "-n")
+        {
+            Description = Resources.UploadMaxDownloadsOptionDescription,
+            HelpName = "count",
+            CustomParser = result =>
+            {
+                if (int.TryParse(result.Tokens.Single().Value, NumberStyles.None, CultureInfo.InvariantCulture, out var count) && count > 0)
+                {
+                    return count;
+                }
+
+                result.AddError(Resources.InvalidMaxDownloads);
+                return null;
+            },
+        };
+
         var passwordOption = new Option<bool>("--password", "-p") { Description = Resources.UploadPasswordOptionDescription };
 
         Arguments.Add(pathArgument);
         Options.Add(expiresInOption);
+        Options.Add(maxDownloadsOption);
         Options.Add(passwordOption);
         Options.Add(serverOption);
         Validators.Add(serverOption.ValidateAvailable);
@@ -46,6 +63,7 @@ internal sealed class UploadCommand : Command
             return services.GetRequiredService<UploadAction>().ExecuteAsync(
                 parseResult.GetRequiredValue(pathArgument),
                 parseResult.GetValue(expiresInOption),
+                parseResult.GetValue(maxDownloadsOption),
                 parseResult.GetValue(passwordOption),
                 cancellationToken);
         });

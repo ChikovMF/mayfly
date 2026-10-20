@@ -34,6 +34,11 @@ internal sealed class InfoAction(IMayflyClient client, ConsoleOutput output)
             fields.Add((Resources.ExpiresLabel, ConsoleOutput.FormatDate(info.ExpiresAt.Value)));
         }
 
+        if (info.DownloadsLeft.HasValue)
+        {
+            fields.Add((Resources.DownloadsLeftLabel, info.DownloadsLeft.Value.ToString(CultureInfo.CurrentCulture)));
+        }
+
         output.Fields([.. fields]);
         return 0;
     }

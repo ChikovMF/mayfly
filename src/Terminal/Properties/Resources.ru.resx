@@ -138,6 +138,15 @@
   <data name="UploadExpiresInOptionDescription" xml:space="preserve">
     <value>Время хранения файла: число и единица s, m, h или d (например, 30m, 12h, 7d). По умолчанию файл хранится бессрочно.</value>
   </data>
+  <data name="DownloadsLeftLabel" xml:space="preserve">
+    <value>Осталось скачиваний</value>
+  </data>
+  <data name="InvalidMaxDownloads" xml:space="preserve">
+    <value>Число скачиваний должно быть целым положительным числом.</value>
+  </data>
+  <data name="UploadMaxDownloadsOptionDescription" xml:space="preserve">
+    <value>Сколько раз можно скачать файл: положительное число. По умолчанию число скачиваний не ограничено.</value>
+  </data>
   <data name="PasswordPromptLabel" xml:space="preserve">
     <value>Пароль</value>
   </data>

@@ -202,6 +202,15 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Downloads left.
+        /// </summary>
+        internal static string DownloadsLeftLabel {
+            get {
+                return ResourceManager.GetString("DownloadsLeftLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expires.
         /// </summary>
         internal static string ExpiresLabel {
@@ -288,6 +297,15 @@ namespace Mayfly.Terminal.Properties {
         internal static string InvalidServerAddress {
             get {
                 return ResourceManager.GetString("InvalidServerAddress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The number of downloads must be a positive whole number..
+        /// </summary>
+        internal static string InvalidMaxDownloads {
+            get {
+                return ResourceManager.GetString("InvalidMaxDownloads", resourceCulture);
             }
         }
         
@@ -522,6 +540,15 @@ namespace Mayfly.Terminal.Properties {
         internal static string UploadIdLabel {
             get {
                 return ResourceManager.GetString("UploadIdLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to How many times the file can be downloaded: a positive number. By default the number of downloads is not limited..
+        /// </summary>
+        internal static string UploadMaxDownloadsOptionDescription {
+            get {
+                return ResourceManager.GetString("UploadMaxDownloadsOptionDescription", resourceCulture);
             }
         }
         
