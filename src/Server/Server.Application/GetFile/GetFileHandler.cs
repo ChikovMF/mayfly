@@ -42,6 +42,7 @@ internal sealed class GetFileHandler(
             file.Size,
             file.ExpiresAt,
             downloadsLeft,
+            file.Sha256,
             (destination, ct) => storage.CopyToAsync(query.Id, destination, ct));
     }
 }

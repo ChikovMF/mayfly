@@ -54,12 +54,14 @@ POST /api/files
 | `id` | string | Идентификатор файла |
 | `expiresAt` | string \| null | Момент, после которого файл недоступен (ISO 8601, UTC). `null` для бессрочного файла |
 | `maxDownloads` | integer \| null | Сколько раз можно скачать файл. `null`, если число скачиваний не ограничено |
+| `sha256` | string | SHA-256 содержимого (hex) |
 
 ```json
 {
   "id": "7KpQ2mXa9B",
   "expiresAt": "2026-10-09T15:00:00Z",
-  "maxDownloads": 5
+  "maxDownloads": 5,
+  "sha256": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
 }
 ```
 
@@ -99,6 +101,7 @@ GET /api/files/{id}
 | `Content-Type` | MIME-тип файла |
 | `Content-Length` | Размер файла в байтах |
 | `Content-Disposition` | `attachment` с именем файла |
+| `Repr-Digest` | SHA-256 содержимого: `sha-256=:<base64>:` ([RFC 9530](https://www.rfc-editor.org/rfc/rfc9530)) |
 | `Mayfly-Expires-At` | Момент, после которого файл недоступен (ISO 8601, UTC). Только для файлов с ограниченным сроком хранения |
 | `Mayfly-Downloads-Left` | Сколько раз файл можно скачать после этого запроса. Только для файлов с ограниченным числом скачиваний |
 
@@ -144,6 +147,7 @@ HEAD /api/files/{id}
 | `Content-Type` | MIME-тип файла |
 | `Content-Length` | Размер файла в байтах |
 | `Content-Disposition` | `attachment` с именем файла |
+| `Repr-Digest` | SHA-256 содержимого: `sha-256=:<base64>:` ([RFC 9530](https://www.rfc-editor.org/rfc/rfc9530)) |
 | `Mayfly-Expires-At` | Момент, после которого файл недоступен (ISO 8601, UTC). Только для файлов с ограниченным сроком хранения |
 | `Mayfly-Downloads-Left` | Сколько раз файл ещё можно скачать. Только для файлов с ограниченным числом скачиваний |
 

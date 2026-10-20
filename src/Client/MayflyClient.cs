@@ -14,6 +14,8 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
 {
     private const string ExpiresAtHeader = "Mayfly-Expires-At";
     private const string DownloadsLeftHeader = "Mayfly-Downloads-Left";
+    private const string ReprDigestHeader = "Repr-Digest";
+    private const string Sha256Prefix = "sha-256=:";
     private const string PasswordHeader = "Mayfly-Password";
 
     public async Task<UploadedFile> UploadAsync(
@@ -151,7 +153,32 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
             downloadsLeft = parsed;
         }
 
-        return new RemoteFileInfo(fileName, headers.ContentType.ToString(), headers.ContentLength.Value, expiresAt, downloadsLeft);
+        return new RemoteFileInfo(
+            fileName,
+            headers.ContentType.ToString(),
+            headers.ContentLength.Value,
+            expiresAt,
+            downloadsLeft,
+            ReadSha256(response));
+    }
+
+    private static string ReadSha256(HttpResponseMessage response)
+    {
+        if (response.Headers.TryGetValues(ReprDigestHeader, out var values))
+        {
+            var entry = values.SelectMany(value => value.Split(',', StringSplitOptions.TrimEntries))
+                .FirstOrDefault(e => e.StartsWith(Sha256Prefix, StringComparison.Ordinal));
+            if (entry is not null && entry.Length > Sha256Prefix.Length && entry.EndsWith(':'))
+            {
+                var bytes = new byte[entry.Length];
+                if (Convert.TryFromBase64Chars(entry.AsSpan(Sha256Prefix.Length, entry.Length - Sha256Prefix.Length - 1), bytes, out var written))
+                {
+                    return Convert.ToHexStringLower(bytes.AsSpan(0, written));
+                }
+            }
+        }
+
+        throw UnexpectedResponse(response, "The server response does not contain the hash of the file.");
     }
 
     private static async Task<T?> TryReadJsonAsync<T>(

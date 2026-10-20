@@ -13,7 +13,8 @@ public abstract record GetFileInfoResult
         ContentType ContentType,
         FileSize Size,
         DateTimeOffset? ExpiresAt,
-        DownloadsLeft? DownloadsLeft) : GetFileInfoResult;
+        DownloadsLeft? DownloadsLeft,
+        Sha256 Sha256) : GetFileInfoResult;
 
     public sealed record NotFound : GetFileInfoResult;
 

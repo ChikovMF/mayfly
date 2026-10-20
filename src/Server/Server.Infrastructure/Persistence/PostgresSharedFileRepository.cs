@@ -11,8 +11,8 @@ internal sealed class PostgresSharedFileRepository(NpgsqlDataSource dataSource) 
     public async Task<bool> AddAsync(SharedFile file, CancellationToken cancellationToken)
     {
         const string sql = """
-            INSERT INTO shared_files (id, file_name, content_type, size, expires_at, password_hash, downloads_left)
-            VALUES (@Id, @FileName, @ContentType, @Size, @ExpiresAt, @PasswordHash, @DownloadsLeft)
+            INSERT INTO shared_files (id, file_name, content_type, size, expires_at, password_hash, downloads_left, sha256)
+            VALUES (@Id, @FileName, @ContentType, @Size, @ExpiresAt, @PasswordHash, @DownloadsLeft, @Sha256)
             ON CONFLICT (id) DO NOTHING
             """;
 
@@ -29,7 +29,7 @@ internal sealed class PostgresSharedFileRepository(NpgsqlDataSource dataSource) 
     {
         const string sql = """
             SELECT id AS Id, file_name AS FileName, content_type AS ContentType, size AS Size, expires_at AS ExpiresAt,
-                   password_hash AS PasswordHash, downloads_left AS DownloadsLeft
+                   password_hash AS PasswordHash, downloads_left AS DownloadsLeft, sha256 AS Sha256
             FROM shared_files
             WHERE id = @Id
             """;

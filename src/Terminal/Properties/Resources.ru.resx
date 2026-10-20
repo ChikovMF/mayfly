@@ -87,6 +87,9 @@
   <data name="DownloadFileExists" xml:space="preserve">
     <value>Файл {0} уже существует. Укажите --force, чтобы перезаписать его, или --output, чтобы сохранить в другое место.</value>
   </data>
+  <data name="DownloadChecksumMismatch" xml:space="preserve">
+    <value>Скачанный файл не совпадает с SHA-256 и удалён.</value>
+  </data>
   <data name="DownloadCompleted" xml:space="preserve">
     <value>Сохранён файл {0} ({1})</value>
   </data>
@@ -140,6 +143,9 @@
   </data>
   <data name="DownloadsLeftLabel" xml:space="preserve">
     <value>Осталось скачиваний</value>
+  </data>
+  <data name="Sha256Label" xml:space="preserve">
+    <value>SHA-256</value>
   </data>
   <data name="InvalidMaxDownloads" xml:space="preserve">
     <value>Число скачиваний должно быть целым положительным числом.</value>

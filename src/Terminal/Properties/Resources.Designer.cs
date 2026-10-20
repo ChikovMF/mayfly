@@ -157,6 +157,15 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The downloaded file does not match its SHA-256 and was deleted..
+        /// </summary>
+        internal static string DownloadChecksumMismatch {
+            get {
+                return ResourceManager.GetString("DownloadChecksumMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Saved {0} ({1}).
         /// </summary>
         internal static string DownloadCompleted {
@@ -423,6 +432,15 @@ namespace Mayfly.Terminal.Properties {
         internal static string ServerOptionDescription {
             get {
                 return ResourceManager.GetString("ServerOptionDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SHA-256.
+        /// </summary>
+        internal static string Sha256Label {
+            get {
+                return ResourceManager.GetString("Sha256Label", resourceCulture);
             }
         }
         

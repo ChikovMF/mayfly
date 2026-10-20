@@ -60,7 +60,7 @@ internal sealed class MayflyRootCommand : RootCommand
         {
             _output.Error(ex.Message, ex.Errors);
         }
-        catch (AccessDeniedException ex)
+        catch (Exception ex) when (ex is AccessDeniedException or ChecksumMismatchException)
         {
             _output.Error(ex.Message);
         }

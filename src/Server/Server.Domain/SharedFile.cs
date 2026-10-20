@@ -7,6 +7,7 @@ public sealed class SharedFile(
     FileName fileName,
     ContentType contentType,
     FileSize size,
+    Sha256 sha256,
     DateTimeOffset? expiresAt = null,
     string? passwordHash = null,
     DownloadsLeft? downloadsLeft = null)
@@ -18,6 +19,8 @@ public sealed class SharedFile(
     public ContentType ContentType { get; } = contentType;
 
     public FileSize Size { get; } = size;
+
+    public Sha256 Sha256 { get; } = sha256;
 
     public DateTimeOffset? ExpiresAt { get; } = expiresAt;
 

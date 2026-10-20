@@ -15,6 +15,7 @@ public abstract record GetFileResult
         FileSize Size,
         DateTimeOffset? ExpiresAt,
         DownloadsLeft? DownloadsLeft,
+        Sha256 Sha256,
         Func<Stream, CancellationToken, Task> CopyContentToAsync) : GetFileResult;
 
     public sealed record NotFound : GetFileResult;

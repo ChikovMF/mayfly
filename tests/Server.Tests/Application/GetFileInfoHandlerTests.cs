@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using NSubstitute;
 using Server.Application.GetFileInfo;
 using Server.Domain;
@@ -20,7 +21,7 @@ public class GetFileInfoHandlerTests
     {
         // Arrange
         var id = ShareId.New();
-        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
+        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5), Sha256.Parse(SHA256.HashData("hello"u8)));
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
         _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
 
@@ -32,6 +33,24 @@ public class GetFileInfoHandlerTests
         Assert.Equal(file.FileName, found.FileName);
         Assert.Equal(file.ContentType, found.ContentType);
         Assert.Equal(file.Size, found.Size);
+    }
+
+    [Fact]
+    public async Task HandleAsync_FileExists_ReturnsSha256()
+    {
+        // Arrange
+        var id = ShareId.New();
+        var sha256 = Sha256.Parse(SHA256.HashData("world"u8));
+        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5), sha256);
+        _repository.GetAsync(id, CancellationToken.None).Returns(file);
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileInfoQuery(id), CancellationToken.None);
+
+        // Assert
+        var found = Assert.IsType<GetFileInfoResult.Found>(result);
+        Assert.Equal(sha256, found.Sha256);
     }
 
     [Fact]
@@ -53,7 +72,7 @@ public class GetFileInfoHandlerTests
     {
         // Arrange
         var id = ShareId.New();
-        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
+        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5), Sha256.Parse(SHA256.HashData("hello"u8)));
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
         _storage.ExistsAsync(id, CancellationToken.None).Returns(false);
 
@@ -74,6 +93,7 @@ public class GetFileInfoHandlerTests
             FileName.Parse("report.pdf"),
             ContentType.Parse("application/pdf"),
             FileSize.Parse(5),
+            Sha256.Parse(SHA256.HashData("hello"u8)),
             DateTimeOffset.UtcNow.AddMinutes(-1));
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
         _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
@@ -96,6 +116,7 @@ public class GetFileInfoHandlerTests
             FileName.Parse("report.pdf"),
             ContentType.Parse("application/pdf"),
             FileSize.Parse(5),
+            Sha256.Parse(SHA256.HashData("hello"u8)),
             expiresAt);
         _repository.GetAsync(id, CancellationToken.None).Returns(file);
         _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
@@ -194,6 +215,7 @@ public class GetFileInfoHandlerTests
         FileName.Parse("report.pdf"),
         ContentType.Parse("application/pdf"),
         FileSize.Parse(5),
+        Sha256.Parse(SHA256.HashData("hello"u8)),
         downloadsLeft: DownloadsLeft.Parse(downloadsLeft));
 
     private static SharedFile CreateProtectedFile(ShareId id, string passwordHash) => new(
@@ -201,5 +223,6 @@ public class GetFileInfoHandlerTests
         FileName.Parse("report.pdf"),
         ContentType.Parse("application/pdf"),
         FileSize.Parse(5),
+        Sha256.Parse(SHA256.HashData("hello"u8)),
         passwordHash: passwordHash);
 }

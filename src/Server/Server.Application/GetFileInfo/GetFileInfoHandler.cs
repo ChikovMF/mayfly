@@ -26,6 +26,6 @@ internal sealed class GetFileInfoHandler(
             return new GetFileInfoResult.NotFound();
         }
 
-        return new GetFileInfoResult.Found(file.FileName, file.ContentType, file.Size, file.ExpiresAt, file.DownloadsLeft);
+        return new GetFileInfoResult.Found(file.FileName, file.ContentType, file.Size, file.ExpiresAt, file.DownloadsLeft, file.Sha256);
     }
 }
