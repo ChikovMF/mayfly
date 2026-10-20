@@ -9,6 +9,7 @@ public interface IMayflyClient
     /// <param name="contentType">MIME type of the file.</param>
     /// <param name="expiresAt">The moment after which the file is unavailable, or <see langword="null"/> to keep it forever.</param>
     /// <param name="password">The password that protects the file, or <see langword="null"/> to leave it unprotected.</param>
+    /// <param name="maxDownloads">How many times the file can be downloaded, or <see langword="null"/> for no limit.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="MayflyApiException">The server rejected the request (for example, the file is not valid), or its response could not be understood.</exception>
     /// <exception cref="MayflyRateLimitException">The client made too many requests.</exception>
@@ -21,6 +22,7 @@ public interface IMayflyClient
         string? contentType = null,
         DateTimeOffset? expiresAt = null,
         string? password = null,
+        int? maxDownloads = null,
         CancellationToken cancellationToken = default);
 
     /// <returns>Information about the file, or <see langword="null"/> if there is no such file.</returns>

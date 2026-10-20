@@ -13,6 +13,7 @@ namespace Mayfly.Client;
 internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClient
 {
     private const string ExpiresAtHeader = "Mayfly-Expires-At";
+    private const string DownloadsLeftHeader = "Mayfly-Downloads-Left";
     private const string PasswordHeader = "Mayfly-Password";
 
     public async Task<UploadedFile> UploadAsync(
@@ -21,6 +22,7 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
         string? contentType = null,
         DateTimeOffset? expiresAt = null,
         string? password = null,
+        int? maxDownloads = null,
         CancellationToken cancellationToken = default)
     {
         var mediaType = contentType is null ? null : MediaTypeHeaderValue.Parse(contentType);
@@ -39,6 +41,11 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
         if (password is not null)
         {
             form.Add(new StringContent(password), "password");
+        }
+
+        if (maxDownloads.HasValue)
+        {
+            form.Add(new StringContent(maxDownloads.Value.ToString(CultureInfo.InvariantCulture)), "maxDownloads");
         }
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "api/files");
@@ -133,7 +140,18 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
             expiresAt = parsed;
         }
 
-        return new RemoteFileInfo(fileName, headers.ContentType.ToString(), headers.ContentLength.Value, expiresAt);
+        int? downloadsLeft = null;
+        if (response.Headers.TryGetValues(DownloadsLeftHeader, out var downloadsLeftValues))
+        {
+            if (!int.TryParse(downloadsLeftValues.First(), NumberStyles.None, CultureInfo.InvariantCulture, out var parsed))
+            {
+                throw UnexpectedResponse(response, "The server response describes the file incorrectly.");
+            }
+
+            downloadsLeft = parsed;
+        }
+
+        return new RemoteFileInfo(fileName, headers.ContentType.ToString(), headers.ContentLength.Value, expiresAt, downloadsLeft);
     }
 
     private static async Task<T?> TryReadJsonAsync<T>(
