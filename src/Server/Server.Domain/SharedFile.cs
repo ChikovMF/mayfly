@@ -9,7 +9,8 @@ public sealed class SharedFile(
     FileSize size,
     DateTimeOffset? expiresAt = null,
     string? passwordHash = null,
-    DownloadsLeft? downloadsLeft = null)
+    DownloadsLeft? downloadsLeft = null,
+    Sha256? sha256 = null)
 {
     public ShareId Id { get; } = id;
 
@@ -24,6 +25,8 @@ public sealed class SharedFile(
     public string? PasswordHash { get; } = passwordHash;
 
     public DownloadsLeft? DownloadsLeft { get; } = downloadsLeft;
+
+    public Sha256? Sha256 { get; } = sha256;
 
     public bool IsExpired() => ExpiresAt <= DateTimeOffset.UtcNow;
 
