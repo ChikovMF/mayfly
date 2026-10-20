@@ -9,6 +9,11 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
+  <Folder Name="/docs/">
+    <File Path="docs/api.md" />
+    <File Path="docs/configuration.md" />
+    <File Path="docs/terminal.md" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Client/Client.csproj" />
     <Project Path="src/Terminal/Terminal.csproj" />

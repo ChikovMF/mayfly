@@ -7,6 +7,7 @@ using Server.Application.GetFile;
 using Server.Application.GetFileInfo;
 using Server.Application.SaveFile;
 using Server.Domain.ValueObjects;
+using Server.Host.RateLimiting;
 
 namespace Server.Host.Endpoints;
 
@@ -14,15 +15,15 @@ internal static class FilesEndpoints
 {
     private const string DefaultContentType = "application/octet-stream";
     private const string ExpiresAtHeader = "Mayfly-Expires-At";
-    private const string PasswordHeader = "Mayfly-Password";
+    internal const string PasswordHeader = "Mayfly-Password";
 
     public static IEndpointRouteBuilder MapFilesEndpoints(this IEndpointRouteBuilder app)
     {
         var files = app.MapGroup("/api/files");
 
         files.MapPost("", UploadAsync).DisableAntiforgery();
-        files.MapGet("/{id}", DownloadAsync);
-        files.MapMethods("/{id}", [HttpMethods.Head], GetInfoAsync);
+        files.MapGet("/{id}", DownloadAsync).RequireRateLimiting(PasswordRateLimiterPolicy.Name);
+        files.MapMethods("/{id}", [HttpMethods.Head], GetInfoAsync).RequireRateLimiting(PasswordRateLimiterPolicy.Name);
 
         return app;
     }
