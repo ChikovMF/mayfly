@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Domain.Abstractions;
+using Server.Infrastructure.Configuration;
 using Server.Infrastructure.Persistence;
 using Server.Infrastructure.Security;
 using Server.Infrastructure.Storage;
@@ -13,7 +14,7 @@ public static class DependencyInjection
 
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddOptions<PostgresOptions>().Bind(configuration.GetSection(PostgresOptions.SectionName));
+        services.AddOptions<PostgresOptions>(configuration);
 
         services.AddNpgsqlDataSource(
             configuration.GetSection(PostgresOptions.SectionName).Get<PostgresOptions>()?.ConnectionString ?? "");

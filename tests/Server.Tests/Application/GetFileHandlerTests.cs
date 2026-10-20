@@ -176,6 +176,119 @@ public class GetFileHandlerTests
         Assert.IsType<GetFileResult.AccessDenied>(result);
     }
 
+    [Fact]
+    public async Task HandleAsync_FileExhausted_ReturnsNotFound()
+    {
+        // Arrange
+        var id = ShareId.New();
+        _repository.GetAsync(id, CancellationToken.None).Returns(CreateLimitedFile(id, 0));
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
+
+        // Assert
+        Assert.IsType<GetFileResult.NotFound>(result);
+    }
+
+    [Fact]
+    public async Task HandleAsync_LimitedFile_ReturnsDownloadsLeftAfterSpending()
+    {
+        // Arrange
+        var id = ShareId.New();
+        var remaining = DownloadsLeft.Parse(2);
+        _repository.GetAsync(id, CancellationToken.None).Returns(CreateLimitedFile(id, 3));
+        _repository.SpendDownloadAsync(id, CancellationToken.None).Returns(remaining);
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
+
+        // Assert
+        var found = Assert.IsType<GetFileResult.Found>(result);
+        Assert.Equal(remaining, found.DownloadsLeft);
+    }
+
+    [Fact]
+    public async Task HandleAsync_LastDownloadTakenConcurrently_ReturnsNotFound()
+    {
+        // Arrange
+        var id = ShareId.New();
+        _repository.GetAsync(id, CancellationToken.None).Returns(CreateLimitedFile(id, 1));
+        _repository.SpendDownloadAsync(id, CancellationToken.None).Returns((DownloadsLeft?)null);
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
+
+        // Assert
+        Assert.IsType<GetFileResult.NotFound>(result);
+    }
+
+    [Fact]
+    public async Task HandleAsync_UnlimitedFile_DoesNotSpendDownload()
+    {
+        // Arrange
+        var id = ShareId.New();
+        var file = new SharedFile(id, FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), FileSize.Parse(5));
+        _repository.GetAsync(id, CancellationToken.None).Returns(file);
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
+
+        // Act
+        var result = await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
+
+        // Assert
+        var found = Assert.IsType<GetFileResult.Found>(result);
+        Assert.Null(found.DownloadsLeft);
+        await _repository.DidNotReceive().SpendDownloadAsync(Arg.Any<ShareId>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task HandleAsync_WrongPasswordForLimitedFile_DoesNotSpendDownload()
+    {
+        // Arrange
+        var id = ShareId.New();
+        var password = Password.Parse("wrong");
+        var file = new SharedFile(
+            id,
+            FileName.Parse("report.pdf"),
+            ContentType.Parse("application/pdf"),
+            FileSize.Parse(5),
+            passwordHash: "hash",
+            downloadsLeft: DownloadsLeft.Parse(3));
+        _repository.GetAsync(id, CancellationToken.None).Returns(file);
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(true);
+        _passwordHasher.Verify(password, "hash").Returns(false);
+
+        // Act
+        await _handler.HandleAsync(new GetFileQuery(id, password), CancellationToken.None);
+
+        // Assert
+        await _repository.DidNotReceive().SpendDownloadAsync(Arg.Any<ShareId>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task HandleAsync_FileNotInStorageForLimitedFile_DoesNotSpendDownload()
+    {
+        // Arrange
+        var id = ShareId.New();
+        _repository.GetAsync(id, CancellationToken.None).Returns(CreateLimitedFile(id, 3));
+        _storage.ExistsAsync(id, CancellationToken.None).Returns(false);
+
+        // Act
+        await _handler.HandleAsync(new GetFileQuery(id), CancellationToken.None);
+
+        // Assert
+        await _repository.DidNotReceive().SpendDownloadAsync(Arg.Any<ShareId>(), Arg.Any<CancellationToken>());
+    }
+
+    private static SharedFile CreateLimitedFile(ShareId id, int downloadsLeft) => new(
+        id,
+        FileName.Parse("report.pdf"),
+        ContentType.Parse("application/pdf"),
+        FileSize.Parse(5),
+        downloadsLeft: DownloadsLeft.Parse(downloadsLeft));
+
     private static SharedFile CreateProtectedFile(ShareId id, string passwordHash) => new(
         id,
         FileName.Parse("report.pdf"),

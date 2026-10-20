@@ -63,10 +63,50 @@ public class SharedFileTests
         Assert.True(result);
     }
 
-    private static SharedFile CreateFile(DateTimeOffset? expiresAt) => new(
+    [Fact]
+    public void IsExhausted_NoLimit_ReturnsFalse()
+    {
+        // Arrange
+        var file = CreateFile(downloadsLeft: null);
+
+        // Act
+        var result = file.IsExhausted();
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void IsExhausted_DownloadsLeft_ReturnsFalse()
+    {
+        // Arrange
+        var file = CreateFile(downloadsLeft: DownloadsLeft.Parse(1));
+
+        // Act
+        var result = file.IsExhausted();
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void IsExhausted_NoDownloadsLeft_ReturnsTrue()
+    {
+        // Arrange
+        var file = CreateFile(downloadsLeft: DownloadsLeft.Parse(0));
+
+        // Act
+        var result = file.IsExhausted();
+
+        // Assert
+        Assert.True(result);
+    }
+
+    private static SharedFile CreateFile(DateTimeOffset? expiresAt = null, DownloadsLeft? downloadsLeft = null) => new(
         ShareId.New(),
         FileName.Parse("report.pdf"),
         ContentType.Parse("application/pdf"),
         FileSize.Parse(1024),
-        expiresAt);
+        expiresAt,
+        downloadsLeft: downloadsLeft);
 }

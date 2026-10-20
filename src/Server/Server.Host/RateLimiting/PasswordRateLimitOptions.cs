@@ -1,8 +1,10 @@
+using Server.Infrastructure.Configuration;
+
 namespace Server.Host.RateLimiting;
 
-internal sealed class PasswordRateLimitOptions
+internal sealed class PasswordRateLimitOptions : ISectionOptions
 {
-    public const string SectionName = "PasswordRateLimit";
+    public static string SectionName => "PasswordRateLimit";
 
     public int TokenLimit { get; init; } = 10;
 

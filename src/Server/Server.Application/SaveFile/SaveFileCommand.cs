@@ -7,4 +7,5 @@ public sealed record SaveFileCommand(
     ContentType ContentType,
     Stream Content,
     DateTimeOffset? ExpiresAt = null,
-    Password? Password = null);
+    Password? Password = null,
+    DownloadsLeft? DownloadsLeft = null);

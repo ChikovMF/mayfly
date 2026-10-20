@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Minio;
 using Server.Domain.Abstractions;
+using Server.Infrastructure.Configuration;
 using Server.Infrastructure.Storage.Minio;
 using Server.Infrastructure.Storage.YandexDisk;
 
@@ -33,10 +34,7 @@ internal static class StorageDependencyInjection
 
     private static void AddMinioStorage(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddOptions<MinioOptions>()
-            .Bind(configuration.GetSection(MinioOptions.SectionName))
-            .ValidateOnStart();
-        services.AddSingleton<IValidateOptions<MinioOptions>, MinioOptionsValidator>();
+        services.AddOptions<MinioOptions, MinioOptionsValidator>(configuration);
 
         services.AddSingleton<IMinioClient>(sp =>
         {
@@ -53,10 +51,7 @@ internal static class StorageDependencyInjection
 
     private static void AddYandexDiskStorage(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddOptions<YandexDiskOptions>()
-            .Bind(configuration.GetSection(YandexDiskOptions.SectionName))
-            .ValidateOnStart();
-        services.AddSingleton<IValidateOptions<YandexDiskOptions>, YandexDiskOptionsValidator>();
+        services.AddOptions<YandexDiskOptions, YandexDiskOptionsValidator>(configuration);
 
         services.AddHttpClient<IFileStorage, YandexDiskFileStorage>(client =>
         {

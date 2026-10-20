@@ -20,6 +20,11 @@ internal sealed class CleanupOptionsValidator : IValidateOptions<CleanupOptions>
             failures.Add($"{CleanupOptions.SectionName}:{nameof(CleanupOptions.Lease)} must be greater than zero.");
         }
 
+        if (options.ExhaustedFileDelay < TimeSpan.Zero)
+        {
+            failures.Add($"{CleanupOptions.SectionName}:{nameof(CleanupOptions.ExhaustedFileDelay)} must not be negative.");
+        }
+
         if (options.MaxAttempts <= 0)
         {
             failures.Add($"{CleanupOptions.SectionName}:{nameof(CleanupOptions.MaxAttempts)} must be greater than zero.");

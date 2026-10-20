@@ -1,8 +1,10 @@
+using Server.Infrastructure.Configuration;
+
 namespace Server.Infrastructure.Persistence;
 
-internal sealed class PostgresOptions
+internal sealed class PostgresOptions : ISectionOptions
 {
-    public const string SectionName = "Postgres";
+    public static string SectionName => "Postgres";
 
     public string ConnectionString { get; init; } = "";
 }

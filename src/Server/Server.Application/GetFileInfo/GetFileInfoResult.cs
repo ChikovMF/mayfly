@@ -12,7 +12,8 @@ public abstract record GetFileInfoResult
         FileName FileName,
         ContentType ContentType,
         FileSize Size,
-        DateTimeOffset? ExpiresAt) : GetFileInfoResult;
+        DateTimeOffset? ExpiresAt,
+        DownloadsLeft? DownloadsLeft) : GetFileInfoResult;
 
     public sealed record NotFound : GetFileInfoResult;
 

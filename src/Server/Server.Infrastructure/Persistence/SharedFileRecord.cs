@@ -9,7 +9,8 @@ internal sealed record SharedFileRecord(
     string ContentType,
     long Size,
     DateTime? ExpiresAt,
-    string? PasswordHash)
+    string? PasswordHash,
+    int? DownloadsLeft)
 {
     public static SharedFileRecord From(SharedFile file) => new(
         file.Id.ToString(),
@@ -17,7 +18,8 @@ internal sealed record SharedFileRecord(
         file.ContentType.ToString(),
         file.Size.Bytes,
         file.ExpiresAt?.UtcDateTime,
-        file.PasswordHash
+        file.PasswordHash,
+        file.DownloadsLeft?.Count
     );
 
     public SharedFile ToDomain()
@@ -28,13 +30,20 @@ internal sealed record SharedFileRecord(
             expiresAt = new DateTimeOffset(DateTime.SpecifyKind(ExpiresAt.Value, DateTimeKind.Utc));
         }
 
+        DownloadsLeft? downloadsLeft = null;
+        if (DownloadsLeft.HasValue)
+        {
+            downloadsLeft = Domain.ValueObjects.DownloadsLeft.Parse(DownloadsLeft.Value);
+        }
+
         return new SharedFile(
             ShareId.Parse(Id),
             Domain.ValueObjects.FileName.Parse(FileName),
             Domain.ValueObjects.ContentType.Parse(ContentType),
             FileSize.Parse(Size),
             expiresAt,
-            PasswordHash
+            PasswordHash,
+            downloadsLeft
         );
     }
 }

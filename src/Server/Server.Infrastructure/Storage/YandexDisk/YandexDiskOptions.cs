@@ -1,8 +1,10 @@
+using Server.Infrastructure.Configuration;
+
 namespace Server.Infrastructure.Storage.YandexDisk;
 
-internal sealed class YandexDiskOptions
+internal sealed class YandexDiskOptions : ISectionOptions
 {
-    public const string SectionName = $"{StorageOptions.SectionName}:{nameof(StorageProvider.YandexDisk)}";
+    public static string SectionName => $"{StorageOptions.SectionName}:{nameof(StorageProvider.YandexDisk)}";
 
     public string OAuthToken { get; init; } = "";
 }

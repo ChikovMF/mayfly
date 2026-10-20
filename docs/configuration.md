@@ -13,13 +13,14 @@
 | `Storage:Minio:BucketName` | Для MinIO | | Имя существующего бакета |
 | `Storage:YandexDisk:OAuthToken` | Для Яндекс Диска | | OAuth-токен с доступом к папке приложения |
 | `Upload:MaxRequestBodySize` | Нет | `4294967296` (4 ГиБ) | Максимальный размер загружаемого файла в байтах |
-| `Cleanup:Interval` | Нет | `00:01:00` | Интервал между удалениями файлов с истёкшим сроком хранения, `чч:мм:сс` |
-| `Cleanup:Lease` | Нет | `00:05:00` | Время на обработку файлов одним экземпляром сервера, `чч:мм:сс` |
-| `Cleanup:MaxAttempts` | Нет | `15` | Максимальное число попыток удалить файл |
-| `PasswordRateLimit:TokenLimit` | Нет | `10` | Размер запаса запросов с паролем для одного адреса |
-| `PasswordRateLimit:TokensPerPeriod` | Нет | `1` | Сколько запросов возвращается в запас за один период |
-| `PasswordRateLimit:ReplenishmentPeriod` | Нет | `00:00:06` | Период пополнения запаса, `чч:мм:сс` |
-| `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | Нет | `false` | Брать адрес клиента из `X-Forwarded-For`. Включать, если сервер работает за reverse proxy |
+| `Cleanup:Interval` | Нет | `00:01:00` | Как часто запускается удаление файлов, `чч:мм:сс` |
+| `Cleanup:Lease` | Нет | `00:05:00` | Время, отведённое на обработку файлов при удалении, `чч:мм:сс` |
+| `Cleanup:ExhaustedFileDelay` | Нет | `01:00:00` | Через сколько после последнего разрешённого скачивания файл удаляется, `чч:мм:сс` |
+| `Cleanup:MaxAttempts` | Нет | `15` | Сколько раз пытаться удалить файл |
+| `PasswordRateLimit:TokenLimit` | Нет | `10` | Максимальное число запросов с паролем подряд |
+| `PasswordRateLimit:TokensPerPeriod` | Нет | `1` | Сколько запросов с паролем возвращается за один период |
+| `PasswordRateLimit:ReplenishmentPeriod` | Нет | `00:00:06` | Период, через который возвращаются запросы с паролем, `чч:мм:сс` |
+| `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | Нет | `false` | Учитывать заголовок `X-Forwarded-For` |
 
 ```json
 {

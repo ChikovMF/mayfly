@@ -1,7 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Server.Host.Endpoints;
+using Server.Host.Files;
 using Server.Host.RateLimiting;
 
 namespace Server.Tests.Host;

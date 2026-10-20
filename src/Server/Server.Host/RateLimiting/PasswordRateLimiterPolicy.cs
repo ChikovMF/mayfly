@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
-using Server.Host.Endpoints;
+using Server.Host.Files;
 
 namespace Server.Host.RateLimiting;
 

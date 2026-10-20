@@ -8,11 +8,13 @@ public abstract record GetFileResult
     {
     }
 
+    /// <summary>The file is available. <c>DownloadsLeft</c> is what remains after this download, <see langword="null"/> if the number is not limited.</summary>
     public sealed record Found(
         FileName FileName,
         ContentType ContentType,
         FileSize Size,
         DateTimeOffset? ExpiresAt,
+        DownloadsLeft? DownloadsLeft,
         Func<Stream, CancellationToken, Task> CopyContentToAsync) : GetFileResult;
 
     public sealed record NotFound : GetFileResult;

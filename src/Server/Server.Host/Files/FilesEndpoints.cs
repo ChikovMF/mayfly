@@ -9,12 +9,13 @@ using Server.Application.SaveFile;
 using Server.Domain.ValueObjects;
 using Server.Host.RateLimiting;
 
-namespace Server.Host.Endpoints;
+namespace Server.Host.Files;
 
 internal static class FilesEndpoints
 {
     private const string DefaultContentType = "application/octet-stream";
     private const string ExpiresAtHeader = "Mayfly-Expires-At";
+    private const string DownloadsLeftHeader = "Mayfly-Downloads-Left";
     internal const string PasswordHeader = "Mayfly-Password";
 
     public static IEndpointRouteBuilder MapFilesEndpoints(this IEndpointRouteBuilder app)
@@ -32,49 +33,29 @@ internal static class FilesEndpoints
         IFormFile? file,
         [FromForm] DateTimeOffset? expiresAt,
         [FromForm] string? password,
+        [FromForm] int? maxDownloads,
         [FromServices] ISaveFileHandler handler,
         [FromServices] IContentTypeProvider contentTypeProvider,
         CancellationToken cancellationToken)
     {
-        if (file is null)
+        await using var content = file?.OpenReadStream();
+        var contentType = file is null ? null : ResolveContentType(file, contentTypeProvider);
+        if (!SaveFileCommandParser.TryParse(
+                file?.FileName,
+                contentType,
+                content,
+                expiresAt,
+                password,
+                maxDownloads,
+                out var command,
+                out var errors))
         {
-            return ValidationError("file", "A file is required.");
+            return Results.ValidationProblem(errors);
         }
 
-        var errors = new List<string>();
+        var id = await handler.HandleAsync(command, cancellationToken);
 
-        if (!FileName.TryParse(file.FileName, out var fileName))
-        {
-            errors.Add("The file name is not valid.");
-        }
-
-        if (!ContentType.TryParse(ResolveContentType(file, contentTypeProvider), out var contentType))
-        {
-            errors.Add("The content type is not valid.");
-        }
-
-        if (fileName is null || contentType is null)
-        {
-            return ValidationError("file", [.. errors]);
-        }
-
-        if (expiresAt <= DateTimeOffset.UtcNow)
-        {
-            return ValidationError("expiresAt", "The expiration must be in the future.");
-        }
-
-        Password? filePassword = null;
-        if (password is not null && !Password.TryParse(password, out filePassword))
-        {
-            return ValidationError("password", "The password is not valid.");
-        }
-
-        await using var content = file.OpenReadStream();
-        var id = await handler.HandleAsync(
-            new SaveFileCommand(fileName, contentType, content, expiresAt, filePassword),
-            cancellationToken);
-
-        return Results.Created($"/api/files/{id}", new FileUploadedResponse(id.ToString(), expiresAt));
+        return Results.Created($"/api/files/{id}", new FileUploadedResponse(id.ToString(), expiresAt, maxDownloads));
     }
 
     private static async Task<IResult> DownloadAsync(
@@ -93,7 +74,7 @@ internal static class FilesEndpoints
         switch (result)
         {
             case GetFileResult.Found file:
-                WriteFileHeaders(response, file.FileName, file.ContentType, file.Size, file.ExpiresAt);
+                WriteFileHeaders(response, file.FileName, file.ContentType, file.Size, file.ExpiresAt, file.DownloadsLeft);
                 await file.CopyContentToAsync(response.Body, cancellationToken);
                 return Results.Empty;
             case GetFileResult.AccessDenied:
@@ -119,7 +100,7 @@ internal static class FilesEndpoints
         switch (result)
         {
             case GetFileInfoResult.Found info:
-                WriteFileHeaders(response, info.FileName, info.ContentType, info.Size, info.ExpiresAt);
+                WriteFileHeaders(response, info.FileName, info.ContentType, info.Size, info.ExpiresAt, info.DownloadsLeft);
                 return Results.Empty;
             case GetFileInfoResult.AccessDenied:
                 return Results.StatusCode(StatusCodes.Status403Forbidden);
@@ -159,7 +140,8 @@ internal static class FilesEndpoints
         FileName fileName,
         ContentType contentType,
         FileSize size,
-        DateTimeOffset? expiresAt)
+        DateTimeOffset? expiresAt,
+        DownloadsLeft? downloadsLeft)
     {
         var contentDisposition = new ContentDispositionHeaderValue("attachment");
         contentDisposition.SetHttpFileName(fileName.ToString());
@@ -172,8 +154,10 @@ internal static class FilesEndpoints
         {
             response.Headers[ExpiresAtHeader] = expiresAt.Value.UtcDateTime.ToString("O", CultureInfo.InvariantCulture);
         }
-    }
 
-    private static IResult ValidationError(string field, params string[] messages) =>
-        Results.ValidationProblem(new Dictionary<string, string[]> { [field] = messages });
+        if (downloadsLeft != null)
+        {
+            response.Headers[DownloadsLeftHeader] = downloadsLeft.Count.ToString(CultureInfo.InvariantCulture);
+        }
+    }
 }

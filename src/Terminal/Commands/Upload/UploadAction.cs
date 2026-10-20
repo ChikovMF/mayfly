@@ -13,6 +13,7 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
     public async Task<int> ExecuteAsync(
         FileSystemInfo path,
         TimeSpan? expiresIn,
+        int? maxDownloads,
         bool protect,
         CancellationToken cancellationToken)
     {
@@ -59,6 +60,7 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
                 name,
                 expiresAt: expiresAt,
                 password: password,
+                maxDownloads: maxDownloads,
                 cancellationToken: cancellationToken);
         }
 
@@ -75,6 +77,11 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
         if (uploaded.ExpiresAt.HasValue)
         {
             fields.Add((Resources.ExpiresLabel, ConsoleOutput.FormatDate(uploaded.ExpiresAt.Value)));
+        }
+
+        if (uploaded.MaxDownloads.HasValue)
+        {
+            fields.Add((Resources.DownloadsLeftLabel, uploaded.MaxDownloads.Value.ToString(CultureInfo.CurrentCulture)));
         }
 
         output.Fields([.. fields]);

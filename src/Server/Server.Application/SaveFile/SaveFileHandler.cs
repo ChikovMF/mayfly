@@ -25,7 +25,7 @@ internal sealed class SaveFileHandler(
         for (var attempt = 0; attempt < MaxIdAttempts; attempt++)
         {
             var id = ShareId.New();
-            var file = new SharedFile(id, command.FileName, command.ContentType, size, command.ExpiresAt, passwordHash);
+            var file = new SharedFile(id, command.FileName, command.ContentType, size, command.ExpiresAt, passwordHash, command.DownloadsLeft);
 
             if (!await repository.AddAsync(file, cancellationToken))
             {

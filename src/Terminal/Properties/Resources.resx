@@ -138,6 +138,15 @@
   <data name="UploadExpiresInOptionDescription" xml:space="preserve">
     <value>How long to keep the file: a number and a unit s, m, h or d (for example, 30m, 12h, 7d). By default the file is kept forever.</value>
   </data>
+  <data name="DownloadsLeftLabel" xml:space="preserve">
+    <value>Downloads left</value>
+  </data>
+  <data name="InvalidMaxDownloads" xml:space="preserve">
+    <value>The number of downloads must be a positive whole number.</value>
+  </data>
+  <data name="UploadMaxDownloadsOptionDescription" xml:space="preserve">
+    <value>How many times the file can be downloaded: a positive number. By default the number of downloads is not limited.</value>
+  </data>
   <data name="PasswordPromptLabel" xml:space="preserve">
     <value>Password</value>
   </data>

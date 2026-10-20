@@ -49,6 +49,32 @@ public class CleanupOptionsValidatorTests
     }
 
     [Fact]
+    public void Validate_NegativeExhaustedFileDelay_Fails()
+    {
+        // Arrange
+        var options = new CleanupOptions { ExhaustedFileDelay = TimeSpan.FromMinutes(-1) };
+
+        // Act
+        var result = _validator.Validate(null, options);
+
+        // Assert
+        Assert.True(result.Failed);
+    }
+
+    [Fact]
+    public void Validate_ZeroExhaustedFileDelay_Succeeds()
+    {
+        // Arrange
+        var options = new CleanupOptions { ExhaustedFileDelay = TimeSpan.Zero };
+
+        // Act
+        var result = _validator.Validate(null, options);
+
+        // Assert
+        Assert.True(result.Succeeded);
+    }
+
+    [Fact]
     public void Validate_ZeroMaxAttempts_Fails()
     {
         // Arrange

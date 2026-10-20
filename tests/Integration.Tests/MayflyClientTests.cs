@@ -21,7 +21,7 @@ public sealed class MayflyClientTests(MayflyFactory factory)
         var info = await _client.GetInfoAsync(uploaded.Id);
 
         // Assert
-        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null), info);
+        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null, null), info);
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public sealed class MayflyClientTests(MayflyFactory factory)
 
         // Assert
         Assert.NotNull(file);
-        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null), file.Info);
+        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null, null), file.Info);
         using var downloaded = new MemoryStream();
         await file.Content.CopyToAsync(downloaded);
         Assert.Equal(content, downloaded.ToArray());
@@ -58,6 +58,36 @@ public sealed class MayflyClientTests(MayflyFactory factory)
     }
 
     [Fact]
+    public async Task DownloadAsync_FileWithDownloadLimit_ReturnsDownloadsLeftAfterThisDownload()
+    {
+        // Arrange
+        var uploaded = await _client.UploadAsync(new MemoryStream("Hello, Mayfly!"u8.ToArray()), "hello.txt", maxDownloads: 3);
+
+        // Act
+        using var file = await _client.DownloadAsync(uploaded.Id);
+
+        // Assert
+        Assert.NotNull(file);
+        Assert.Equal(2, file.Info.DownloadsLeft);
+    }
+
+    [Fact]
+    public async Task DownloadAsync_DownloadsExhausted_ReturnsNull()
+    {
+        // Arrange
+        var uploaded = await _client.UploadAsync(new MemoryStream("Hello, Mayfly!"u8.ToArray()), "hello.txt", maxDownloads: 1);
+        using (await _client.DownloadAsync(uploaded.Id))
+        {
+        }
+
+        // Act
+        var file = await _client.DownloadAsync(uploaded.Id);
+
+        // Assert
+        Assert.Null(file);
+    }
+
+    [Fact]
     public async Task GetInfoAsync_ProtectedFileWithItsPassword_ReturnsFileInfo()
     {
         // Arrange
@@ -68,7 +98,7 @@ public sealed class MayflyClientTests(MayflyFactory factory)
         var info = await _client.GetInfoAsync(uploaded.Id, "пароль 1");
 
         // Assert
-        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null), info);
+        Assert.Equal(new RemoteFileInfo("hello.txt", "text/plain", content.Length, null, null), info);
     }
 
     [Fact]
