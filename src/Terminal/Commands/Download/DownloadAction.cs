@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Security.Cryptography;
 using Mayfly.Client;
 using Mayfly.Terminal.Output;
 using Mayfly.Terminal.Properties;
@@ -28,10 +29,16 @@ internal sealed class DownloadAction(IMayflyClient client, ConsoleOutput output)
         var stream = new FileStream(path, overwrite ? FileMode.Create : FileMode.CreateNew, FileAccess.Write);
         try
         {
+            string sha256;
             await using (stream)
             await using (var progress = output.StartProgress(Path.GetFileName(path), file.Info.Size))
             {
-                await CopyAsync(file.Content, stream, progress, cancellationToken);
+                sha256 = await CopyAsync(file.Content, stream, progress, cancellationToken);
+            }
+
+            if (sha256 != file.Info.Sha256)
+            {
+                throw new ChecksumMismatchException(Resources.DownloadChecksumMismatch);
             }
         }
         catch
@@ -50,16 +57,20 @@ internal sealed class DownloadAction(IMayflyClient client, ConsoleOutput output)
         return 0;
     }
 
-    private static async Task CopyAsync(Stream source, Stream destination, TransferProgress progress, CancellationToken cancellationToken)
+    private static async Task<string> CopyAsync(Stream source, Stream destination, TransferProgress progress, CancellationToken cancellationToken)
     {
         var buffer = new byte[BufferSize];
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         var copied = 0L;
         int read;
         while ((read = await source.ReadAsync(buffer, cancellationToken)) > 0)
         {
             await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+            hash.AppendData(buffer, 0, read);
             copied += read;
             progress.Report(copied);
         }
+
+        return Convert.ToHexStringLower(hash.GetHashAndReset());
     }
 }

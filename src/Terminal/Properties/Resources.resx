@@ -87,6 +87,9 @@
   <data name="DownloadFileExists" xml:space="preserve">
     <value>{0} already exists. Use --force to overwrite it or --output to save it elsewhere.</value>
   </data>
+  <data name="DownloadChecksumMismatch" xml:space="preserve">
+    <value>The downloaded file does not match its SHA-256 and was deleted.</value>
+  </data>
   <data name="DownloadCompleted" xml:space="preserve">
     <value>Saved {0} ({1})</value>
   </data>
