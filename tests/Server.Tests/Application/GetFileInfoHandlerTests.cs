@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Server.Application.GetFileInfo;
 using Server.Domain;
@@ -14,7 +15,7 @@ public class GetFileInfoHandlerTests
     private readonly IPasswordHasher _passwordHasher = Substitute.For<IPasswordHasher>();
     private readonly GetFileInfoHandler _handler;
 
-    public GetFileInfoHandlerTests() => _handler = new GetFileInfoHandler(_repository, _storage, _passwordHasher);
+    public GetFileInfoHandlerTests() => _handler = new GetFileInfoHandler(_repository, _storage, _passwordHasher, NullLogger<GetFileInfoHandler>.Instance);
 
     [Fact]
     public async Task HandleAsync_FileExists_ReturnsFileInfo()

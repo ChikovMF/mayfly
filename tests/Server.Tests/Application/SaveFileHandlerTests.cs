@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Server.Application.SaveFile;
@@ -18,7 +19,7 @@ public class SaveFileHandlerTests
     public SaveFileHandlerTests()
     {
         _repository.AddAsync(Arg.Any<SharedFile>(), Arg.Any<CancellationToken>()).Returns(true);
-        _handler = new SaveFileHandler(_repository, _storage, _passwordHasher);
+        _handler = new SaveFileHandler(_repository, _storage, _passwordHasher, NullLogger<SaveFileHandler>.Instance);
     }
 
     [Fact]

@@ -1,11 +1,14 @@
+using Microsoft.Extensions.Logging;
 using Server.Domain.Abstractions;
+using Server.Domain.ValueObjects;
 
 namespace Server.Application.GetFile;
 
-internal sealed class GetFileHandler(
+internal sealed partial class GetFileHandler(
     ISharedFileRepository repository,
     IFileStorage storage,
-    IPasswordHasher passwordHasher) : IGetFileHandler
+    IPasswordHasher passwordHasher,
+    ILogger<GetFileHandler> logger) : IGetFileHandler
 {
     public async Task<GetFileResult> HandleAsync(GetFileQuery query, CancellationToken cancellationToken)
     {
@@ -23,6 +26,7 @@ internal sealed class GetFileHandler(
 
         if (!await storage.ExistsAsync(query.Id, cancellationToken))
         {
+            LogContentMissing(query.Id);
             return new GetFileResult.NotFound();
         }
 
@@ -45,4 +49,7 @@ internal sealed class GetFileHandler(
             file.Sha256,
             (destination, ct) => storage.CopyToAsync(query.Id, destination, ct));
     }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "File {Id} has a row but no stored content")]
+    private partial void LogContentMissing(ShareId id);
 }

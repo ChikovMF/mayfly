@@ -1,14 +1,16 @@
 using System.Security.Cryptography;
+using Microsoft.Extensions.Logging;
 using Server.Domain;
 using Server.Domain.Abstractions;
 using Server.Domain.ValueObjects;
 
 namespace Server.Application.SaveFile;
 
-internal sealed class SaveFileHandler(
+internal sealed partial class SaveFileHandler(
     ISharedFileRepository repository,
     IFileStorage storage,
-    IPasswordHasher passwordHasher) : ISaveFileHandler
+    IPasswordHasher passwordHasher,
+    ILogger<SaveFileHandler> logger) : ISaveFileHandler
 {
     private const int MaxIdAttempts = 5;
 
@@ -44,13 +46,28 @@ internal sealed class SaveFileHandler(
             }
             catch
             {
-                await repository.DeleteAsync(id, CancellationToken.None);
+                try
+                {
+                    await repository.DeleteAsync(id, CancellationToken.None);
+                }
+                catch (Exception exception)
+                {
+                    LogRollbackFailed(exception, id);
+                }
+
                 throw;
             }
 
+            LogFileSaved(id);
             return new SaveFileResult(id, sha256);
         }
 
         throw new InvalidOperationException("Could not generate a free share id.");
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "File {Id} saved")]
+    private partial void LogFileSaved(ShareId id);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete the row of file {Id} after its content was not stored")]
+    private partial void LogRollbackFailed(Exception exception, ShareId id);
 }
