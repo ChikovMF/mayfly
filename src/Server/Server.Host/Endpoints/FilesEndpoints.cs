@@ -38,54 +38,22 @@ internal static class FilesEndpoints
         [FromServices] IContentTypeProvider contentTypeProvider,
         CancellationToken cancellationToken)
     {
-        if (file is null)
+        await using var content = file?.OpenReadStream();
+        var contentType = file is null ? null : ResolveContentType(file, contentTypeProvider);
+        if (!SaveFileCommandParser.TryParse(
+                file?.FileName,
+                contentType,
+                content,
+                expiresAt,
+                password,
+                maxDownloads,
+                out var command,
+                out var errors))
         {
-            return ValidationError("file", "A file is required.");
+            return Results.ValidationProblem(errors);
         }
 
-        var errors = new List<string>();
-
-        if (!FileName.TryParse(file.FileName, out var fileName))
-        {
-            errors.Add("The file name is not valid.");
-        }
-
-        if (!ContentType.TryParse(ResolveContentType(file, contentTypeProvider), out var contentType))
-        {
-            errors.Add("The content type is not valid.");
-        }
-
-        if (fileName is null || contentType is null)
-        {
-            return ValidationError("file", [.. errors]);
-        }
-
-        if (expiresAt <= DateTimeOffset.UtcNow)
-        {
-            return ValidationError("expiresAt", "The expiration must be in the future.");
-        }
-
-        Password? filePassword = null;
-        if (password is not null && !Password.TryParse(password, out filePassword))
-        {
-            return ValidationError("password", "The password is not valid.");
-        }
-
-        DownloadsLeft? downloadsLeft = null;
-        if (maxDownloads.HasValue)
-        {
-            if (maxDownloads.Value < 1)
-            {
-                return ValidationError("maxDownloads", "The number of downloads must be at least one.");
-            }
-
-            downloadsLeft = DownloadsLeft.Parse(maxDownloads.Value);
-        }
-
-        await using var content = file.OpenReadStream();
-        var id = await handler.HandleAsync(
-            new SaveFileCommand(fileName, contentType, content, expiresAt, filePassword, downloadsLeft),
-            cancellationToken);
+        var id = await handler.HandleAsync(command, cancellationToken);
 
         return Results.Created($"/api/files/{id}", new FileUploadedResponse(id.ToString(), expiresAt, maxDownloads));
     }
@@ -192,7 +160,4 @@ internal static class FilesEndpoints
             response.Headers[DownloadsLeftHeader] = downloadsLeft.Count.ToString(CultureInfo.InvariantCulture);
         }
     }
-
-    private static IResult ValidationError(string field, params string[] messages) =>
-        Results.ValidationProblem(new Dictionary<string, string[]> { [field] = messages });
 }
