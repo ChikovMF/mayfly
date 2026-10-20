@@ -7,6 +7,7 @@ using Server.Host;
 using Server.Host.Cleanup;
 using Server.Host.Endpoints;
 using Server.Host.ErrorHandling;
+using Server.Host.RateLimiting;
 using Server.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +23,11 @@ builder.Services.AddOptions<CleanupOptions>()
     .ValidateOnStart();
 builder.Services.AddSingleton<IValidateOptions<CleanupOptions>, CleanupOptionsValidator>();
 builder.Services.AddHostedService<ExpiredFilesCleanupService>();
+
+builder.Services.AddOptions<PasswordRateLimitOptions>()
+    .Bind(builder.Configuration.GetSection(PasswordRateLimitOptions.SectionName))
+    .ValidateOnStart();
+builder.Services.AddSingleton<IValidateOptions<PasswordRateLimitOptions>, PasswordRateLimitOptionsValidator>();
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<BadHttpRequestExceptionHandler>();
