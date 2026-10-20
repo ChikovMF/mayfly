@@ -35,5 +35,6 @@ app.UseExceptionHandler();
 app.UseStatusCodePages();
 
 app.MapFilesEndpoints();
+app.MapHealthEndpoints();
 
 app.Run();

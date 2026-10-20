@@ -10,6 +10,8 @@ namespace Server.Infrastructure.Storage;
 
 internal static class StorageDependencyInjection
 {
+    private const string HealthCheckName = "storage";
+
     public static IServiceCollection AddFileStorage(this IServiceCollection services, IConfiguration configuration)
     {
         var storage = configuration.GetSection(StorageOptions.SectionName).Get<StorageOptions>();
@@ -46,6 +48,7 @@ internal static class StorageDependencyInjection
                 .Build();
         });
         services.AddSingleton<IFileStorage, MinioFileStorage>();
+        services.AddHealthChecks().AddCheck<MinioHealthCheck>(HealthCheckName, timeout: DependencyInjection.HealthCheckTimeout);
     }
 
     private static void AddYandexDiskStorage(this IServiceCollection services, IConfiguration configuration)
@@ -60,5 +63,7 @@ internal static class StorageDependencyInjection
             client.BaseAddress = YandexDiskFileStorage.ApiAddress;
             client.Timeout = Timeout.InfiniteTimeSpan;
         });
+        services.AddHttpClient<YandexDiskHealthCheck>(client => client.BaseAddress = YandexDiskFileStorage.ApiAddress);
+        services.AddHealthChecks().AddCheck<YandexDiskHealthCheck>(HealthCheckName, timeout: DependencyInjection.HealthCheckTimeout);
     }
 }
