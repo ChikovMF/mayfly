@@ -58,8 +58,7 @@ internal static class StorageDependencyInjection
             client.BaseAddress = YandexDiskFileStorage.ApiAddress;
             client.Timeout = Timeout.InfiniteTimeSpan;
         });
-        services.AddHttpClient<YandexDiskHealthCheck>(client => client.BaseAddress = YandexDiskFileStorage.ApiAddress)
-            .RemoveAllLoggers();
+        services.AddHttpClient<YandexDiskHealthCheck>(client => client.BaseAddress = YandexDiskFileStorage.ApiAddress);
         services.AddHealthChecks().AddCheck<YandexDiskHealthCheck>(HealthCheckName, timeout: DependencyInjection.HealthCheckTimeout);
     }
 }
