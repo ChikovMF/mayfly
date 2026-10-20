@@ -427,6 +427,15 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SHA-256.
+        /// </summary>
+        internal static string Sha256Label {
+            get {
+                return ResourceManager.GetString("Sha256Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to B.
         /// </summary>
         internal static string SizeUnitBytes {

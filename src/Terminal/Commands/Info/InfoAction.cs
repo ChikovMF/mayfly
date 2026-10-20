@@ -27,6 +27,7 @@ internal sealed class InfoAction(IMayflyClient client, ConsoleOutput output)
             (Resources.InfoNameLabel, info.FileName),
             (Resources.InfoTypeLabel, info.ContentType),
             (Resources.InfoSizeLabel, size),
+            (Resources.Sha256Label, info.Sha256),
         };
 
         if (info.ExpiresAt.HasValue)

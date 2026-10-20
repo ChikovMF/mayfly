@@ -141,6 +141,9 @@
   <data name="DownloadsLeftLabel" xml:space="preserve">
     <value>Осталось скачиваний</value>
   </data>
+  <data name="Sha256Label" xml:space="preserve">
+    <value>SHA-256</value>
+  </data>
   <data name="InvalidMaxDownloads" xml:space="preserve">
     <value>Число скачиваний должно быть целым положительным числом.</value>
   </data>
