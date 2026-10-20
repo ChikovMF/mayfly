@@ -2,7 +2,7 @@ using System.CommandLine;
 using System.CommandLine.Help;
 using System.CommandLine.Invocation;
 using System.Globalization;
-using Mayfly.Client;
+using Mayfly.Client.Exceptions;
 using Mayfly.Terminal.Commands.Completion;
 using Mayfly.Terminal.Commands.Config;
 using Mayfly.Terminal.Commands.Download;

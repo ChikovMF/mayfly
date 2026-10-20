@@ -1,3 +1,4 @@
+using Mayfly.Client.Exceptions;
 using Mayfly.Client.Models;
 
 namespace Mayfly.Client;

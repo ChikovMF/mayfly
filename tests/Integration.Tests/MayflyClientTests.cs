@@ -1,6 +1,7 @@
 using System.Net;
 using System.Security.Cryptography;
 using Mayfly.Client;
+using Mayfly.Client.Exceptions;
 using Mayfly.Client.Models;
 
 namespace Integration.Tests;

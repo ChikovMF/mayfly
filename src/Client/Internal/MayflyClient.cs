@@ -6,9 +6,10 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using Mayfly.Client.Exceptions;
 using Mayfly.Client.Models;
 
-namespace Mayfly.Client;
+namespace Mayfly.Client.Internal;
 
 internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClient
 {
@@ -57,7 +58,7 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
 
         await ThrowIfUnsuccessfulAsync(response, cancellationToken);
 
-        return await TryReadJsonAsync(response.Content, JsonContext.Default.UploadedFile, cancellationToken)
+        return await TryReadJsonAsync<UploadedFile>(response.Content, JsonContext.Default.UploadedFile, cancellationToken)
                ?? throw UnexpectedResponse(response, "The server returned an unexpected response.");
     }
 
@@ -207,7 +208,7 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
             return;
         }
 
-        var problem = await TryReadJsonAsync(response.Content, JsonContext.Default.ProblemDetails, cancellationToken);
+        var problem = await TryReadJsonAsync<ProblemDetails>(response.Content, JsonContext.Default.ProblemDetails, cancellationToken);
 
         var message = problem?.Detail
                       ?? problem?.Title

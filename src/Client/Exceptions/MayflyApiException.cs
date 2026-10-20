@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace Mayfly.Client;
+namespace Mayfly.Client.Exceptions;
 
 /// <summary>The server responded with an unsuccessful status code.</summary>
 public class MayflyApiException(

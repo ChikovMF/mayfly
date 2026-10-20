@@ -1,4 +1,4 @@
-namespace Mayfly.Client;
+namespace Mayfly.Client.Internal;
 
 internal sealed class MayflyClientOptions
 {

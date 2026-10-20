@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace Mayfly.Client;
+namespace Mayfly.Client.Exceptions;
 
 /// <summary>The server refused the request because the client made too many requests.</summary>
 public sealed class MayflyRateLimitException(

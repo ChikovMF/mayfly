@@ -1,5 +1,5 @@
 using System.Net;
-using Mayfly.Client;
+using Mayfly.Client.Exceptions;
 using Mayfly.Terminal.Input;
 using Mayfly.Terminal.Properties;
 

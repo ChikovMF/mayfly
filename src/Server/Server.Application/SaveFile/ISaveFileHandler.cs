@@ -1,5 +1,3 @@
-using Server.Domain.ValueObjects;
-
 namespace Server.Application.SaveFile;
 
 public interface ISaveFileHandler
