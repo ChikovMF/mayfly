@@ -67,6 +67,33 @@ public class SaveFileHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_DownloadsLeftGiven_AddsFileWithGivenDownloadsLeft()
+    {
+        // Arrange
+        var downloadsLeft = DownloadsLeft.Parse(3);
+        var command = CreateCommand(new MemoryStream(), downloadsLeft: downloadsLeft);
+
+        // Act
+        await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        await _repository.Received(1).AddAsync(Arg.Is<SharedFile>(f => f.DownloadsLeft == downloadsLeft), CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task HandleAsync_DownloadsLeftNotGiven_AddsFileWithoutLimit()
+    {
+        // Arrange
+        var command = CreateCommand(new MemoryStream());
+
+        // Act
+        await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        await _repository.Received(1).AddAsync(Arg.Is<SharedFile>(f => f.DownloadsLeft == null), CancellationToken.None);
+    }
+
+    [Fact]
     public async Task HandleAsync_ExpiresAtNotGiven_AddsFileWithoutExpiration()
     {
         // Arrange
@@ -185,6 +212,7 @@ public class SaveFileHandlerTests
     private static SaveFileCommand CreateCommand(
         Stream content,
         DateTimeOffset? expiresAt = null,
-        Password? password = null) =>
-        new(FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), content, expiresAt, password);
+        Password? password = null,
+        DownloadsLeft? downloadsLeft = null) =>
+        new(FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), content, expiresAt, password, downloadsLeft);
 }

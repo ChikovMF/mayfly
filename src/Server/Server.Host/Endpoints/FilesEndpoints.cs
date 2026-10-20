@@ -32,6 +32,7 @@ internal static class FilesEndpoints
         IFormFile? file,
         [FromForm] DateTimeOffset? expiresAt,
         [FromForm] string? password,
+        [FromForm] int? maxDownloads,
         [FromServices] ISaveFileHandler handler,
         [FromServices] IContentTypeProvider contentTypeProvider,
         CancellationToken cancellationToken)
@@ -69,12 +70,23 @@ internal static class FilesEndpoints
             return ValidationError("password", "The password is not valid.");
         }
 
+        DownloadsLeft? downloadsLeft = null;
+        if (maxDownloads.HasValue)
+        {
+            if (maxDownloads.Value < 1)
+            {
+                return ValidationError("maxDownloads", "The number of downloads must be at least one.");
+            }
+
+            downloadsLeft = DownloadsLeft.Parse(maxDownloads.Value);
+        }
+
         await using var content = file.OpenReadStream();
         var id = await handler.HandleAsync(
-            new SaveFileCommand(fileName, contentType, content, expiresAt, filePassword),
+            new SaveFileCommand(fileName, contentType, content, expiresAt, filePassword, downloadsLeft),
             cancellationToken);
 
-        return Results.Created($"/api/files/{id}", new FileUploadedResponse(id.ToString(), expiresAt));
+        return Results.Created($"/api/files/{id}", new FileUploadedResponse(id.ToString(), expiresAt, maxDownloads));
     }
 
     private static async Task<IResult> DownloadAsync(

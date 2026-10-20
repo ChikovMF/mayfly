@@ -1,3 +1,3 @@
 namespace Server.Host.Endpoints;
 
-internal sealed record FileUploadedResponse(string Id, DateTimeOffset? ExpiresAt);
+internal sealed record FileUploadedResponse(string Id, DateTimeOffset? ExpiresAt, int? MaxDownloads);
