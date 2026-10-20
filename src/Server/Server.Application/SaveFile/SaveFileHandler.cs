@@ -11,7 +11,7 @@ internal sealed class SaveFileHandler(
 {
     private const int MaxIdAttempts = 5;
 
-    public async Task<ShareId> HandleAsync(SaveFileCommand command, CancellationToken cancellationToken)
+    public async Task<SaveFileResult> HandleAsync(SaveFileCommand command, CancellationToken cancellationToken)
     {
         if (!command.Content.CanSeek)
         {
@@ -32,9 +32,17 @@ internal sealed class SaveFileHandler(
                 continue;
             }
 
+            Sha256? sha256;
             try
             {
-                await storage.SaveAsync(id, command.Content, cancellationToken);
+                using var content = new HashingStream(command.Content);
+                await storage.SaveAsync(id, content, cancellationToken);
+
+                sha256 = content.GetHash();
+                if (sha256 is not null)
+                {
+                    await repository.SetSha256Async(id, sha256, cancellationToken);
+                }
             }
             catch
             {
@@ -42,7 +50,7 @@ internal sealed class SaveFileHandler(
                 throw;
             }
 
-            return id;
+            return new SaveFileResult(id, sha256);
         }
 
         throw new InvalidOperationException("Could not generate a free share id.");

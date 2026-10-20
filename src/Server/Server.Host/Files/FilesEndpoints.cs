@@ -56,9 +56,9 @@ internal static class FilesEndpoints
             return Results.ValidationProblem(errors);
         }
 
-        var id = await handler.HandleAsync(command, cancellationToken);
+        var saved = await handler.HandleAsync(command, cancellationToken);
 
-        return Results.Created($"/api/files/{id}", new FileUploadedResponse(id.ToString(), expiresAt, maxDownloads));
+        return Results.Created($"/api/files/{saved.Id}", new FileUploadedResponse(saved.Id.ToString(), expiresAt, maxDownloads));
     }
 
     private static async Task<IResult> DownloadAsync(

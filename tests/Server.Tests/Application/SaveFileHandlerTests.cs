@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Server.Application.SaveFile;
@@ -27,7 +28,7 @@ public class SaveFileHandlerTests
         var command = CreateCommand(new MemoryStream(new byte[5]));
 
         // Act
-        var id = await _handler.HandleAsync(command, CancellationToken.None);
+        var id = (await _handler.HandleAsync(command, CancellationToken.None)).Id;
 
         // Assert
         await _repository.Received(1).AddAsync(
@@ -46,10 +47,10 @@ public class SaveFileHandlerTests
         var command = CreateCommand(new MemoryStream());
 
         // Act
-        var id = await _handler.HandleAsync(command, CancellationToken.None);
+        var id = (await _handler.HandleAsync(command, CancellationToken.None)).Id;
 
         // Assert
-        await _storage.Received(1).SaveAsync(id, command.Content, CancellationToken.None);
+        await _storage.Received(1).SaveAsync(id, Arg.Any<Stream>(), CancellationToken.None);
     }
 
     [Fact]
@@ -135,6 +136,83 @@ public class SaveFileHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_ContentRead_StoresAndReturnsItsSha256()
+    {
+        // Arrange
+        var expected = Sha256.Parse(SHA256.HashData("hello"u8));
+        ReadContentOnSave();
+
+        // Act
+        var result = await _handler.HandleAsync(CreateCommand(new MemoryStream("hello"u8.ToArray())), CancellationToken.None);
+
+        // Assert
+        Assert.Equal(expected, result.Sha256);
+        await _repository.Received(1).SetSha256Async(result.Id, expected, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task HandleAsync_ContentStartsMidStream_HashesOnlyTheRest()
+    {
+        // Arrange
+        var content = new MemoryStream("xxhello"u8.ToArray()) { Position = 2 };
+        ReadContentOnSave();
+
+        // Act
+        var result = await _handler.HandleAsync(CreateCommand(content), CancellationToken.None);
+
+        // Assert
+        Assert.Equal(Sha256.Parse(SHA256.HashData("hello"u8)), result.Sha256);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ContentReadTwice_ReturnsNoSha256()
+    {
+        // Arrange
+        _storage.SaveAsync(Arg.Any<ShareId>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+            .Returns(async call =>
+            {
+                var stream = call.Arg<Stream>();
+                await stream.CopyToAsync(Stream.Null);
+                stream.Position = 0;
+                await stream.CopyToAsync(Stream.Null);
+            });
+
+        // Act
+        var result = await _handler.HandleAsync(CreateCommand(new MemoryStream("hello"u8.ToArray())), CancellationToken.None);
+
+        // Assert
+        Assert.Null(result.Sha256);
+        await _repository.DidNotReceiveWithAnyArgs().SetSha256Async(default!, default!, default);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ContentNotRead_ReturnsNoSha256()
+    {
+        // Act
+        var result = await _handler.HandleAsync(CreateCommand(new MemoryStream("hello"u8.ToArray())), CancellationToken.None);
+
+        // Assert
+        Assert.Null(result.Sha256);
+        await _repository.DidNotReceiveWithAnyArgs().SetSha256Async(default!, default!, default);
+    }
+
+    [Fact]
+    public async Task HandleAsync_SetSha256Fails_DeletesAddedFile()
+    {
+        // Arrange
+        ReadContentOnSave();
+        _repository.SetSha256Async(Arg.Any<ShareId>(), Arg.Any<Sha256>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync<IOException>();
+
+        // Act
+        var act = () => _handler.HandleAsync(CreateCommand(new MemoryStream("hello"u8.ToArray())), CancellationToken.None);
+
+        // Assert
+        await Assert.ThrowsAsync<IOException>(act);
+        await _repository.Received(1).DeleteAsync(Arg.Any<ShareId>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task HandleAsync_NonSeekableContent_ThrowsArgumentException()
     {
         // Arrange
@@ -170,7 +248,7 @@ public class SaveFileHandlerTests
             .Returns(false, true);
 
         // Act
-        var id = await _handler.HandleAsync(CreateCommand(new MemoryStream()), CancellationToken.None);
+        var id = (await _handler.HandleAsync(CreateCommand(new MemoryStream()), CancellationToken.None)).Id;
 
         // Assert
         Assert.Equal(2, ids.Count);
@@ -208,6 +286,10 @@ public class SaveFileHandlerTests
         await Assert.ThrowsAsync<IOException>(act);
         await _repository.Received(1).DeleteAsync(added!.Id, Arg.Any<CancellationToken>());
     }
+
+    private void ReadContentOnSave() =>
+        _storage.SaveAsync(Arg.Any<ShareId>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+            .Returns(call => call.Arg<Stream>().CopyToAsync(Stream.Null));
 
     private static SaveFileCommand CreateCommand(
         Stream content,
