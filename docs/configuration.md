@@ -19,6 +19,7 @@
 | `PasswordRateLimit:TokenLimit` | Нет | `10` | Размер запаса запросов с паролем для одного адреса |
 | `PasswordRateLimit:TokensPerPeriod` | Нет | `1` | Сколько запросов возвращается в запас за один период |
 | `PasswordRateLimit:ReplenishmentPeriod` | Нет | `00:00:06` | Период пополнения запаса, `чч:мм:сс` |
+| `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | Нет | `false` | Брать адрес клиента из `X-Forwarded-For`. Включать, если сервер работает за reverse proxy |
 
 ```json
 {
