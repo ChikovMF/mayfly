@@ -5,12 +5,13 @@
 | Параметр | Обязательный | По умолчанию | Описание |
 |---|---|---|---|
 | `Postgres:ConnectionString` | Да | | Строка подключения к PostgreSQL |
-| `Storage:Provider` | Да | | Хранилище файлов: `Minio` или `YandexDisk` |
-| `Storage:Minio:Endpoint` | Для MinIO | | Адрес MinIO, например `localhost:9000` |
-| `Storage:Minio:AccessKey` | Для MinIO | | Ключ доступа MinIO |
-| `Storage:Minio:SecretKey` | Для MinIO | | Секретный ключ MinIO |
-| `Storage:Minio:UseSsl` | Нет | `false` | Подключаться к MinIO по HTTPS |
-| `Storage:Minio:BucketName` | Для MinIO | | Имя существующего бакета |
+| `Storage:Provider` | Нет | `S3` | Хранилище файлов: `S3` или `YandexDisk` |
+| `Storage:S3:ServiceUrl` | Для S3 | | Адрес S3-совместимого хранилища, например `http://localhost:9000` |
+| `Storage:S3:AccessKey` | Для S3 | | Ключ доступа |
+| `Storage:S3:SecretKey` | Для S3 | | Секретный ключ |
+| `Storage:S3:BucketName` | Для S3 | | Имя существующего бакета |
+| `Storage:S3:Region` | Нет | `us-east-1` | Регион бакета |
+| `Storage:S3:ForcePathStyle` | Нет | `true` | Указывать бакет в пути запроса, а не в имени хоста |
 | `Storage:YandexDisk:OAuthToken` | Для Яндекс Диска | | OAuth-токен с доступом к папке приложения |
 | `Upload:MaxRequestBodySize` | Нет | `4294967296` (4 ГиБ) | Максимальный размер загружаемого файла в байтах |
 | `Retention:RequireExpiration` | Нет | `false` | Запретить загрузку файла без срока хранения |
@@ -31,9 +32,9 @@
     "ConnectionString": "Host=localhost;Port=5432;Database=mayfly;Username=postgres;Password=postgres"
   },
   "Storage": {
-    "Provider": "Minio",
-    "Minio": {
-      "Endpoint": "localhost:9000",
+    "Provider": "S3",
+    "S3": {
+      "ServiceUrl": "http://localhost:9000",
       "AccessKey": "minioadmin",
       "SecretKey": "minioadmin",
       "BucketName": "mayfly"
@@ -44,11 +45,11 @@
 
 ### Хранилище файлов
 
-`Storage:Provider` выбирает хранилище. Проверяются только настройки выбранного. Без провайдера сервер не запускается.
+`Storage:Provider` выбирает хранилище. Проверяются только настройки выбранного.
 
-#### MinIO
+#### S3
 
-Бакет должен существовать.
+Подходит любое S3-совместимое хранилище: AWS S3, Yandex Object Storage, Garage, SeaweedFS, MinIO и другие. Бакет должен существовать. Для AWS S3 нужно указать регион бакета.
 
 #### Яндекс Диск
 
