@@ -10,15 +10,15 @@ internal sealed class PostgresSharedFileRepository(NpgsqlDataSource dataSource) 
 {
     private static readonly TimeSpan UploadDeadline = TimeSpan.FromHours(24);
 
-    public async Task<bool> AddAsync(SharedFile file, CancellationToken cancellationToken)
+    public async Task<bool> AddAsync(PendingFile file, CancellationToken cancellationToken)
     {
         const string sql = """
-            INSERT INTO shared_files (id, file_name, content_type, size, expires_at, password_hash, downloads_left, sha256, cleanup_after)
-            VALUES (@Id, @FileName, @ContentType, @Size, @ExpiresAt, @PasswordHash, @DownloadsLeft, @Sha256, now() + @UploadDeadline)
+            INSERT INTO shared_files (id, file_name, content_type, size, expires_at, password_hash, downloads_left, cleanup_after)
+            VALUES (@Id, @FileName, @ContentType, @Size, @ExpiresAt, @PasswordHash, @DownloadsLeft, now() + @UploadDeadline)
             ON CONFLICT (id) DO NOTHING
             """;
 
-        var parameters = new DynamicParameters(SharedFileRecord.From(file));
+        var parameters = new DynamicParameters(PendingFileRecord.From(file));
         parameters.Add("UploadDeadline", UploadDeadline);
 
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
@@ -30,18 +30,18 @@ internal sealed class PostgresSharedFileRepository(NpgsqlDataSource dataSource) 
         return inserted == 1;
     }
 
-    public async Task<bool> CompleteAsync(ShareId id, CancellationToken cancellationToken)
+    public async Task<bool> CompleteAsync(ShareId id, Sha256 sha256, CancellationToken cancellationToken)
     {
         const string sql = """
             UPDATE shared_files
-            SET completed_at = now(), cleanup_after = NULL
+            SET completed_at = now(), cleanup_after = NULL, sha256 = @Sha256
             WHERE id = @Id AND completed_at IS NULL
             """;
 
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
         var updated = await connection.ExecuteAsync(new CommandDefinition(
             sql,
-            new { Id = id.ToString() },
+            new { Id = id.ToString(), Sha256 = sha256.ToBytes() },
             cancellationToken: cancellationToken));
 
         return updated == 1;

@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
 using Server.Domain;
 using Server.Domain.Abstractions;
@@ -16,37 +15,35 @@ internal sealed partial class SaveFileHandler(
 
     public async Task<SaveFileResult> HandleAsync(SaveFileCommand command, CancellationToken cancellationToken)
     {
-        if (!command.Content.CanSeek)
-        {
-            throw new ArgumentException("Content stream must support seeking.", nameof(command));
-        }
-
-        var size = FileSize.Parse(command.Content.Length - command.Content.Position);
-
-        var start = command.Content.Position;
-        var sha256 = Sha256.Parse(await SHA256.HashDataAsync(command.Content, cancellationToken));
-        command.Content.Position = start;
+        await using var content = new HashingStream(command.Content);
 
         var passwordHash = command.Password is null ? null : passwordHasher.Hash(command.Password);
 
         for (var attempt = 0; attempt < MaxIdAttempts; attempt++)
         {
             var id = ShareId.New();
-            var file = new SharedFile(
-                id, command.FileName, command.ContentType, size, sha256, command.ExpiresAt, passwordHash, command.DownloadsLeft);
+            var file = new PendingFile(
+                id, command.FileName, command.ContentType, command.Size, command.ExpiresAt, passwordHash, command.DownloadsLeft);
 
             if (!await repository.AddAsync(file, cancellationToken))
             {
                 continue;
             }
 
+            Sha256 sha256;
             try
             {
-                await storage.SaveAsync(id, command.Content, cancellationToken);
+                await storage.SaveAsync(id, content, command.Size, cancellationToken);
 
-                if (!await repository.CompleteAsync(id, cancellationToken))
+                if (content.BytesRead != command.Size.Bytes)
                 {
-                    throw new InvalidOperationException($"Upload of file {id} was abandoned before it completed.");
+                    throw new ArgumentException($"The content is {content.BytesRead} bytes, but the command declares {command.Size.Bytes}.", nameof(command));
+                }
+
+                sha256 = Sha256.Parse(content.GetHash());
+                if (!await repository.CompleteAsync(id, sha256, cancellationToken))
+                {
+                    throw new UploadAbandonedException(id);
                 }
             }
             catch

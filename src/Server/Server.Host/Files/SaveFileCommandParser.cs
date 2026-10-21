@@ -11,6 +11,7 @@ internal static class SaveFileCommandParser
         string? fileName,
         string? contentType,
         Stream? content,
+        long size,
         DateTimeOffset? expiresAt,
         string? password,
         int? maxDownloads,
@@ -22,6 +23,7 @@ internal static class SaveFileCommandParser
 
         FileName? parsedFileName = null;
         ContentType? parsedContentType = null;
+        FileSize? parsedSize = null;
         if (content is null)
         {
             errors["file"] = ["A file is required."];
@@ -38,6 +40,11 @@ internal static class SaveFileCommandParser
             if (!ContentType.TryParse(contentType, out parsedContentType))
             {
                 fileErrors.Add("The content type is not valid.");
+            }
+
+            if (!FileSize.TryParse(size, out parsedSize))
+            {
+                fileErrors.Add("The file size is not valid.");
             }
 
             if (fileErrors.Count > 0)
@@ -79,13 +86,13 @@ internal static class SaveFileCommandParser
             downloadsLeft = DownloadsLeft.Parse(maxDownloads.Value);
         }
 
-        if (content is null || parsedFileName is null || parsedContentType is null || errors.Count > 0)
+        if (content is null || parsedFileName is null || parsedContentType is null || parsedSize is null || errors.Count > 0)
         {
             command = null;
             return false;
         }
 
-        command = new SaveFileCommand(parsedFileName, parsedContentType, content, expiresAt, parsedPassword, downloadsLeft);
+        command = new SaveFileCommand(parsedFileName, parsedContentType, content, parsedSize, expiresAt, parsedPassword, downloadsLeft);
         return true;
     }
 }

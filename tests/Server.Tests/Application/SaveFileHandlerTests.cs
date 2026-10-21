@@ -18,8 +18,10 @@ public class SaveFileHandlerTests
 
     public SaveFileHandlerTests()
     {
-        _repository.AddAsync(Arg.Any<SharedFile>(), Arg.Any<CancellationToken>()).Returns(true);
-        _repository.CompleteAsync(Arg.Any<ShareId>(), Arg.Any<CancellationToken>()).Returns(true);
+        _repository.AddAsync(Arg.Any<PendingFile>(), Arg.Any<CancellationToken>()).Returns(true);
+        _repository.CompleteAsync(Arg.Any<ShareId>(), Arg.Any<Sha256>(), Arg.Any<CancellationToken>()).Returns(true);
+        _storage.SaveAsync(default!, default!, default!, default)
+            .ReturnsForAnyArgs(call => call.ArgAt<Stream>(1).CopyToAsync(Stream.Null));
         _handler = new SaveFileHandler(_repository, _storage, _passwordHasher, NullLogger<SaveFileHandler>.Instance);
     }
 
@@ -34,7 +36,7 @@ public class SaveFileHandlerTests
 
         // Assert
         await _repository.Received(1).AddAsync(
-            Arg.Is<SharedFile>(f =>
+            Arg.Is<PendingFile>(f =>
                 f.Id == id &&
                 f.FileName == command.FileName &&
                 f.ContentType == command.ContentType &&
@@ -52,7 +54,7 @@ public class SaveFileHandlerTests
         var id = (await _handler.HandleAsync(command, CancellationToken.None)).Id;
 
         // Assert
-        await _storage.Received(1).SaveAsync(id, command.Content, CancellationToken.None);
+        await _storage.Received(1).SaveAsync(id, Arg.Any<Stream>(), command.Size, CancellationToken.None);
     }
 
     [Fact]
@@ -66,7 +68,7 @@ public class SaveFileHandlerTests
         await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        await _repository.Received(1).AddAsync(Arg.Is<SharedFile>(f => f.ExpiresAt == expiresAt), CancellationToken.None);
+        await _repository.Received(1).AddAsync(Arg.Is<PendingFile>(f => f.ExpiresAt == expiresAt), CancellationToken.None);
     }
 
     [Fact]
@@ -80,7 +82,7 @@ public class SaveFileHandlerTests
         await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        await _repository.Received(1).AddAsync(Arg.Is<SharedFile>(f => f.DownloadsLeft == downloadsLeft), CancellationToken.None);
+        await _repository.Received(1).AddAsync(Arg.Is<PendingFile>(f => f.DownloadsLeft == downloadsLeft), CancellationToken.None);
     }
 
     [Fact]
@@ -93,7 +95,7 @@ public class SaveFileHandlerTests
         await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        await _repository.Received(1).AddAsync(Arg.Is<SharedFile>(f => f.DownloadsLeft == null), CancellationToken.None);
+        await _repository.Received(1).AddAsync(Arg.Is<PendingFile>(f => f.DownloadsLeft == null), CancellationToken.None);
     }
 
     [Fact]
@@ -106,7 +108,7 @@ public class SaveFileHandlerTests
         await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        await _repository.Received(1).AddAsync(Arg.Is<SharedFile>(f => f.ExpiresAt == null), CancellationToken.None);
+        await _repository.Received(1).AddAsync(Arg.Is<PendingFile>(f => f.ExpiresAt == null), CancellationToken.None);
     }
 
     [Fact]
@@ -121,7 +123,7 @@ public class SaveFileHandlerTests
         await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        await _repository.Received(1).AddAsync(Arg.Is<SharedFile>(f => f.PasswordHash == "hash"), CancellationToken.None);
+        await _repository.Received(1).AddAsync(Arg.Is<PendingFile>(f => f.PasswordHash == "hash"), CancellationToken.None);
     }
 
     [Fact]
@@ -134,11 +136,11 @@ public class SaveFileHandlerTests
         await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        await _repository.Received(1).AddAsync(Arg.Is<SharedFile>(f => f.PasswordHash == null), CancellationToken.None);
+        await _repository.Received(1).AddAsync(Arg.Is<PendingFile>(f => f.PasswordHash == null), CancellationToken.None);
     }
 
     [Fact]
-    public async Task HandleAsync_ValidCommand_AddsFileWithSha256OfContent()
+    public async Task HandleAsync_ValidCommand_CompletesFileWithSha256OfContent()
     {
         // Arrange
         var expected = Sha256.Parse(SHA256.HashData("hello"u8));
@@ -148,7 +150,7 @@ public class SaveFileHandlerTests
         await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        await _repository.Received(1).AddAsync(Arg.Is<SharedFile>(f => f.Sha256 == expected), CancellationToken.None);
+        await _repository.Received(1).CompleteAsync(Arg.Any<ShareId>(), expected, CancellationToken.None);
     }
 
     [Fact]
@@ -179,46 +181,48 @@ public class SaveFileHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_ContentStartsMidStream_SavesContentFromTheSamePosition()
+    public async Task HandleAsync_ContentStartsMidStream_SavesOnlyTheRest()
     {
         // Arrange
         var content = new MemoryStream("xxhello"u8.ToArray()) { Position = 2 };
-        long? positionOnSave = null;
-        _storage.SaveAsync(Arg.Any<ShareId>(), Arg.Do<Stream>(stream => positionOnSave = stream.Position), Arg.Any<CancellationToken>())
+        var saved = new MemoryStream();
+        _storage.SaveAsync(Arg.Any<ShareId>(), Arg.Do<Stream>(stream => stream.CopyTo(saved)), Arg.Any<FileSize>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Act
         await _handler.HandleAsync(CreateCommand(content), CancellationToken.None);
 
         // Assert
-        Assert.Equal(2, positionOnSave);
+        Assert.Equal("hello"u8.ToArray(), saved.ToArray());
     }
 
     [Fact]
-    public async Task HandleAsync_NonSeekableContent_ThrowsArgumentException()
+    public async Task HandleAsync_ContentDiffersFromDeclaredSize_ThrowsArgumentExceptionAndDeletesContent()
     {
         // Arrange
-        var command = CreateCommand(Substitute.For<Stream>());
+        var command = CreateCommand(new MemoryStream("hello"u8.ToArray()), size: 3);
 
         // Act
         var act = () => _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
         await Assert.ThrowsAsync<ArgumentException>(act);
+        await _repository.DidNotReceiveWithAnyArgs().CompleteAsync(default!, default!, default);
+        await _storage.ReceivedWithAnyArgs(1).DeleteAsync(default!, default);
     }
 
     [Fact]
     public async Task HandleAsync_AddFails_DoesNotSaveContent()
     {
         // Arrange
-        _repository.AddAsync(Arg.Any<SharedFile>(), Arg.Any<CancellationToken>()).ThrowsAsync<IOException>();
+        _repository.AddAsync(Arg.Any<PendingFile>(), Arg.Any<CancellationToken>()).ThrowsAsync<IOException>();
 
         // Act
         var act = () => _handler.HandleAsync(CreateCommand(new MemoryStream()), CancellationToken.None);
 
         // Assert
         await Assert.ThrowsAsync<IOException>(act);
-        await _storage.DidNotReceiveWithAnyArgs().SaveAsync(default!, default!, default);
+        await _storage.DidNotReceiveWithAnyArgs().SaveAsync(default!, default!, default!, default);
     }
 
     [Fact]
@@ -226,7 +230,7 @@ public class SaveFileHandlerTests
     {
         // Arrange
         var ids = new List<ShareId>();
-        _repository.AddAsync(Arg.Do<SharedFile>(f => ids.Add(f.Id)), Arg.Any<CancellationToken>())
+        _repository.AddAsync(Arg.Do<PendingFile>(f => ids.Add(f.Id)), Arg.Any<CancellationToken>())
             .Returns(false, true);
 
         // Act
@@ -242,14 +246,14 @@ public class SaveFileHandlerTests
     public async Task HandleAsync_NoFreeId_ThrowsInvalidOperationException()
     {
         // Arrange
-        _repository.AddAsync(Arg.Any<SharedFile>(), Arg.Any<CancellationToken>()).Returns(false);
+        _repository.AddAsync(Arg.Any<PendingFile>(), Arg.Any<CancellationToken>()).Returns(false);
 
         // Act
         var act = () => _handler.HandleAsync(CreateCommand(new MemoryStream()), CancellationToken.None);
 
         // Assert
         await Assert.ThrowsAsync<InvalidOperationException>(act);
-        await _storage.DidNotReceiveWithAnyArgs().SaveAsync(default!, default!, default);
+        await _storage.DidNotReceiveWithAnyArgs().SaveAsync(default!, default!, default!, default);
     }
 
     [Fact]
@@ -264,8 +268,8 @@ public class SaveFileHandlerTests
         // Assert
         Received.InOrder(() =>
         {
-            _storage.SaveAsync(id, command.Content, CancellationToken.None);
-            _repository.CompleteAsync(id, CancellationToken.None);
+            _storage.SaveAsync(id, Arg.Any<Stream>(), command.Size, CancellationToken.None);
+            _repository.CompleteAsync(id, Arg.Any<Sha256>(), CancellationToken.None);
         });
     }
 
@@ -273,9 +277,9 @@ public class SaveFileHandlerTests
     public async Task HandleAsync_SaveFails_DeletesContentBeforeRecord()
     {
         // Arrange
-        SharedFile? added = null;
-        _repository.AddAsync(Arg.Do<SharedFile>(f => added = f), Arg.Any<CancellationToken>()).Returns(true);
-        _storage.SaveAsync(Arg.Any<ShareId>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
+        PendingFile? added = null;
+        _repository.AddAsync(Arg.Do<PendingFile>(f => added = f), Arg.Any<CancellationToken>()).Returns(true);
+        _storage.SaveAsync(Arg.Any<ShareId>(), Arg.Any<Stream>(), Arg.Any<FileSize>(), Arg.Any<CancellationToken>())
             .ThrowsAsync<IOException>();
 
         // Act
@@ -291,16 +295,16 @@ public class SaveFileHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_UploadAbandonedMeanwhile_ThrowsAndDeletesContent()
+    public async Task HandleAsync_UploadAbandonedMeanwhile_ThrowsUploadAbandonedExceptionAndDeletesContent()
     {
         // Arrange
-        _repository.CompleteAsync(Arg.Any<ShareId>(), Arg.Any<CancellationToken>()).Returns(false);
+        _repository.CompleteAsync(Arg.Any<ShareId>(), Arg.Any<Sha256>(), Arg.Any<CancellationToken>()).Returns(false);
 
         // Act
         var act = () => _handler.HandleAsync(CreateCommand(new MemoryStream()), CancellationToken.None);
 
         // Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(act);
+        await Assert.ThrowsAsync<UploadAbandonedException>(act);
         await _storage.ReceivedWithAnyArgs(1).DeleteAsync(default!, default);
     }
 
@@ -308,6 +312,14 @@ public class SaveFileHandlerTests
         Stream content,
         DateTimeOffset? expiresAt = null,
         Password? password = null,
-        DownloadsLeft? downloadsLeft = null) =>
-        new(FileName.Parse("report.pdf"), ContentType.Parse("application/pdf"), content, expiresAt, password, downloadsLeft);
+        DownloadsLeft? downloadsLeft = null,
+        long? size = null) =>
+        new(
+            FileName.Parse("report.pdf"),
+            ContentType.Parse("application/pdf"),
+            content,
+            FileSize.Parse(size ?? content.Length - content.Position),
+            expiresAt,
+            password,
+            downloadsLeft);
 }

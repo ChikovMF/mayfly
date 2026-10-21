@@ -9,13 +9,13 @@ namespace Server.Infrastructure.Storage.Minio;
 
 internal sealed class MinioFileStorage(IMinioClient client, IOptions<MinioOptions> options) : IFileStorage
 {
-    public async Task SaveAsync(ShareId id, Stream content, CancellationToken cancellationToken)
+    public async Task SaveAsync(ShareId id, Stream content, FileSize size, CancellationToken cancellationToken)
     {
         var args = new PutObjectArgs()
             .WithBucket(options.Value.BucketName)
             .WithObject(id.ToString())
             .WithStreamData(content)
-            .WithObjectSize(content.Length - content.Position);
+            .WithObjectSize(size.Bytes);
 
         await client.PutObjectAsync(args, cancellationToken);
     }

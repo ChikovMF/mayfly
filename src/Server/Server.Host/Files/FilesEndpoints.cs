@@ -47,6 +47,7 @@ internal static class FilesEndpoints
                 file?.FileName,
                 contentType,
                 content,
+                file?.Length ?? 0,
                 expiresAt,
                 password,
                 maxDownloads,

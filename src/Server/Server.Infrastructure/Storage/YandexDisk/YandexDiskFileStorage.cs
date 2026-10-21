@@ -12,12 +12,13 @@ internal sealed class YandexDiskFileStorage(HttpClient client, IOptions<YandexDi
 {
     public static readonly Uri ApiAddress = new("https://cloud-api.yandex.net/v1/disk/");
 
-    public async Task SaveAsync(ShareId id, Stream content, CancellationToken cancellationToken)
+    public async Task SaveAsync(ShareId id, Stream content, FileSize size, CancellationToken cancellationToken)
     {
         var uploadUrl = await GetLinkAsync($"resources/upload?path={EscapedPath(id)}&overwrite=false", cancellationToken);
 
         using var request = new HttpRequestMessage(HttpMethod.Put, uploadUrl);
         request.Content = new StreamContent(content);
+        request.Content.Headers.ContentLength = size.Bytes;
         using var response = await client.SendAsync(request, cancellationToken);
         await EnsureSuccessAsync(response, cancellationToken);
     }

@@ -6,10 +6,11 @@ public interface ISharedFileRepository
 {
     /// <summary>Adds the file as an unfinished upload, which <see cref="GetAsync"/> does not return until <see cref="CompleteAsync"/>.</summary>
     /// <returns><see langword="false"/> if a file with the same id already exists.</returns>
-    Task<bool> AddAsync(SharedFile file, CancellationToken cancellationToken);
+    Task<bool> AddAsync(PendingFile file, CancellationToken cancellationToken);
 
+    /// <summary>Records the checksum of the stored content and makes the file available.</summary>
     /// <returns><see langword="false"/> if there is no unfinished upload with this id (it was claimed for deletion).</returns>
-    Task<bool> CompleteAsync(ShareId id, CancellationToken cancellationToken);
+    Task<bool> CompleteAsync(ShareId id, Sha256 sha256, CancellationToken cancellationToken);
 
     Task<SharedFile?> GetAsync(ShareId id, CancellationToken cancellationToken);
 
