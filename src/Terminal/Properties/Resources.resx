@@ -187,13 +187,19 @@
     <value>{0} left</value>
   </data>
   <data name="ProgressArchiving" xml:space="preserve">
-    <value>Creating the archive</value>
+    <value>Archiving</value>
   </data>
   <data name="ProgressHashing" xml:space="preserve">
-    <value>Checksum</value>
+    <value>Computing checksum</value>
   </data>
-  <data name="ProgressWaitingForServer" xml:space="preserve">
-    <value>Waiting for the server</value>
+  <data name="ProgressUploading" xml:space="preserve">
+    <value>Uploading</value>
+  </data>
+  <data name="ProgressDownloading" xml:space="preserve">
+    <value>Downloading</value>
+  </data>
+  <data name="ProgressSavingOnServer" xml:space="preserve">
+    <value>Saving on the server</value>
   </data>
   <data name="TooManyRequests" xml:space="preserve">
     <value>Too many requests. Try again later.</value>

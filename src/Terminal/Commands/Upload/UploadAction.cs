@@ -47,13 +47,14 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
             expiresAt = DateTimeOffset.UtcNow + expiresIn.Value;
         }
 
+        var steps = directory is null ? 2 : 3;
         await using var source = directory is null
             ? ((FileInfo)path).OpenRead()
-            : await ArchiveAsync(directory, name, cancellationToken);
+            : await ArchiveAsync(directory, Step(1, steps, Resources.ProgressArchiving), cancellationToken);
         var size = source.Length;
 
         string sha256;
-        await using (var hashing = output.StartProgress(Resources.ProgressHashing, size))
+        await using (var hashing = output.StartProgress(Step(steps - 1, steps, Resources.ProgressHashing), size, details: false))
         {
             sha256 = Convert.ToHexStringLower(await SHA256.HashDataAsync(new ProgressStream(source, hashing), cancellationToken));
         }
@@ -61,7 +62,7 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
         source.Position = 0;
 
         UploadedFile uploaded;
-        await using (var progress = output.StartProgress(name, size, Resources.ProgressWaitingForServer))
+        await using (var progress = output.StartProgress(Step(steps, steps, Resources.ProgressUploading), size, details: true, Resources.ProgressSavingOnServer))
         await using (var content = new ProgressStream(source, progress))
         {
             uploaded = await client.UploadAsync(
@@ -102,7 +103,12 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
         return 0;
     }
 
-    private async Task<FileStream> ArchiveAsync(DirectoryInfo directory, string name, CancellationToken cancellationToken)
+    private static string Step(int number, int count, string label) => $"[{number}/{count}] {label}";
+
+    private static DateTime ZipTimestamp(DateTime lastWriteTime) =>
+        lastWriteTime.Year is < 1980 or > 2107 ? new DateTime(1980, 1, 1, 0, 0, 0, DateTimeKind.Local) : lastWriteTime;
+
+    private async Task<FileStream> ArchiveAsync(DirectoryInfo directory, string label, CancellationToken cancellationToken)
     {
         var archive = new FileStream(
             Path.GetTempFileName(),
@@ -114,14 +120,40 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
 
         try
         {
-            await using (output.StartProgress(name, 0, Resources.ProgressArchiving))
+            var entries = directory.EnumerateFileSystemInfos("*", SearchOption.AllDirectories).ToList();
+            var total = entries.OfType<FileInfo>().Sum(file => file.Length);
+
+            await using (var progress = output.StartProgress(label, total, details: false))
+            await using (var zip = await ZipArchive.CreateAsync(archive, ZipArchiveMode.Create, leaveOpen: true, entryNameEncoding: null, cancellationToken))
             {
-                await ZipFile.CreateFromDirectoryAsync(
-                    directory.FullName,
-                    archive,
-                    CompressionLevel.Optimal,
-                    includeBaseDirectory: false,
-                    cancellationToken);
+                var buffer = new byte[81920];
+                long archived = 0;
+                foreach (var entry in entries)
+                {
+                    var entryName = Path.GetRelativePath(directory.FullName, entry.FullName).Replace(Path.DirectorySeparatorChar, '/');
+                    if (entry is DirectoryInfo subdirectory)
+                    {
+                        if (!subdirectory.EnumerateFileSystemInfos().Any())
+                        {
+                            zip.CreateEntry($"{entryName}/");
+                        }
+
+                        continue;
+                    }
+
+                    var zipEntry = zip.CreateEntry(entryName, CompressionLevel.Optimal);
+                    zipEntry.LastWriteTime = ZipTimestamp(entry.LastWriteTime);
+
+                    await using var source = ((FileInfo)entry).OpenRead();
+                    await using var target = await zipEntry.OpenAsync(cancellationToken);
+                    int read;
+                    while ((read = await source.ReadAsync(buffer, cancellationToken)) > 0)
+                    {
+                        await target.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+                        archived += read;
+                        progress.Report(archived);
+                    }
+                }
             }
 
             archive.Position = 0;

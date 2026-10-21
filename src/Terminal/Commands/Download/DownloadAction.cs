@@ -31,7 +31,7 @@ internal sealed class DownloadAction(IMayflyClient client, ConsoleOutput output)
         {
             string sha256;
             await using (stream)
-            await using (var progress = output.StartProgress(Path.GetFileName(path), file.Info.Size))
+            await using (var progress = output.StartProgress(Resources.ProgressDownloading, file.Info.Size, details: true))
             {
                 sha256 = await CopyAsync(file.Content, stream, progress, cancellationToken);
             }

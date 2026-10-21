@@ -9,7 +9,6 @@ internal sealed class TransferProgress : IProgress<long>, IAsyncDisposable
 {
     private const int MinBarWidth = 10;
     private const int MaxBarWidth = 40;
-    private const int MaxLabelWidth = 30;
     private const int DefaultWindowWidth = 80;
     private const double SpeedSmoothingSeconds = 3;
     private const string BarColors = "\e[36;100m";
@@ -29,6 +28,7 @@ internal sealed class TransferProgress : IProgress<long>, IAsyncDisposable
     private readonly string _label;
     private readonly long _total;
     private readonly string? _waitingText;
+    private readonly bool _details;
     private readonly bool _colors;
     private readonly Stopwatch _clock = Stopwatch.StartNew();
     private readonly PeriodicTimer _timer = new(FrameInterval);
@@ -41,10 +41,11 @@ internal sealed class TransferProgress : IProgress<long>, IAsyncDisposable
     private TimeSpan _sampledAt;
     private double _speed;
 
-    public TransferProgress(string label, long total, string? waitingText, bool colors, bool enabled)
+    public TransferProgress(string label, long total, bool details, string? waitingText, bool colors, bool enabled)
     {
-        _label = label.Length > MaxLabelWidth ? $"{label[..(MaxLabelWidth - 1)]}…" : label;
+        _label = label;
         _total = total;
+        _details = details;
         _waitingText = waitingText;
         _colors = colors;
         _rendering = enabled ? Task.Run(RenderAsync) : Task.CompletedTask;
@@ -120,12 +121,14 @@ internal sealed class TransferProgress : IProgress<long>, IAsyncDisposable
         var fraction = _total == 0 ? 1 : Math.Min(1, (double)transferred / _total);
         var percent = $"{(int)(fraction * 100),3}%";
 
-        var details = new List<string>
-        {
-            $"{ConsoleOutput.FormatSize(transferred),9} / {ConsoleOutput.FormatSize(_total)}",
-            string.Format(CultureInfo.CurrentCulture, Resources.ProgressSpeed, ConsoleOutput.FormatSize((long)_speed)).PadLeft(11),
-            TimeLeft(transferred),
-        };
+        var details = _details
+            ? new List<string>
+            {
+                $"{ConsoleOutput.FormatSize(transferred),9} / {ConsoleOutput.FormatSize(_total)}",
+                string.Format(CultureInfo.CurrentCulture, Resources.ProgressSpeed, ConsoleOutput.FormatSize((long)_speed)).PadLeft(11),
+                TimeLeft(transferred),
+            }
+            : [];
         string? label = _label;
 
         int BarSpace() => width - percent.Length - 1

@@ -187,13 +187,19 @@
     <value>ещё {0}</value>
   </data>
   <data name="ProgressArchiving" xml:space="preserve">
-    <value>Создание архива</value>
+    <value>Архивирование</value>
   </data>
   <data name="ProgressHashing" xml:space="preserve">
-    <value>Контрольная сумма</value>
+    <value>Подсчёт контрольной суммы</value>
   </data>
-  <data name="ProgressWaitingForServer" xml:space="preserve">
-    <value>Ожидание ответа сервера</value>
+  <data name="ProgressUploading" xml:space="preserve">
+    <value>Отправка</value>
+  </data>
+  <data name="ProgressDownloading" xml:space="preserve">
+    <value>Скачивание</value>
+  </data>
+  <data name="ProgressSavingOnServer" xml:space="preserve">
+    <value>Сохранение на сервере</value>
   </data>
   <data name="TooManyRequests" xml:space="preserve">
     <value>Слишком много запросов. Повторите позже.</value>

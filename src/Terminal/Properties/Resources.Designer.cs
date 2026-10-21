@@ -373,7 +373,7 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Creating the archive.
+        ///   Looks up a localized string similar to Archiving.
         /// </summary>
         internal static string ProgressArchiving {
             get {
@@ -382,11 +382,29 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Checksum.
+        ///   Looks up a localized string similar to Downloading.
+        /// </summary>
+        internal static string ProgressDownloading {
+            get {
+                return ResourceManager.GetString("ProgressDownloading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Computing checksum.
         /// </summary>
         internal static string ProgressHashing {
             get {
                 return ResourceManager.GetString("ProgressHashing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saving on the server.
+        /// </summary>
+        internal static string ProgressSavingOnServer {
+            get {
+                return ResourceManager.GetString("ProgressSavingOnServer", resourceCulture);
             }
         }
         
@@ -409,11 +427,11 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Waiting for the server.
+        ///   Looks up a localized string similar to Uploading.
         /// </summary>
-        internal static string ProgressWaitingForServer {
+        internal static string ProgressUploading {
             get {
-                return ResourceManager.GetString("ProgressWaitingForServer", resourceCulture);
+                return ResourceManager.GetString("ProgressUploading", resourceCulture);
             }
         }
         
