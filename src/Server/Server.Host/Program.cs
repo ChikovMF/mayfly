@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.StaticFiles;
 using Server.Application;
 using Server.Domain.Abstractions;
@@ -19,7 +18,6 @@ builder.Services.AddOtlpLogging(builder.Configuration);
 
 var upload = builder.Configuration.GetSection(UploadOptions.SectionName).Get<UploadOptions>() ?? new UploadOptions();
 builder.WebHost.ConfigureKestrel(kestrel => kestrel.Limits.MaxRequestBodySize = upload.MaxRequestBodySize);
-builder.Services.Configure<FormOptions>(form => form.MultipartBodyLengthLimit = upload.MaxRequestBodySize);
 
 builder.Services.AddOptions<RetentionOptions, RetentionOptionsValidator>(builder.Configuration);
 

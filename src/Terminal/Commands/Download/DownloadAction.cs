@@ -19,7 +19,7 @@ internal sealed class DownloadAction(IMayflyClient client, ConsoleOutput output)
             return 1;
         }
 
-        var path = target?.ToString() ?? Path.GetFileName(file.Info.FileName);
+        var path = ResolvePath(target, Path.GetFileName(file.Info.FileName));
         if (!overwrite && File.Exists(path))
         {
             output.Error(string.Format(CultureInfo.CurrentCulture, Resources.DownloadFileExists, path));
@@ -31,7 +31,7 @@ internal sealed class DownloadAction(IMayflyClient client, ConsoleOutput output)
         {
             string sha256;
             await using (stream)
-            await using (var progress = output.StartProgress(Path.GetFileName(path), file.Info.Size))
+            await using (var progress = output.StartProgress(Resources.ProgressDownloading, file.Info.Size, details: true))
             {
                 sha256 = await CopyAsync(file.Content, stream, progress, cancellationToken);
             }
@@ -72,5 +72,15 @@ internal sealed class DownloadAction(IMayflyClient client, ConsoleOutput output)
         }
 
         return Convert.ToHexStringLower(hash.GetHashAndReset());
+    }
+
+    private static string ResolvePath(FileInfo? target, string fileName)
+    {
+        if (target is null)
+        {
+            return fileName;
+        }
+
+        return Directory.Exists(target.FullName) ? Path.Combine(target.FullName, fileName) : target.ToString();
     }
 }

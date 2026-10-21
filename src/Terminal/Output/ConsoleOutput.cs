@@ -45,10 +45,11 @@ internal sealed class ConsoleOutput
         }
     }
 
-    public TransferProgress StartProgress(string label, long total, string? waitingText = null) =>
+    public TransferProgress StartProgress(string label, long total, bool details, string? waitingText = null) =>
         new(
             label,
             total,
+            details,
             waitingText,
             colors: !_noColor,
             enabled: !Console.IsErrorRedirected && Environment.GetEnvironmentVariable("TERM") != "dumb");

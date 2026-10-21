@@ -79,7 +79,7 @@
     <value>Скачать файл.</value>
   </data>
   <data name="DownloadOutputOptionDescription" xml:space="preserve">
-    <value>Путь для сохранения файла. По умолчанию имя файла в текущем каталоге.</value>
+    <value>Путь для сохранения файла или каталог, в который сохранить его под своим именем. По умолчанию имя файла в текущем каталоге.</value>
   </data>
   <data name="DownloadForceOptionDescription" xml:space="preserve">
     <value>Перезаписать файл, если он уже существует.</value>
@@ -187,10 +187,19 @@
     <value>ещё {0}</value>
   </data>
   <data name="ProgressArchiving" xml:space="preserve">
-    <value>Создание архива</value>
+    <value>Архивирование</value>
   </data>
-  <data name="ProgressWaitingForServer" xml:space="preserve">
-    <value>Ожидание ответа сервера</value>
+  <data name="ProgressHashing" xml:space="preserve">
+    <value>Подсчёт контрольной суммы</value>
+  </data>
+  <data name="ProgressUploading" xml:space="preserve">
+    <value>Отправка</value>
+  </data>
+  <data name="ProgressDownloading" xml:space="preserve">
+    <value>Скачивание</value>
+  </data>
+  <data name="ProgressSavingOnServer" xml:space="preserve">
+    <value>Сохранение на сервере</value>
   </data>
   <data name="TooManyRequests" xml:space="preserve">
     <value>Слишком много запросов. Повторите позже.</value>

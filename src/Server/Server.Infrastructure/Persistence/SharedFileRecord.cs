@@ -13,17 +13,6 @@ internal sealed record SharedFileRecord(
     int? DownloadsLeft,
     byte[] Sha256)
 {
-    public static SharedFileRecord From(SharedFile file) => new(
-        file.Id.ToString(),
-        file.FileName.ToString(),
-        file.ContentType.ToString(),
-        file.Size.Bytes,
-        file.ExpiresAt?.UtcDateTime,
-        file.PasswordHash,
-        file.DownloadsLeft?.Count,
-        file.Sha256.ToBytes()
-    );
-
     public SharedFile ToDomain()
     {
         DateTimeOffset? expiresAt = null;
