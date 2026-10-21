@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -29,11 +30,21 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
         int? maxDownloads = null,
         CancellationToken cancellationToken = default)
     {
+        if (!content.CanSeek)
+        {
+            throw new ArgumentException("The content stream must support seeking.", nameof(content));
+        }
+
+        var start = content.Position;
+        var hash = await SHA256.HashDataAsync(content, cancellationToken);
+        content.Position = start;
+
         using var request = new HttpRequestMessage(HttpMethod.Post, "api/files");
         request.Content = new StreamContent(content);
         request.Content.Headers.ContentType = contentType is null ? null : MediaTypeHeaderValue.Parse(contentType);
         request.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment") { FileNameStar = fileName };
         request.Headers.ExpectContinue = true;
+        request.Headers.Add(ReprDigestHeader, $"{Sha256Prefix}{Convert.ToBase64String(hash)}:");
 
         if (expiresAt.HasValue)
         {

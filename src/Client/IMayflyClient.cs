@@ -5,7 +5,7 @@ namespace Mayfly.Client;
 
 public interface IMayflyClient
 {
-    /// <param name="content">File content.</param>
+    /// <param name="content">File content, read from the current position to the end. The stream must support seeking.</param>
     /// <param name="fileName">Name of the file.</param>
     /// <param name="contentType">MIME type of the file.</param>
     /// <param name="expiresAt">The moment after which the file is unavailable, or <see langword="null"/> to keep it forever.</param>
@@ -14,6 +14,7 @@ public interface IMayflyClient
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="MayflyApiException">The server rejected the request (for example, the file is not valid), or its response could not be understood.</exception>
     /// <exception cref="MayflyRateLimitException">The client made too many requests.</exception>
+    /// <exception cref="ArgumentException"><paramref name="content"/> does not support seeking.</exception>
     /// <exception cref="FormatException"><paramref name="contentType"/> is not a valid MIME type.</exception>
     /// <exception cref="HttpRequestException">The server could not be reached.</exception>
     /// <exception cref="OperationCanceledException">The operation was canceled or the request timed out.</exception>
