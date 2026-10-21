@@ -2,6 +2,6 @@ namespace Server.Infrastructure.Storage;
 
 internal enum StorageProvider
 {
-    Minio,
+    S3,
     YandexDisk,
 }

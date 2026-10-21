@@ -4,7 +4,7 @@
         <PackageReference Include="coverlet.collector"/>
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing"/>
         <PackageReference Include="Microsoft.NET.Test.Sdk"/>
-        <PackageReference Include="Minio"/>
+        <PackageReference Include="AWSSDK.S3"/>
         <PackageReference Include="Testcontainers.Minio"/>
         <PackageReference Include="Testcontainers.PostgreSql"/>
         <PackageReference Include="xunit"/>

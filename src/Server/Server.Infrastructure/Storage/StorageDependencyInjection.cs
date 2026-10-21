@@ -1,10 +1,11 @@
+using Amazon.Runtime;
+using Amazon.S3;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Minio;
 using Server.Domain.Abstractions;
 using Server.Infrastructure.Configuration;
-using Server.Infrastructure.Storage.Minio;
+using Server.Infrastructure.Storage.S3;
 using Server.Infrastructure.Storage.YandexDisk;
 
 namespace Server.Infrastructure.Storage;
@@ -15,11 +16,11 @@ internal static class StorageDependencyInjection
 
     public static IServiceCollection AddFileStorage(this IServiceCollection services, IConfiguration configuration)
     {
-        var storage = configuration.GetSection(StorageOptions.SectionName).Get<StorageOptions>();
-        switch (storage?.Provider)
+        var storage = configuration.GetSection(StorageOptions.SectionName).Get<StorageOptions>() ?? new StorageOptions();
+        switch (storage.Provider)
         {
-            case StorageProvider.Minio:
-                services.AddMinioStorage(configuration);
+            case StorageProvider.S3:
+                services.AddS3Storage(configuration);
                 break;
             case StorageProvider.YandexDisk:
                 services.AddYandexDiskStorage(configuration);
@@ -32,21 +33,25 @@ internal static class StorageDependencyInjection
         return services;
     }
 
-    private static void AddMinioStorage(this IServiceCollection services, IConfiguration configuration)
+    private static void AddS3Storage(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddOptions<MinioOptions, MinioOptionsValidator>(configuration);
+        services.AddOptions<S3Options, S3OptionsValidator>(configuration);
 
-        services.AddSingleton<IMinioClient>(sp =>
+        services.AddSingleton<IAmazonS3>(sp =>
         {
-            var options = sp.GetRequiredService<IOptions<MinioOptions>>().Value;
-            return new MinioClient()
-                .WithEndpoint(options.Endpoint)
-                .WithCredentials(options.AccessKey, options.SecretKey)
-                .WithSSL(options.UseSsl)
-                .Build();
+            var options = sp.GetRequiredService<IOptions<S3Options>>().Value;
+            var config = new AmazonS3Config
+            {
+                ServiceURL = options.ServiceUrl,
+                AuthenticationRegion = options.Region,
+                ForcePathStyle = options.ForcePathStyle,
+                RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
+                ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED,
+            };
+            return new AmazonS3Client(new BasicAWSCredentials(options.AccessKey, options.SecretKey), config);
         });
-        services.AddSingleton<IFileStorage, MinioFileStorage>();
-        services.AddHealthChecks().AddCheck<MinioHealthCheck>(HealthCheckName, timeout: DependencyInjection.HealthCheckTimeout);
+        services.AddSingleton<IFileStorage, S3FileStorage>();
+        services.AddHealthChecks().AddCheck<S3HealthCheck>(HealthCheckName, timeout: DependencyInjection.HealthCheckTimeout);
     }
 
     private static void AddYandexDiskStorage(this IServiceCollection services, IConfiguration configuration)
