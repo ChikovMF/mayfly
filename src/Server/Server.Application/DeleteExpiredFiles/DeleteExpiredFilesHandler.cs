@@ -61,13 +61,17 @@ internal sealed partial class DeleteExpiredFilesHandler(
             return;
         }
 
-        if (file.Reason == FileDeletionReason.Expired)
+        switch (file.Reason)
         {
-            LogFileExpired(file.Id);
-        }
-        else
-        {
-            LogFileDownloadsExhausted(file.Id);
+            case FileDeletionReason.Expired:
+                LogFileExpired(file.Id);
+                break;
+            case FileDeletionReason.DownloadsExhausted:
+                LogFileDownloadsExhausted(file.Id);
+                break;
+            default:
+                LogUploadAbandoned(file.Id);
+                break;
         }
     }
 
@@ -82,6 +86,9 @@ internal sealed partial class DeleteExpiredFilesHandler(
 
     [LoggerMessage(Level = LogLevel.Information, Message = "File {Id} deleted: no downloads left")]
     private partial void LogFileDownloadsExhausted(ShareId id);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "File {Id} deleted: upload was not completed")]
+    private partial void LogUploadAbandoned(ShareId id);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Failed to delete file {Id} (attempt {Attempt}), will retry later")]
     private partial void LogDeletionFailed(Exception exception, ShareId id, int attempt);

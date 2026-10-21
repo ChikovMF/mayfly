@@ -43,11 +43,17 @@ internal sealed partial class SaveFileHandler(
             try
             {
                 await storage.SaveAsync(id, command.Content, cancellationToken);
+
+                if (!await repository.CompleteAsync(id, cancellationToken))
+                {
+                    throw new InvalidOperationException($"Upload of file {id} was abandoned before it completed.");
+                }
             }
             catch
             {
                 try
                 {
+                    await storage.DeleteAsync(id, CancellationToken.None);
                     await repository.DeleteAsync(id, CancellationToken.None);
                 }
                 catch (Exception exception)
@@ -68,6 +74,6 @@ internal sealed partial class SaveFileHandler(
     [LoggerMessage(Level = LogLevel.Information, Message = "File {Id} saved")]
     private partial void LogFileSaved(ShareId id);
 
-    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete the row of file {Id} after its content was not stored")]
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to delete file {Id} after its upload failed, it will be deleted as an abandoned upload")]
     private partial void LogRollbackFailed(Exception exception, ShareId id);
 }

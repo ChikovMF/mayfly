@@ -19,6 +19,7 @@ public class SaveFileHandlerTests
     public SaveFileHandlerTests()
     {
         _repository.AddAsync(Arg.Any<SharedFile>(), Arg.Any<CancellationToken>()).Returns(true);
+        _repository.CompleteAsync(Arg.Any<ShareId>(), Arg.Any<CancellationToken>()).Returns(true);
         _handler = new SaveFileHandler(_repository, _storage, _passwordHasher, NullLogger<SaveFileHandler>.Instance);
     }
 
@@ -252,7 +253,24 @@ public class SaveFileHandlerTests
     }
 
     [Fact]
-    public async Task HandleAsync_SaveFails_DeletesAddedFile()
+    public async Task HandleAsync_ValidCommand_CompletesUploadAfterSavingContent()
+    {
+        // Arrange
+        var command = CreateCommand(new MemoryStream());
+
+        // Act
+        var id = (await _handler.HandleAsync(command, CancellationToken.None)).Id;
+
+        // Assert
+        Received.InOrder(() =>
+        {
+            _storage.SaveAsync(id, command.Content, CancellationToken.None);
+            _repository.CompleteAsync(id, CancellationToken.None);
+        });
+    }
+
+    [Fact]
+    public async Task HandleAsync_SaveFails_DeletesContentBeforeRecord()
     {
         // Arrange
         SharedFile? added = null;
@@ -265,7 +283,25 @@ public class SaveFileHandlerTests
 
         // Assert
         await Assert.ThrowsAsync<IOException>(act);
-        await _repository.Received(1).DeleteAsync(added!.Id, Arg.Any<CancellationToken>());
+        Received.InOrder(() =>
+        {
+            _storage.DeleteAsync(added!.Id, Arg.Any<CancellationToken>());
+            _repository.DeleteAsync(added!.Id, Arg.Any<CancellationToken>());
+        });
+    }
+
+    [Fact]
+    public async Task HandleAsync_UploadAbandonedMeanwhile_ThrowsAndDeletesContent()
+    {
+        // Arrange
+        _repository.CompleteAsync(Arg.Any<ShareId>(), Arg.Any<CancellationToken>()).Returns(false);
+
+        // Act
+        var act = () => _handler.HandleAsync(CreateCommand(new MemoryStream()), CancellationToken.None);
+
+        // Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(act);
+        await _storage.ReceivedWithAnyArgs(1).DeleteAsync(default!, default);
     }
 
     private static SaveFileCommand CreateCommand(
