@@ -2,11 +2,9 @@ using System.Security.Cryptography;
 
 namespace Server.Application.SaveFile;
 
-/// <summary>A read-only stream that counts the bytes read from the inner stream and computes their hash.</summary>
-internal sealed class HashingStream(Stream inner) : Stream
+/// <summary>A read-only stream that counts the bytes read from the inner stream and appends them to <paramref name="hash"/>.</summary>
+internal sealed class HashingStream(Stream inner, IncrementalHash hash) : Stream
 {
-    private readonly IncrementalHash _hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-
     public long BytesRead { get; private set; }
 
     public override bool CanRead => true;
@@ -22,8 +20,6 @@ internal sealed class HashingStream(Stream inner) : Stream
         get => throw new NotSupportedException();
         set => throw new NotSupportedException();
     }
-
-    public byte[] GetHash() => _hash.GetCurrentHash();
 
     public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpan(offset, count));
 
@@ -54,19 +50,9 @@ internal sealed class HashingStream(Stream inner) : Stream
 
     public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _hash.Dispose();
-        }
-
-        base.Dispose(disposing);
-    }
-
     private void Track(ReadOnlySpan<byte> data)
     {
-        _hash.AppendData(data);
+        hash.AppendData(data);
         BytesRead += data.Length;
     }
 }

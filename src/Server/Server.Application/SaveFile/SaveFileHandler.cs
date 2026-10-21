@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
 using Server.Domain;
 using Server.Domain.Abstractions;
@@ -15,7 +16,8 @@ internal sealed partial class SaveFileHandler(
 
     public async Task<SaveFileResult> HandleAsync(SaveFileCommand command, CancellationToken cancellationToken)
     {
-        await using var content = new HashingStream(command.Content);
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        await using var content = new HashingStream(command.Content, hash);
 
         var passwordHash = command.Password is null ? null : passwordHasher.Hash(command.Password);
 
@@ -40,7 +42,7 @@ internal sealed partial class SaveFileHandler(
                     throw new ArgumentException($"The content is {content.BytesRead} bytes, but the command declares {command.Size.Bytes}.", nameof(command));
                 }
 
-                sha256 = Sha256.Parse(content.GetHash());
+                sha256 = Sha256.Parse(hash.GetCurrentHash());
                 if (command.ExpectedSha256 != null && sha256 != command.ExpectedSha256)
                 {
                     await RollbackAsync(id);

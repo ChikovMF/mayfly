@@ -168,6 +168,25 @@ public class SaveFileHandlerTests
     }
 
     [Fact]
+    public async Task HandleAsync_StorageDisposesContent_ReturnsSha256OfContent()
+    {
+        // Arrange
+        var expected = Sha256.Parse(SHA256.HashData("hello"u8));
+        _storage.SaveAsync(Arg.Any<ShareId>(), Arg.Any<Stream>(), Arg.Any<FileSize>(), Arg.Any<CancellationToken>())
+            .Returns(async call =>
+            {
+                await using var stream = call.ArgAt<Stream>(1);
+                await stream.CopyToAsync(Stream.Null);
+            });
+
+        // Act
+        var result = await _handler.HandleAsync(CreateCommand(new MemoryStream("hello"u8.ToArray())), CancellationToken.None);
+
+        // Assert
+        Assert.Equal(expected, Assert.IsType<SaveFileResult.Saved>(result).Sha256);
+    }
+
+    [Fact]
     public async Task HandleAsync_ContentStartsMidStream_HashesOnlyTheRest()
     {
         // Arrange
