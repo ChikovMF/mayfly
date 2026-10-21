@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
@@ -15,7 +16,10 @@ namespace Server.Host.Files;
 internal static class FilesEndpoints
 {
     private const string DefaultContentType = "application/octet-stream";
+    private const string ContentDispositionHeader = "Content-Disposition";
+    private const string ContentTypeHeader = "Content-Type";
     private const string ExpiresAtHeader = "Mayfly-Expires-At";
+    private const string MaxDownloadsHeader = "Mayfly-Max-Downloads";
     private const string DownloadsLeftHeader = "Mayfly-Downloads-Left";
     private const string ReprDigestHeader = "Repr-Digest";
     internal const string PasswordHeader = "Mayfly-Password";
@@ -24,7 +28,7 @@ internal static class FilesEndpoints
     {
         var files = app.MapGroup("/api/files");
 
-        files.MapPost("", UploadAsync).DisableAntiforgery();
+        files.MapPost("", UploadAsync);
         files.MapGet("/{id}", DownloadAsync).RequireRateLimiting(PasswordRateLimiterPolicy.Name);
         files.MapMethods("/{id}", [HttpMethods.Head], GetInfoAsync).RequireRateLimiting(PasswordRateLimiterPolicy.Name);
 
@@ -32,25 +36,39 @@ internal static class FilesEndpoints
     }
 
     private static async Task<IResult> UploadAsync(
-        IFormFile? file,
-        [FromForm] DateTimeOffset? expiresAt,
-        [FromForm] string? password,
-        [FromForm] int? maxDownloads,
+        HttpRequest request,
+        [FromHeader(Name = ContentDispositionHeader)] string? contentDisposition,
+        [FromHeader(Name = ContentTypeHeader)] string? contentType,
+        [FromHeader(Name = ExpiresAtHeader)] DateTimeOffset? expiresAt,
+        [FromHeader(Name = PasswordHeader)] string? password,
+        [FromHeader(Name = MaxDownloadsHeader)] int? maxDownloads,
+        [FromHeader(Name = ReprDigestHeader)] string? reprDigest,
         [FromServices] ISaveFileHandler handler,
         [FromServices] IContentTypeProvider contentTypeProvider,
         [FromServices] IOptions<RetentionOptions> retention,
         CancellationToken cancellationToken)
     {
-        await using var content = file?.OpenReadStream();
-        var contentType = file is null ? null : ResolveContentType(file, contentTypeProvider);
+        if (request.ContentLength is null)
+        {
+            return Results.StatusCode(StatusCodes.Status411LengthRequired);
+        }
+
+        var maxSize = request.HttpContext.Features.Get<IHttpMaxRequestBodySizeFeature>()?.MaxRequestBodySize;
+        if (request.ContentLength > maxSize)
+        {
+            return Results.StatusCode(StatusCodes.Status413PayloadTooLarge);
+        }
+
+        var fileName = ReadFileName(contentDisposition);
         if (!SaveFileCommandParser.TryParse(
-                file?.FileName,
-                contentType,
-                content,
-                file?.Length ?? 0,
+                fileName,
+                ResolveContentType(fileName, contentType, contentTypeProvider),
+                request.Body,
+                request.ContentLength.Value,
                 expiresAt,
-                password,
+                DecodePassword(password),
                 maxDownloads,
+                reprDigest,
                 retention.Value,
                 out var command,
                 out var errors))
@@ -58,9 +76,14 @@ internal static class FilesEndpoints
             return Results.ValidationProblem(errors);
         }
 
-        var saved = await handler.HandleAsync(command, cancellationToken);
-
-        return Results.Created($"/api/files/{saved.Id}", new FileUploadedResponse(saved.Id.ToString(), expiresAt, maxDownloads, saved.Sha256.Hex));
+        var result = await handler.HandleAsync(command, cancellationToken);
+        switch (result)
+        {
+            case SaveFileResult.Saved saved:
+                return Results.Created($"/api/files/{saved.Id}", new FileUploadedResponse(saved.Id.ToString(), expiresAt, maxDownloads, saved.Sha256.Hex));
+            default:
+                return Results.ValidationProblem(new Dictionary<string, string[]> { ["sha256"] = ["The content does not match the digest."] });
+        }
     }
 
     private static async Task<IResult> DownloadAsync(
@@ -114,14 +137,41 @@ internal static class FilesEndpoints
         }
     }
 
-    private static string ResolveContentType(IFormFile file, IContentTypeProvider contentTypeProvider)
+    private static string? ReadFileName(string? contentDisposition)
     {
-        if (!string.IsNullOrEmpty(file.ContentType))
+        if (!ContentDispositionHeaderValue.TryParse(contentDisposition, out var disposition))
         {
-            return file.ContentType;
+            return null;
         }
 
-        return contentTypeProvider.TryGetContentType(file.FileName, out var contentType) ? contentType : DefaultContentType;
+        var fileName = disposition.FileNameStar.HasValue ? disposition.FileNameStar : disposition.FileName;
+        return HeaderUtilities.RemoveQuotes(fileName).Value;
+    }
+
+    private static string? ResolveContentType(string? fileName, string? contentType, IContentTypeProvider contentTypeProvider)
+    {
+        if (!string.IsNullOrEmpty(contentType))
+        {
+            return contentType;
+        }
+
+        return fileName is not null && contentTypeProvider.TryGetContentType(fileName, out var resolved) ? resolved : DefaultContentType;
+    }
+
+    private static string? DecodePassword(string? header)
+    {
+        if (header is null)
+        {
+            return null;
+        }
+
+        var bytes = new byte[header.Length];
+        if (!Convert.TryFromBase64String(header, bytes, out var written))
+        {
+            throw new BadHttpRequestException($"The {PasswordHeader} header is not valid base64.");
+        }
+
+        return Encoding.UTF8.GetString(bytes, 0, written);
     }
 
     private static Password? ReadPassword(string? header)

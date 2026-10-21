@@ -32,7 +32,7 @@ public class SaveFileHandlerTests
         var command = CreateCommand(new MemoryStream(new byte[5]));
 
         // Act
-        var id = (await _handler.HandleAsync(command, CancellationToken.None)).Id;
+        var id = Assert.IsType<SaveFileResult.Saved>(await _handler.HandleAsync(command, CancellationToken.None)).Id;
 
         // Assert
         await _repository.Received(1).AddAsync(
@@ -51,7 +51,7 @@ public class SaveFileHandlerTests
         var command = CreateCommand(new MemoryStream());
 
         // Act
-        var id = (await _handler.HandleAsync(command, CancellationToken.None)).Id;
+        var id = Assert.IsType<SaveFileResult.Saved>(await _handler.HandleAsync(command, CancellationToken.None)).Id;
 
         // Assert
         await _storage.Received(1).SaveAsync(id, Arg.Any<Stream>(), command.Size, CancellationToken.None);
@@ -164,7 +164,7 @@ public class SaveFileHandlerTests
         var result = await _handler.HandleAsync(command, CancellationToken.None);
 
         // Assert
-        Assert.Equal(expected, result.Sha256);
+        Assert.Equal(expected, Assert.IsType<SaveFileResult.Saved>(result).Sha256);
     }
 
     [Fact]
@@ -177,7 +177,7 @@ public class SaveFileHandlerTests
         var result = await _handler.HandleAsync(CreateCommand(content), CancellationToken.None);
 
         // Assert
-        Assert.Equal(Sha256.Parse(SHA256.HashData("hello"u8)), result.Sha256);
+        Assert.Equal(Sha256.Parse(SHA256.HashData("hello"u8)), Assert.IsType<SaveFileResult.Saved>(result).Sha256);
     }
 
     [Fact]
@@ -234,7 +234,7 @@ public class SaveFileHandlerTests
             .Returns(false, true);
 
         // Act
-        var id = (await _handler.HandleAsync(CreateCommand(new MemoryStream()), CancellationToken.None)).Id;
+        var id = Assert.IsType<SaveFileResult.Saved>(await _handler.HandleAsync(CreateCommand(new MemoryStream()), CancellationToken.None)).Id;
 
         // Assert
         Assert.Equal(2, ids.Count);
@@ -263,7 +263,7 @@ public class SaveFileHandlerTests
         var command = CreateCommand(new MemoryStream());
 
         // Act
-        var id = (await _handler.HandleAsync(command, CancellationToken.None)).Id;
+        var id = Assert.IsType<SaveFileResult.Saved>(await _handler.HandleAsync(command, CancellationToken.None)).Id;
 
         // Assert
         Received.InOrder(() =>
@@ -305,6 +305,22 @@ public class SaveFileHandlerTests
 
         // Assert
         await Assert.ThrowsAsync<UploadAbandonedException>(act);
+        await _storage.ReceivedWithAnyArgs(1).DeleteAsync(default!, default);
+    }
+
+    [Fact]
+    public async Task HandleAsync_ExpectedSha256DiffersFromContent_ReturnsChecksumMismatchAndDeletesContent()
+    {
+        // Arrange
+        var expected = Sha256.Parse(SHA256.HashData("other"u8));
+        var command = CreateCommand(new MemoryStream("hello"u8.ToArray())) with { ExpectedSha256 = expected };
+
+        // Act
+        var result = await _handler.HandleAsync(command, CancellationToken.None);
+
+        // Assert
+        Assert.IsType<SaveFileResult.ChecksumMismatch>(result);
+        await _repository.DidNotReceiveWithAnyArgs().CompleteAsync(default!, default!, default);
         await _storage.ReceivedWithAnyArgs(1).DeleteAsync(default!, default);
     }
 

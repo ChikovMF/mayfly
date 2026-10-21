@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 
 namespace Server.Application.SaveFile;
 
-/// <summary>A read-only stream that counts the bytes read from the inner stream and computes their SHA-256.</summary>
+/// <summary>A read-only stream that counts the bytes read from the inner stream and computes their hash.</summary>
 internal sealed class HashingStream(Stream inner) : Stream
 {
     private readonly IncrementalHash _hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);

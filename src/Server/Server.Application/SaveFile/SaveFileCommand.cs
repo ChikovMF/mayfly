@@ -9,4 +9,5 @@ public sealed record SaveFileCommand(
     FileSize Size,
     DateTimeOffset? ExpiresAt = null,
     Password? Password = null,
-    DownloadsLeft? DownloadsLeft = null);
+    DownloadsLeft? DownloadsLeft = null,
+    Sha256? ExpectedSha256 = null);

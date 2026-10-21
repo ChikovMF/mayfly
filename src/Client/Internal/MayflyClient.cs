@@ -14,6 +14,7 @@ namespace Mayfly.Client.Internal;
 internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClient
 {
     private const string ExpiresAtHeader = "Mayfly-Expires-At";
+    private const string MaxDownloadsHeader = "Mayfly-Max-Downloads";
     private const string DownloadsLeftHeader = "Mayfly-Downloads-Left";
     private const string ReprDigestHeader = "Repr-Digest";
     private const string Sha256Prefix = "sha-256=:";
@@ -28,32 +29,27 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
         int? maxDownloads = null,
         CancellationToken cancellationToken = default)
     {
-        var mediaType = contentType is null ? null : MediaTypeHeaderValue.Parse(contentType);
-
-        using var fileContent = new StreamContent(content);
-        fileContent.Headers.ContentType = mediaType;
-
-        using var form = new MultipartFormDataContent();
-        form.Add(fileContent, "file", fileName);
+        using var request = new HttpRequestMessage(HttpMethod.Post, "api/files");
+        request.Content = new StreamContent(content);
+        request.Content.Headers.ContentType = contentType is null ? null : MediaTypeHeaderValue.Parse(contentType);
+        request.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment") { FileNameStar = fileName };
+        request.Headers.ExpectContinue = true;
 
         if (expiresAt.HasValue)
         {
-            form.Add(new StringContent(expiresAt.Value.ToString("O", CultureInfo.InvariantCulture)), "expiresAt");
+            request.Headers.Add(ExpiresAtHeader, expiresAt.Value.ToString("O", CultureInfo.InvariantCulture));
         }
 
         if (password is not null)
         {
-            form.Add(new StringContent(password), "password");
+            request.Headers.Add(PasswordHeader, Convert.ToBase64String(Encoding.UTF8.GetBytes(password)));
         }
 
         if (maxDownloads.HasValue)
         {
-            form.Add(new StringContent(maxDownloads.Value.ToString(CultureInfo.InvariantCulture)), "maxDownloads");
+            request.Headers.Add(MaxDownloadsHeader, maxDownloads.Value.ToString(CultureInfo.InvariantCulture));
         }
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, "api/files");
-        request.Content = form;
-        request.Headers.ExpectContinue = true;
         using var response = await httpClient.SendAsync(request, cancellationToken);
 
         await ThrowIfUnsuccessfulAsync(response, cancellationToken);

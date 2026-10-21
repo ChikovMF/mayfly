@@ -41,6 +41,12 @@ internal sealed partial class SaveFileHandler(
                 }
 
                 sha256 = Sha256.Parse(content.GetHash());
+                if (command.ExpectedSha256 != null && sha256 != command.ExpectedSha256)
+                {
+                    await RollbackAsync(id);
+                    return new SaveFileResult.ChecksumMismatch();
+                }
+
                 if (!await repository.CompleteAsync(id, sha256, cancellationToken))
                 {
                     throw new UploadAbandonedException(id);
@@ -48,24 +54,28 @@ internal sealed partial class SaveFileHandler(
             }
             catch
             {
-                try
-                {
-                    await storage.DeleteAsync(id, CancellationToken.None);
-                    await repository.DeleteAsync(id, CancellationToken.None);
-                }
-                catch (Exception exception)
-                {
-                    LogRollbackFailed(exception, id);
-                }
-
+                await RollbackAsync(id);
                 throw;
             }
 
             LogFileSaved(id);
-            return new SaveFileResult(id, sha256);
+            return new SaveFileResult.Saved(id, sha256);
         }
 
         throw new InvalidOperationException("Could not generate a free share id.");
+    }
+
+    private async Task RollbackAsync(ShareId id)
+    {
+        try
+        {
+            await storage.DeleteAsync(id, CancellationToken.None);
+            await repository.DeleteAsync(id, CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            LogRollbackFailed(exception, id);
+        }
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "File {Id} saved")]
