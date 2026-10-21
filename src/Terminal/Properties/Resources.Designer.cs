@@ -202,7 +202,7 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Path to save the file to. Defaults to the file&apos;s name in the current directory..
+        ///   Looks up a localized string similar to Path to save the file to, or a directory to save it in under its own name. Defaults to the file&apos;s name in the current directory..
         /// </summary>
         internal static string DownloadOutputOptionDescription {
             get {

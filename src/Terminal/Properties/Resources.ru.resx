@@ -79,7 +79,7 @@
     <value>Скачать файл.</value>
   </data>
   <data name="DownloadOutputOptionDescription" xml:space="preserve">
-    <value>Путь для сохранения файла. По умолчанию имя файла в текущем каталоге.</value>
+    <value>Путь для сохранения файла или каталог, в который сохранить его под своим именем. По умолчанию имя файла в текущем каталоге.</value>
   </data>
   <data name="DownloadForceOptionDescription" xml:space="preserve">
     <value>Перезаписать файл, если он уже существует.</value>
