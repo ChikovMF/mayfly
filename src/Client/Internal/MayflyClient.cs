@@ -28,6 +28,7 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
         DateTimeOffset? expiresAt = null,
         string? password = null,
         int? maxDownloads = null,
+        string? sha256 = null,
         CancellationToken cancellationToken = default)
     {
         if (!content.CanSeek)
@@ -35,9 +36,7 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
             throw new ArgumentException("The content stream must support seeking.", nameof(content));
         }
 
-        var start = content.Position;
-        var hash = await SHA256.HashDataAsync(content, cancellationToken);
-        content.Position = start;
+        var hash = sha256 is null ? await HashAsync(content, cancellationToken) : Convert.FromHexString(sha256);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "api/files");
         request.Content = new StreamContent(content);
@@ -67,6 +66,14 @@ internal sealed partial class MayflyClient(HttpClient httpClient) : IMayflyClien
 
         return await TryReadJsonAsync<UploadedFile>(response.Content, JsonContext.Default.UploadedFile, cancellationToken)
                ?? throw UnexpectedResponse(response, "The server returned an unexpected response.");
+    }
+
+    private static async Task<byte[]> HashAsync(Stream content, CancellationToken cancellationToken)
+    {
+        var start = content.Position;
+        var hash = await SHA256.HashDataAsync(content, cancellationToken);
+        content.Position = start;
+        return hash;
     }
 
     public async Task<RemoteFileInfo?> GetInfoAsync(

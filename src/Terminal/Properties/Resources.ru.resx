@@ -189,6 +189,9 @@
   <data name="ProgressArchiving" xml:space="preserve">
     <value>Создание архива</value>
   </data>
+  <data name="ProgressHashing" xml:space="preserve">
+    <value>Контрольная сумма</value>
+  </data>
   <data name="ProgressWaitingForServer" xml:space="preserve">
     <value>Ожидание ответа сервера</value>
   </data>

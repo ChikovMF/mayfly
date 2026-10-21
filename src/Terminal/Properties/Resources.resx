@@ -189,6 +189,9 @@
   <data name="ProgressArchiving" xml:space="preserve">
     <value>Creating the archive</value>
   </data>
+  <data name="ProgressHashing" xml:space="preserve">
+    <value>Checksum</value>
+  </data>
   <data name="ProgressWaitingForServer" xml:space="preserve">
     <value>Waiting for the server</value>
   </data>

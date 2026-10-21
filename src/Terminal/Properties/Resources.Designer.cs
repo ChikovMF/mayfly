@@ -382,6 +382,15 @@ namespace Mayfly.Terminal.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Checksum.
+        /// </summary>
+        internal static string ProgressHashing {
+            get {
+                return ResourceManager.GetString("ProgressHashing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0}/s.
         /// </summary>
         internal static string ProgressSpeed {

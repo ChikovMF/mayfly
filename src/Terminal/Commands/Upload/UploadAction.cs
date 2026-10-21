@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.IO.Compression;
+using System.Security.Cryptography;
 using Mayfly.Client;
 using Mayfly.Client.Models;
 using Mayfly.Terminal.Input;
@@ -51,6 +52,14 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
             : await ArchiveAsync(directory, name, cancellationToken);
         var size = source.Length;
 
+        string sha256;
+        await using (var hashing = output.StartProgress(Resources.ProgressHashing, size))
+        {
+            sha256 = Convert.ToHexStringLower(await SHA256.HashDataAsync(new ProgressStream(source, hashing), cancellationToken));
+        }
+
+        source.Position = 0;
+
         UploadedFile uploaded;
         await using (var progress = output.StartProgress(name, size, Resources.ProgressWaitingForServer))
         await using (var content = new ProgressStream(source, progress))
@@ -61,6 +70,7 @@ internal sealed class UploadAction(IMayflyClient client, ConsoleOutput output)
                 expiresAt: expiresAt,
                 password: password,
                 maxDownloads: maxDownloads,
+                sha256: sha256,
                 cancellationToken: cancellationToken);
         }
 
