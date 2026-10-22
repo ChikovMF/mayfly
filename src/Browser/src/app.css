@@ -12,6 +12,8 @@
   --accent: #f5a524;
   --accent-text: light-dark(#8a5300, #f5b54a);
   --on-accent: #121722;
+  --input-bg: light-dark(#ffffff, #141a27);
+  --danger: light-dark(#b3261e, #ff8a7e);
   --focus-ring: light-dark(#121722, #f5a524);
 
   --font-sans: 'Onest Variable', 'Segoe UI', system-ui, sans-serif;
