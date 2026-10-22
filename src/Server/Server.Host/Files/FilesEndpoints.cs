@@ -18,10 +18,10 @@ internal static class FilesEndpoints
     private const string DefaultContentType = "application/octet-stream";
     private const string ContentDispositionHeader = "Content-Disposition";
     private const string ContentTypeHeader = "Content-Type";
-    private const string ExpiresAtHeader = "Mayfly-Expires-At";
+    internal const string ExpiresAtHeader = "Mayfly-Expires-At";
     private const string MaxDownloadsHeader = "Mayfly-Max-Downloads";
-    private const string DownloadsLeftHeader = "Mayfly-Downloads-Left";
-    private const string ReprDigestHeader = "Repr-Digest";
+    internal const string DownloadsLeftHeader = "Mayfly-Downloads-Left";
+    internal const string ReprDigestHeader = "Repr-Digest";
     internal const string PasswordHeader = "Mayfly-Password";
 
     public static IEndpointRouteBuilder MapFilesEndpoints(this IEndpointRouteBuilder app)

@@ -23,6 +23,7 @@
 | `PasswordRateLimit:TokenLimit` | Нет | `10` | Максимальное число запросов с паролем подряд |
 | `PasswordRateLimit:TokensPerPeriod` | Нет | `1` | Сколько запросов с паролем возвращается за один период |
 | `PasswordRateLimit:ReplenishmentPeriod` | Нет | `00:00:06` | Период, через который возвращаются запросы с паролем, `чч:мм:сс` |
+| `Cors:AllowedOrigins` | Нет | Пустой список | Список адресов веб-интерфейса, которым разрешены запросы из браузера |
 | `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | Нет | `false` | Учитывать заголовок `X-Forwarded-For` |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | Нет | | Адрес приёмника логов по OTLP, например `http://localhost:4317` |
 

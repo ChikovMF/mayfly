@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using Server.Application;
 using Server.Domain.Abstractions;
 using Server.Host.Cleanup;
+using Server.Host.Cors;
 using Server.Host.ErrorHandling;
 using Server.Host.Files;
 using Server.Host.Health;
@@ -27,6 +28,8 @@ builder.Services.AddHostedService<ExpiredFilesCleanupService>();
 builder.Services.AddOptions<PasswordRateLimitOptions, PasswordRateLimitOptionsValidator>(builder.Configuration);
 builder.Services.AddPasswordRateLimiter();
 
+builder.Services.AddBrowserCors(builder.Configuration);
+
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<BadHttpRequestExceptionHandler>();
 builder.Services.AddSingleton<IContentTypeProvider, FileExtensionContentTypeProvider>();
@@ -37,6 +40,7 @@ app.Services.GetRequiredService<IDatabaseMigrator>().Migrate();
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.UseCors();
 app.UseRateLimiter();
 
 app.MapFilesEndpoints();
