@@ -7,7 +7,11 @@ export interface FileInfo {
   downloadsLeft: number | null
 }
 
-export type FileInfoResult = { status: 'found'; info: FileInfo } | { status: 'not-found' } | { status: 'access-denied' }
+export type FileInfoResult =
+  | { status: 'found'; info: FileInfo }
+  | { status: 'not-found' }
+  | { status: 'access-denied' }
+  | { status: 'rate-limited'; retryAfterSeconds: number | null }
 
 export class ApiError extends Error {}
 
@@ -18,8 +22,9 @@ export class MayflyApi {
     this.server = server
   }
 
-  async getFileInfo(id: string): Promise<FileInfoResult> {
-    const response = await fetch(new URL(`/api/files/${id}`, this.server), { method: 'HEAD' })
+  async getFileInfo(id: string, password?: string): Promise<FileInfoResult> {
+    const headers = password === undefined ? undefined : { 'Mayfly-Password': encodePassword(password) }
+    const response = await fetch(new URL(`/api/files/${id}`, this.server), { method: 'HEAD', headers })
 
     switch (response.status) {
       case 200:
@@ -28,10 +33,21 @@ export class MayflyApi {
         return { status: 'access-denied' }
       case 404:
         return { status: 'not-found' }
+      case 429:
+        return { status: 'rate-limited', retryAfterSeconds: readRetryAfter(response.headers.get('Retry-After')) }
       default:
         throw new ApiError(`The server answered ${response.status}.`)
     }
   }
+}
+
+function encodePassword(password: string): string {
+  return btoa(String.fromCharCode(...new TextEncoder().encode(password)))
+}
+
+function readRetryAfter(value: string | null): number | null {
+  const seconds = Number(value)
+  return value !== null && Number.isSafeInteger(seconds) && seconds >= 0 ? seconds : null
 }
 
 function readFileInfo(headers: Headers): FileInfo {

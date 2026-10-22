@@ -19,7 +19,9 @@
     {:else if route.page === 'history'}
       <HistoryPage />
     {:else if route.page === 'file'}
-      <FilePage id={route.id} />
+      {#key route.id}
+        <FilePage id={route.id} />
+      {/key}
     {:else}
       <NotFoundPage />
     {/if}

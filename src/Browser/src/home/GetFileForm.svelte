@@ -1,5 +1,6 @@
 <script lang="ts">
   import { isFileId } from '../file/fileId'
+  import Button from '../ui/Button.svelte'
 
   let value = $state('')
   let error = $state<string | null>(null)
@@ -55,7 +56,7 @@
       {/if}
     </div>
 
-    <button type="submit">Открыть</button>
+    <Button type="submit">Открыть</Button>
   </form>
 </section>
 
@@ -123,15 +124,5 @@
     font-size: 13px;
     line-height: 1.45;
     color: var(--danger);
-  }
-
-  button {
-    height: 48px;
-    border: 1px solid var(--border-strong);
-    border-radius: 12px;
-    background: var(--bg);
-    color: var(--text);
-    font: 600 15px var(--font-sans);
-    cursor: pointer;
   }
 </style>

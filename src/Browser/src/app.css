@@ -10,6 +10,8 @@
   --text-muted: light-dark(#4f5664, #b0b5c1);
   --text-faint: light-dark(#5f6573, #8d94a3);
   --accent: #f5a524;
+  --accent-hover: #e8961a;
+  --accent-soft: light-dark(#f7e4bd, rgb(245 165 36 / 14%));
   --accent-text: light-dark(#8a5300, #f5b54a);
   --on-accent: #121722;
   --input-bg: light-dark(#ffffff, #141a27);
