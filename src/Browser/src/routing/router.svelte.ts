@@ -8,38 +8,25 @@ const fileIdPattern = /^\/([1-9A-HJ-NP-Za-km-z]{10})$/
 
 let path = $state(location.pathname)
 
-window.addEventListener('popstate', () => {
-  path = location.pathname
-})
+if ('navigation' in window) {
+  navigation.addEventListener('navigate', (event) => {
+    if (!event.canIntercept || event.navigationType === 'reload' || event.hashChange || event.downloadRequest !== null) {
+      return
+    }
 
-document.addEventListener('click', (event) => {
-  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-    return
-  }
-
-  const link = (event.target as Element).closest('a')
-  if (link === null || link.target !== '' || link.hasAttribute('download') || link.origin !== location.origin) {
-    return
-  }
-
-  event.preventDefault()
-  navigate(link.pathname)
-})
+    const destination = new URL(event.destination.url)
+    event.intercept({
+      handler() {
+        path = destination.pathname
+      },
+    })
+  })
+}
 
 export const router = {
   get route(): Route {
     return match(path)
   },
-}
-
-function navigate(to: string) {
-  if (to === path) {
-    return
-  }
-
-  history.pushState(null, '', to)
-  path = to
-  window.scrollTo(0, 0)
 }
 
 function match(path: string): Route {
