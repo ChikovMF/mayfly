@@ -8,7 +8,10 @@ import App from './App.svelte'
 import { loadConfig } from './config'
 
 const target = document.getElementById('app')!
-const config = await loadConfig().catch(() => null)
+const config = await loadConfig().catch((error: unknown) => {
+  console.error('Mayfly could not load config.json:', error)
+  return null
+})
 
 if (config === null) {
   target.textContent = 'Не удалось загрузить настройки'
