@@ -1,0 +1,52 @@
+:root {
+  color-scheme: light dark;
+
+  --bg: light-dark(#f4f1ea, #121722);
+  --surface: light-dark(#fbfaf7, #1a2130);
+  --surface-2: light-dark(#ece7dc, #252d3e);
+  --border: light-dark(#ddd6c7, #2b3445);
+  --border-strong: light-dark(#bfb5a1, #3e485b);
+  --text: light-dark(#121722, #f4f1ea);
+  --text-muted: light-dark(#4f5664, #b0b5c1);
+  --text-faint: light-dark(#5f6573, #8d94a3);
+  --accent: #f5a524;
+  --accent-text: light-dark(#8a5300, #f5b54a);
+  --on-accent: #121722;
+  --focus-ring: light-dark(#121722, #f5a524);
+
+  --font-sans: 'Onest Variable', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+code,
+kbd {
+  font-family: var(--font-mono);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0s !important;
+    transition-duration: 0s !important;
+  }
+}
