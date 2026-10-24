@@ -1,11 +1,18 @@
 <script lang="ts">
   import ConfigurePage from '../send/ConfigurePage.svelte'
+  import DonePage from '../send/DonePage.svelte'
   import { selectedFile } from '../send/selectedFile.svelte'
+  import { upload } from '../send/upload.svelte'
+  import UploadingPage from '../send/UploadingPage.svelte'
   import UploadZone from '../send/UploadZone.svelte'
   import GetFileForm from './GetFileForm.svelte'
 </script>
 
-{#if selectedFile.current !== null}
+{#if upload.phase === 'done' && upload.id !== null}
+  <DonePage id={upload.id} />
+{:else if upload.active && upload.file !== null}
+  <UploadingPage file={upload.file} />
+{:else if selectedFile.current !== null}
   <ConfigurePage file={selectedFile.current} />
 {:else}
   <div class="page">

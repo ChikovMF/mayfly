@@ -16,6 +16,7 @@
   --on-accent: #121722;
   --input-bg: light-dark(#ffffff, #141a27);
   --danger: light-dark(#b3261e, #ff8a7e);
+  --ok: light-dark(#1e6b4e, #6fd3a6);
   --focus-ring: light-dark(#121722, #f5a524);
 
   --font-sans: 'Onest Variable', 'Segoe UI', system-ui, sans-serif;

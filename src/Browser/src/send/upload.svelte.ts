@@ -1,0 +1,106 @@
+import { ApiError, type MayflyApi } from '../api/MayflyApi'
+import { settings } from './settings.svelte'
+import { sha256OfFile } from './sha256'
+
+export type UploadPhase = 'idle' | 'hashing' | 'sending' | 'saving' | 'done' | 'failed'
+
+export interface UploadRequest {
+  expiresInMinutes: number | null
+  maxDownloads: number | null
+  password: string | null
+}
+
+const speedWindowMilliseconds = 3000
+
+class Upload {
+  phase = $state<UploadPhase>('idle')
+  file = $state<File | null>(null)
+  sentBytes = $state(0)
+  bytesPerSecond = $state(0)
+  id = $state<string | null>(null)
+  error = $state<string | null>(null)
+
+  private controller: AbortController | null = null
+  private samples: { time: number; bytes: number }[] = []
+
+  get active(): boolean {
+    return this.phase === 'hashing' || this.phase === 'sending' || this.phase === 'saving'
+  }
+
+  async start(api: MayflyApi, file: File, request: UploadRequest) {
+    const controller = new AbortController()
+    this.controller = controller
+    this.file = file
+    this.id = null
+    this.error = null
+    this.phase = 'hashing'
+    this.restartCount()
+
+    try {
+      const sha256 = await sha256OfFile(file, (bytes) => this.count(bytes), controller.signal)
+
+      this.phase = 'sending'
+      this.restartCount()
+      const id = await api.upload(
+        file,
+        {
+          expiresAt: request.expiresInMinutes === null ? null : new Date(Date.now() + request.expiresInMinutes * 60_000),
+          maxDownloads: request.maxDownloads,
+          password: request.password,
+          sha256,
+        },
+        (bytes) => {
+          this.count(bytes)
+          if (bytes >= file.size) {
+            this.phase = 'saving'
+          }
+        },
+        controller.signal,
+      )
+
+      this.id = id
+      this.phase = 'done'
+    } catch (exception) {
+      if (controller.signal.aborted) {
+        this.phase = 'idle'
+        return
+      }
+
+      this.error = exception instanceof ApiError ? 'Не удалось отправить файл' : 'Нет связи с сервером'
+      this.phase = 'failed'
+    }
+  }
+
+  cancel() {
+    this.controller?.abort()
+  }
+
+  reset() {
+    this.phase = 'idle'
+    this.file = null
+    this.id = null
+    this.error = null
+    settings.clearPassword()
+  }
+
+  private restartCount() {
+    this.sentBytes = 0
+    this.bytesPerSecond = 0
+    this.samples = []
+  }
+
+  private count(bytes: number) {
+    const now = performance.now()
+    this.sentBytes = bytes
+    this.samples.push({ time: now, bytes })
+    while (this.samples.length > 2 && now - this.samples[0].time > speedWindowMilliseconds) {
+      this.samples.shift()
+    }
+
+    const first = this.samples[0]
+    const seconds = (now - first.time) / 1000
+    this.bytesPerSecond = seconds > 0 ? (bytes - first.bytes) / seconds : 0
+  }
+}
+
+export const upload = new Upload()

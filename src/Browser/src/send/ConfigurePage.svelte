@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getApi } from '../api/context'
   import ChevronLeft from '@lucide/svelte/icons/chevron-left'
   import X from '@lucide/svelte/icons/x'
   import FileIcon from '../file/FileIcon.svelte'
@@ -9,8 +10,19 @@
   import PasswordSection from './PasswordSection.svelte'
   import { selectedFile } from './selectedFile.svelte'
   import { settings } from './settings.svelte'
+  import { upload } from './upload.svelte'
 
   let { file }: { file: File } = $props()
+
+  const api = getApi()
+
+  function send() {
+    void upload.start(api, file, {
+      expiresInMinutes: settings.expiresInMinutes,
+      maxDownloads: settings.maxDownloads,
+      password: settings.passwordValue,
+    })
+  }
 
   const expiration = $derived(
     settings.expiration === 'never'
@@ -59,6 +71,10 @@
         <dt>Пароль</dt>
         <dd>{settings.passwordEnabled ? 'да' : 'нет'}</dd>
       </dl>
+      <Button variant="primary" disabled={!settings.isValid} onclick={send}>Загрузить и получить ссылку</Button>
+      {#if upload.error !== null}
+        <span class="error" role="alert">{upload.error}</span>
+      {/if}
     </aside>
   </div>
 </div>
@@ -179,6 +195,12 @@
     gap: 10px 16px;
     margin: 0;
     font-size: 15px;
+  }
+
+  .error {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--danger);
   }
 
   dt {

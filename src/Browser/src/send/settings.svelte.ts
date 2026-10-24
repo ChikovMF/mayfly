@@ -47,6 +47,11 @@ class SendSettings {
     return this.passwordEnabled && this.password !== '' ? this.password : null
   }
 
+  clearPassword() {
+    this.passwordEnabled = false
+    this.password = ''
+  }
+
   togglePassword() {
     this.passwordEnabled = !this.passwordEnabled
     if (!this.passwordEnabled) {
