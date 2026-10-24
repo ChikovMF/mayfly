@@ -9,6 +9,8 @@ class SendSettings {
   customExpiration = $state('')
   downloads = $state<DownloadsChoice>('unlimited')
   customDownloads = $state('')
+  passwordEnabled = $state(false)
+  password = $state('')
 
   get customExpirationMinutes(): number | null {
     const match = /^(\d+)([mhd])$/.exec(this.customExpiration.trim().toLowerCase())
@@ -41,8 +43,20 @@ class SendSettings {
     return this.downloads === 'custom' ? this.customMaxDownloads : Number(this.downloads)
   }
 
+  get passwordValue(): string | null {
+    return this.passwordEnabled && this.password !== '' ? this.password : null
+  }
+
+  togglePassword() {
+    this.passwordEnabled = !this.passwordEnabled
+    if (!this.passwordEnabled) {
+      this.password = ''
+    }
+  }
+
   get isValid(): boolean {
     return (
+      (!this.passwordEnabled || this.password !== '') &&
       (this.expiration !== 'custom' || this.customExpirationMinutes !== null) &&
       (this.downloads !== 'custom' || this.customMaxDownloads !== null)
     )

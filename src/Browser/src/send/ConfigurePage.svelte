@@ -6,6 +6,7 @@
   import Button from '../ui/Button.svelte'
   import DownloadsSection from './DownloadsSection.svelte'
   import ExpirationSection from './ExpirationSection.svelte'
+  import PasswordSection from './PasswordSection.svelte'
   import { selectedFile } from './selectedFile.svelte'
   import { settings } from './settings.svelte'
 
@@ -45,6 +46,7 @@
 
       <ExpirationSection />
       <DownloadsSection />
+      <PasswordSection />
     </div>
 
     <aside aria-label="Настройки отправки">
@@ -54,6 +56,8 @@
         <dd>{expiration}</dd>
         <dt>Скачиваний</dt>
         <dd>{downloads}</dd>
+        <dt>Пароль</dt>
+        <dd>{settings.passwordEnabled ? 'да' : 'нет'}</dd>
       </dl>
     </aside>
   </div>

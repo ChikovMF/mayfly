@@ -1,11 +1,14 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
 
-  let { id, title, children }: { id: string; title: string; children: Snippet } = $props()
+  let { id, title, action, children }: { id: string; title: string; action?: Snippet; children: Snippet } = $props()
 </script>
 
 <section aria-labelledby="{id}-title">
-  <h2 id="{id}-title">{title}</h2>
+  <div class="head">
+    <h2 id="{id}-title">{title}</h2>
+    {@render action?.()}
+  </div>
   {@render children()}
 </section>
 
@@ -18,6 +21,13 @@
     border: 1px solid var(--border);
     border-radius: 20px;
     background: var(--surface);
+  }
+
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
 
   h2 {

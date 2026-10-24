@@ -2,13 +2,13 @@
   import { getApi } from '../api/context'
   import { ApiError, type FileInfo } from '../api/MayflyApi'
   import Button from '../ui/Button.svelte'
+  import PasswordInput from '../ui/PasswordInput.svelte'
 
   let { id, onunlock }: { id: string; onunlock: (info: FileInfo, password: string) => void } = $props()
 
   const api = getApi()
 
   let password = $state('')
-  let visible = $state(false)
   let checking = $state(false)
   let error = $state<string | null>(null)
   let retryAt = $state<number | null>(null)
@@ -80,37 +80,13 @@
   <form onsubmit={submit} novalidate>
     <div class="field">
       <label for="file-password">Пароль</label>
-      <div class="input" class:invalid={message !== null}>
-        <input
-          id="file-password"
-          type="text"
-          class:masked={!visible}
-          autocomplete="off"
-          autocapitalize="off"
-          spellcheck="false"
-          data-1p-ignore
-          data-lpignore="true"
-          bind:value={password}
-          oninput={() => (error = null)}
-          aria-invalid={message !== null}
-          aria-describedby={message === null ? undefined : 'file-password-error'}
-        />
-        <button
-          type="button"
-          class="toggle"
-          aria-label={visible ? 'Скрыть пароль' : 'Показать пароль'}
-          aria-pressed={visible}
-          onclick={() => (visible = !visible)}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-            <circle cx="12" cy="12" r="3" />
-            {#if visible}
-              <path d="M4 4l16 16" />
-            {/if}
-          </svg>
-        </button>
-      </div>
+      <PasswordInput
+        id="file-password"
+        bind:value={password}
+        invalid={message !== null}
+        oninput={() => (error = null)}
+        aria-describedby={message === null ? undefined : 'file-password-error'}
+      />
       {#if message !== null}
         <span id="file-password-error" class="error" role={retryAt === null ? 'alert' : undefined}>{message}</span>
       {/if}
@@ -187,56 +163,6 @@
     font-size: 13px;
     font-weight: 600;
     color: var(--text-muted);
-  }
-
-  .input {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    height: 52px;
-    padding-right: 4px;
-    border: 1px solid var(--border-strong);
-    border-radius: 12px;
-    background: var(--input-bg);
-  }
-
-  .input:focus-within {
-    outline: 2px solid var(--focus-ring);
-    outline-offset: 2px;
-  }
-
-  .input.invalid {
-    border-color: var(--danger);
-  }
-
-  input {
-    flex: 1 1 auto;
-    min-width: 0;
-    height: 100%;
-    padding: 0 14px;
-    border: 0;
-    background: transparent;
-    color: var(--text);
-    font: 500 17px var(--font-mono);
-    outline: none;
-  }
-
-  input.masked {
-    -webkit-text-security: disc;
-  }
-
-  .toggle {
-    flex: 0 0 auto;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 0;
-    border-radius: 9px;
-    background: transparent;
-    color: var(--text-muted);
-    cursor: pointer;
   }
 
   .error {
