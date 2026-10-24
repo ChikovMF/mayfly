@@ -6,6 +6,7 @@
   import Header from './layout/Header.svelte'
   import NotFoundPage from './routing/NotFoundPage.svelte'
   import { router } from './routing/router.svelte'
+  import ToastHost from './ui/ToastHost.svelte'
 
   const route = $derived(router.route)
 </script>
@@ -29,6 +30,8 @@
 
   <Footer />
 </div>
+
+<ToastHost />
 
 <style>
   .layout {

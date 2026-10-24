@@ -4,6 +4,15 @@ import { sha256OfFile } from './sha256'
 
 export type UploadPhase = 'idle' | 'hashing' | 'sending' | 'saving' | 'done' | 'failed'
 
+export interface SentFile {
+  id: string
+  name: string
+  size: number
+  expiresAt: Date | null
+  maxDownloads: number | null
+  password: string | null
+}
+
 export interface UploadRequest {
   expiresInMinutes: number | null
   maxDownloads: number | null
@@ -17,7 +26,7 @@ class Upload {
   file = $state<File | null>(null)
   sentBytes = $state(0)
   bytesPerSecond = $state(0)
-  id = $state<string | null>(null)
+  sent = $state<SentFile | null>(null)
   error = $state<string | null>(null)
 
   private controller: AbortController | null = null
@@ -31,7 +40,7 @@ class Upload {
     const controller = new AbortController()
     this.controller = controller
     this.file = file
-    this.id = null
+    this.sent = null
     this.error = null
     this.phase = 'hashing'
     this.restartCount()
@@ -41,7 +50,7 @@ class Upload {
 
       this.phase = 'sending'
       this.restartCount()
-      const id = await api.upload(
+      const uploaded = await api.upload(
         file,
         {
           expiresAt: request.expiresInMinutes === null ? null : new Date(Date.now() + request.expiresInMinutes * 60_000),
@@ -58,7 +67,14 @@ class Upload {
         controller.signal,
       )
 
-      this.id = id
+      this.sent = {
+        id: uploaded.id,
+        name: file.name,
+        size: file.size,
+        expiresAt: uploaded.expiresAt,
+        maxDownloads: uploaded.maxDownloads,
+        password: request.password,
+      }
       this.phase = 'done'
     } catch (exception) {
       if (controller.signal.aborted) {
@@ -78,7 +94,7 @@ class Upload {
   reset() {
     this.phase = 'idle'
     this.file = null
-    this.id = null
+    this.sent = null
     this.error = null
     settings.clearPassword()
   }

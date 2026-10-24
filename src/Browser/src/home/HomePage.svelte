@@ -8,8 +8,8 @@
   import GetFileForm from './GetFileForm.svelte'
 </script>
 
-{#if upload.phase === 'done' && upload.id !== null}
-  <DonePage id={upload.id} />
+{#if upload.phase === 'done' && upload.sent !== null}
+  <DonePage sent={upload.sent} />
 {:else if upload.active && upload.file !== null}
   <UploadingPage file={upload.file} />
 {:else if selectedFile.current !== null}

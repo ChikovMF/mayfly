@@ -20,6 +20,12 @@ export interface UploadOptions {
   sha256: string
 }
 
+export interface UploadedFile {
+  id: string
+  expiresAt: Date | null
+  maxDownloads: number | null
+}
+
 export class ApiError extends Error {}
 
 let downloadFrame: HTMLIFrameElement | undefined
@@ -64,7 +70,7 @@ export class MayflyApi {
     document.body.append(downloadFrame)
   }
 
-  upload(file: File, options: UploadOptions, onProgress: (sentBytes: number) => void, signal: AbortSignal): Promise<string> {
+  upload(file: File, options: UploadOptions, onProgress: (sentBytes: number) => void, signal: AbortSignal): Promise<UploadedFile> {
     signal.throwIfAborted()
 
     return new Promise((resolve, reject) => {
@@ -92,7 +98,7 @@ export class MayflyApi {
         }
 
         try {
-          resolve(readUploadedId(request.responseText))
+          resolve(readUploadedFile(request.responseText))
         } catch (error) {
           reject(error)
         }
@@ -126,13 +132,17 @@ function encodeFileName(name: string): string {
   return encodeURIComponent(name).replace(/['()*]/g, (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`)
 }
 
-function readUploadedId(body: string): string {
-  const id: unknown = (JSON.parse(body) as { id?: unknown }).id
+function readUploadedFile(body: string): UploadedFile {
+  const { id, expiresAt, maxDownloads } = JSON.parse(body) as { id?: unknown; expiresAt?: unknown; maxDownloads?: unknown }
   if (typeof id !== 'string') {
     throw new ApiError('The server answered without a file id.')
   }
 
-  return id
+  return {
+    id,
+    expiresAt: typeof expiresAt === 'string' ? new Date(expiresAt) : null,
+    maxDownloads: typeof maxDownloads === 'number' ? maxDownloads : null,
+  }
 }
 
 function encodePassword(password: string): string {
