@@ -6,6 +6,7 @@
   import Button from '../ui/Button.svelte'
   import { copyToClipboard } from '../ui/toast.svelte'
   import { selectedFile } from './selectedFile.svelte'
+  import QrCode from './QrCode.svelte'
   import { upload, type SentFile } from './upload.svelte'
 
   let { sent }: { sent: SentFile } = $props()
@@ -27,47 +28,55 @@
     </div>
   </div>
 
-  <section aria-label="Ссылка">
-    <div class="field">
-      <label for="share-link">Ссылка на файл</label>
-      <input id="share-link" type="text" readonly value={link} onfocus={(event) => event.currentTarget.select()} />
-    </div>
-
-    <div class="buttons">
-      <Button variant="primary" onclick={() => copyToClipboard(link, 'Ссылка скопирована')}>
-        <Copy size={18} strokeWidth={2} aria-hidden="true" />
-        Скопировать ссылку
-      </Button>
-      <Button onclick={() => copyToClipboard(sent.id, 'ID скопирован')}>Только ID</Button>
-    </div>
-
-    {#if sent.password !== null}
-      {@const password = sent.password}
-      <div class="password">
-        <Lock size={20} strokeWidth={2} aria-hidden="true" />
-        <span>Файл защищён паролем. Отправьте пароль отдельно от ссылки: другим сообщением или каналом.</span>
-        <Button onclick={() => copyToClipboard(password, 'Пароль скопирован')}>Скопировать пароль</Button>
+  <div class="row">
+    <section aria-label="Ссылка">
+      <div class="field">
+        <label for="share-link">Ссылка на файл</label>
+        <input id="share-link" type="text" readonly value={link} onfocus={(event) => event.currentTarget.select()} />
       </div>
-    {/if}
 
-    {#if sent.expiresAt !== null || sent.maxDownloads !== null}
-      <dl>
-        {#if sent.expiresAt !== null}
-          <div>
-            <dt>Истекает</dt>
-            <dd>{formatDate(sent.expiresAt)}</dd>
-            <span>через {formatTimeLeft(sent.expiresAt)}</span>
-          </div>
-        {/if}
-        {#if sent.maxDownloads !== null}
-          <div>
-            <dt>Скачиваний</dt>
-            <dd>{sent.maxDownloads}</dd>
-          </div>
-        {/if}
-      </dl>
-    {/if}
-  </section>
+      <div class="buttons">
+        <Button variant="primary" onclick={() => copyToClipboard(link, 'Ссылка скопирована')}>
+          <Copy size={18} strokeWidth={2} aria-hidden="true" />
+          Скопировать ссылку
+        </Button>
+        <Button onclick={() => copyToClipboard(sent.id, 'ID скопирован')}>Только ID</Button>
+      </div>
+
+      {#if sent.password !== null}
+        {@const password = sent.password}
+        <div class="password">
+          <Lock size={20} strokeWidth={2} aria-hidden="true" />
+          <span>Файл защищён паролем. Отправьте пароль отдельно от ссылки: другим сообщением или каналом.</span>
+          <Button onclick={() => copyToClipboard(password, 'Пароль скопирован')}>Скопировать пароль</Button>
+        </div>
+      {/if}
+
+      {#if sent.expiresAt !== null || sent.maxDownloads !== null}
+        <dl>
+          {#if sent.expiresAt !== null}
+            <div>
+              <dt>Истекает</dt>
+              <dd>{formatDate(sent.expiresAt)}</dd>
+              <span>через {formatTimeLeft(sent.expiresAt)}</span>
+            </div>
+          {/if}
+          {#if sent.maxDownloads !== null}
+            <div>
+              <dt>Скачиваний</dt>
+              <dd>{sent.maxDownloads}</dd>
+            </div>
+          {/if}
+        </dl>
+      {/if}
+    </section>
+
+    <aside aria-labelledby="qr-title">
+      <h2 id="qr-title">QR-код</h2>
+      <div class="qr"><QrCode text={link} /></div>
+      <span>Отсканируйте телефоном, чтобы открыть ссылку</span>
+    </aside>
+  </div>
 
   <div class="more">
     <Button onclick={sendAnother}>Отправить ещё файл</Button>
@@ -113,8 +122,16 @@
     overflow-wrap: anywhere;
   }
 
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: stretch;
+  }
+
   section {
-    max-width: 760px;
+    flex: 3 1 520px;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -199,6 +216,49 @@
 
   dl span {
     font-size: 13px;
+    color: var(--text-faint);
+  }
+
+  aside {
+    flex: 1 1 260px;
+    min-width: 0;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: var(--surface);
+  }
+
+  @media (max-width: 700px) {
+    aside {
+      max-width: none;
+    }
+  }
+
+  h2 {
+    align-self: flex-start;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 650;
+  }
+
+  .qr {
+    width: 200px;
+    max-width: 100%;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: #fff;
+  }
+
+  aside span {
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
     color: var(--text-faint);
   }
 
