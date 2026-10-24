@@ -1,7 +1,7 @@
 <script lang="ts">
   import ConfigurePage from '../send/ConfigurePage.svelte'
   import DonePage from '../send/DonePage.svelte'
-  import { selectedFile } from '../send/selectedFile.svelte'
+  import { selection } from '../send/selection.svelte'
   import { upload } from '../send/upload.svelte'
   import UploadingPage from '../send/UploadingPage.svelte'
   import UploadZone from '../send/UploadZone.svelte'
@@ -10,10 +10,10 @@
 
 {#if upload.phase === 'done' && upload.sent !== null}
   <DonePage sent={upload.sent} />
-{:else if upload.active && upload.file !== null}
-  <UploadingPage file={upload.file} />
-{:else if selectedFile.current !== null}
-  <ConfigurePage file={selectedFile.current} />
+{:else if upload.active}
+  <UploadingPage />
+{:else if selection.current !== null}
+  <ConfigurePage selection={selection.current} />
 {:else}
   <div class="page">
     <section class="intro">

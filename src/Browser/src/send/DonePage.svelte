@@ -5,7 +5,7 @@
   import { formatDate, formatSize, formatTimeLeft } from '../format'
   import Button from '../ui/Button.svelte'
   import { copyToClipboard } from '../ui/toast.svelte'
-  import { selectedFile } from './selectedFile.svelte'
+  import { selection } from './selection.svelte'
   import QrCode from './QrCode.svelte'
   import { upload, type SentFile } from './upload.svelte'
 
@@ -14,7 +14,7 @@
   const link = $derived(`${location.origin}/${sent.id}`)
 
   function sendAnother() {
-    selectedFile.clear()
+    selection.clear()
     upload.reset()
   }
 </script>

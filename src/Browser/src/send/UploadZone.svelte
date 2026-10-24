@@ -1,15 +1,9 @@
 <script lang="ts">
   import Upload from '@lucide/svelte/icons/upload'
   import Button from '../ui/Button.svelte'
-  import { selectedFile } from './selectedFile.svelte'
+  import { selection, selectionFromFiles } from './selection.svelte'
 
   let dragging = $state(false)
-
-  function choose(files: FileList | null | undefined) {
-    if (files !== null && files !== undefined && files.length > 0) {
-      selectedFile.select(files[0])
-    }
-  }
 
   function dragOver(event: DragEvent) {
     event.preventDefault()
@@ -19,13 +13,17 @@
   function drop(event: DragEvent) {
     event.preventDefault()
     dragging = false
-    choose(event.dataTransfer?.files)
+    const files = [...(event.dataTransfer?.items ?? [])]
+      .filter((item) => item.kind === 'file' && item.webkitGetAsEntry()?.isDirectory !== true)
+      .map((item) => item.getAsFile())
+      .filter((file) => file !== null)
+    selection.select(selectionFromFiles(files))
   }
 
   function paste(event: ClipboardEvent) {
     if (event.clipboardData !== null && event.clipboardData.files.length > 0) {
       event.preventDefault()
-      choose(event.clipboardData.files)
+      selection.select(selectionFromFiles([...event.clipboardData.files]))
     }
   }
 </script>
@@ -43,10 +41,10 @@
     <Upload size={28} strokeWidth={2} />
   </span>
   <div class="text">
-    <h2>Перетащите файл</h2>
+    <h2>Перетащите файлы</h2>
     <p>или вставьте из буфера обмена</p>
   </div>
-  <Button variant="primary" onclick={selectedFile.pick}>Выбрать файл</Button>
+  <Button variant="primary" onclick={selection.pickFiles}>Выбрать файлы</Button>
 </section>
 
 <style>

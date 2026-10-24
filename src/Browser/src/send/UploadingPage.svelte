@@ -5,19 +5,18 @@
   import { settings } from './settings.svelte'
   import { upload } from './upload.svelte'
 
-  let { file }: { file: File } = $props()
-
-  const stages = [
+  const stages = $derived([
+    ...(upload.archived ? [{ phase: 'archiving', label: 'Архивирование' }] : []),
     { phase: 'hashing', label: 'Подсчёт контрольной суммы' },
     { phase: 'sending', label: 'Отправка' },
     { phase: 'saving', label: 'Сохранение на сервере' },
-  ]
+  ])
 
   const current = $derived(stages.findIndex((stage) => stage.phase === upload.phase))
   const saving = $derived(upload.phase === 'saving')
-  const percent = $derived(file.size === 0 || saving ? 100 : Math.floor((upload.sentBytes / file.size) * 100))
+  const percent = $derived(upload.totalBytes === 0 || saving ? 100 : Math.floor((upload.sentBytes / upload.totalBytes) * 100))
   const secondsLeft = $derived(
-    upload.bytesPerSecond > 0 ? (file.size - upload.sentBytes) / upload.bytesPerSecond : null,
+    upload.bytesPerSecond > 0 ? (upload.totalBytes - upload.sentBytes) / upload.bytesPerSecond : null,
   )
   const chips = $derived([
     settings.expiresInMinutes === null ? null : formatDuration(settings.expiresInMinutes),
@@ -31,8 +30,8 @@
 <div class="page">
   <section aria-labelledby="uploading-title">
     <div class="head">
-      <h1 id="uploading-title">Отправляем {file.name}</h1>
-      <p>{formatSize(file.size)}</p>
+      <h1 id="uploading-title">Отправляем {upload.name}</h1>
+      <p>{formatSize(upload.totalBytes)}</p>
       {#if chips.length > 0}
         <div class="chips">
           {#each chips as chip (chip)}
@@ -54,7 +53,7 @@
       <div class="bar" role="progressbar" aria-label="Отправка" aria-valuemin="0" aria-valuemax="100" aria-valuenow={percent}>
         <div class="fill" style:width="{percent}%"></div>
       </div>
-      <span class="amount">{formatSize(saving ? file.size : upload.sentBytes)} из {formatSize(file.size)}</span>
+      <span class="amount">{formatSize(saving ? upload.totalBytes : upload.sentBytes)} из {formatSize(upload.totalBytes)}</span>
     </div>
 
     <ol aria-label="Этапы">

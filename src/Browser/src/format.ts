@@ -41,6 +41,10 @@ export function formatSecondsLeft(seconds: number): string {
   return minutes < 60 ? `${minutes} мин` : `${Math.floor(minutes / 60)} ч ${minutes % 60} мин`
 }
 
+export function formatFilesCount(files: number): string {
+  return count(files, ['файл', 'файла', 'файлов']) ?? '0 файлов'
+}
+
 export function formatDownloads(downloads: number): string {
   return count(downloads, ['скачивание', 'скачивания', 'скачиваний']) ?? ''
 }

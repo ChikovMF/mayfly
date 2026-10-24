@@ -3,21 +3,30 @@
   import ChevronLeft from '@lucide/svelte/icons/chevron-left'
   import X from '@lucide/svelte/icons/x'
   import FileIcon from '../file/FileIcon.svelte'
-  import { formatDuration, formatSize } from '../format'
+  import { formatDuration, formatFilesCount, formatSize } from '../format'
   import Button from '../ui/Button.svelte'
   import DownloadsSection from './DownloadsSection.svelte'
   import ExpirationSection from './ExpirationSection.svelte'
   import PasswordSection from './PasswordSection.svelte'
-  import { selectedFile } from './selectedFile.svelte'
+  import { selection as selected, type Selection } from './selection.svelte'
   import { settings } from './settings.svelte'
   import { upload } from './upload.svelte'
 
-  let { file }: { file: File } = $props()
+  let { selection }: { selection: Selection } = $props()
+
+  const name = $derived(selection.kind === 'file' ? selection.file.name : selection.name)
+  const type = $derived(selection.kind === 'file' ? selection.file.type : 'application/zip')
+  const size = $derived(selection.kind === 'file' ? selection.file.size : selection.size)
+  const meta = $derived(
+    selection.kind === 'file'
+      ? `${formatSize(size)}${type === '' ? '' : ` · ${type}`}`
+      : `${formatFilesCount(selection.entries.length)} · ${formatSize(size)}`,
+  )
 
   const api = getApi()
 
   function send() {
-    void upload.start(api, file, {
+    void upload.start(api, selection, {
       expiresInMinutes: settings.expiresInMinutes,
       maxDownloads: settings.maxDownloads,
       password: settings.passwordValue,
@@ -37,7 +46,7 @@
 </script>
 
 <div class="page">
-  <button type="button" class="back" onclick={selectedFile.clear}>
+  <button type="button" class="back" onclick={selected.clear}>
     <ChevronLeft size={18} strokeWidth={1.9} aria-hidden="true" />
     Назад
   </button>
@@ -45,13 +54,13 @@
   <div class="layout">
     <div class="cards">
       <section class="file" aria-label="Выбранный файл">
-        <FileIcon name={file.name} contentType={file.type} />
+        <FileIcon {name} contentType={type} />
         <div class="info">
-          <span class="name">{file.name}</span>
-          <span class="meta">{formatSize(file.size)}{file.type === '' ? '' : ` · ${file.type}`}</span>
+          <span class="name">{name}</span>
+          <span class="meta">{meta}</span>
         </div>
-        <Button onclick={selectedFile.pick}>Заменить</Button>
-        <button type="button" class="remove" aria-label="Убрать файл" onclick={selectedFile.clear}>
+        <Button onclick={selected.pickFiles}>Заменить</Button>
+        <button type="button" class="remove" aria-label="Убрать файл" onclick={selected.clear}>
           <X size={18} strokeWidth={2} aria-hidden="true" />
         </button>
       </section>

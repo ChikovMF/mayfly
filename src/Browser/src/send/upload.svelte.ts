@@ -1,8 +1,10 @@
 import { ApiError, type MayflyApi } from '../api/MayflyApi'
+import type { Selection } from './selection.svelte'
 import { settings } from './settings.svelte'
 import { sha256OfFile } from './sha256'
+import { createZip, ZipTooLargeError } from './zip'
 
-export type UploadPhase = 'idle' | 'hashing' | 'sending' | 'saving' | 'done' | 'failed'
+export type UploadPhase = 'idle' | 'archiving' | 'hashing' | 'sending' | 'saving' | 'done' | 'failed'
 
 export interface SentFile {
   id: string
@@ -23,7 +25,9 @@ const speedWindowMilliseconds = 3000
 
 class Upload {
   phase = $state<UploadPhase>('idle')
-  file = $state<File | null>(null)
+  name = $state('')
+  totalBytes = $state(0)
+  archived = $state(false)
   sentBytes = $state(0)
   bytesPerSecond = $state(0)
   sent = $state<SentFile | null>(null)
@@ -33,19 +37,31 @@ class Upload {
   private samples: { time: number; bytes: number }[] = []
 
   get active(): boolean {
-    return this.phase === 'hashing' || this.phase === 'sending' || this.phase === 'saving'
+    return this.phase === 'archiving' || this.phase === 'hashing' || this.phase === 'sending' || this.phase === 'saving'
   }
 
-  async start(api: MayflyApi, file: File, request: UploadRequest) {
+  async start(api: MayflyApi, selection: Selection, request: UploadRequest) {
     const controller = new AbortController()
     this.controller = controller
-    this.file = file
     this.sent = null
     this.error = null
-    this.phase = 'hashing'
+    this.archived = selection.kind === 'archive'
+    this.name = selection.kind === 'file' ? selection.file.name : selection.name
+    this.totalBytes = selection.kind === 'file' ? selection.file.size : selection.size
     this.restartCount()
 
     try {
+      let file: File
+      if (selection.kind === 'file') {
+        file = selection.file
+      } else {
+        this.phase = 'archiving'
+        file = await createZip(selection.name, selection.entries, (bytes) => this.count(bytes), controller.signal)
+        this.totalBytes = file.size
+        this.restartCount()
+      }
+
+      this.phase = 'hashing'
       const sha256 = await sha256OfFile(file, (bytes) => this.count(bytes), controller.signal)
 
       this.phase = 'sending'
@@ -82,7 +98,12 @@ class Upload {
         return
       }
 
-      this.error = exception instanceof ApiError ? 'Не удалось отправить файл' : 'Нет связи с сервером'
+      this.error =
+        exception instanceof ZipTooLargeError
+          ? 'Слишком большой архив'
+          : exception instanceof ApiError
+            ? 'Не удалось отправить файл'
+            : 'Нет связи с сервером'
       this.phase = 'failed'
     }
   }
@@ -93,7 +114,6 @@ class Upload {
 
   reset() {
     this.phase = 'idle'
-    this.file = null
     this.sent = null
     this.error = null
     settings.clearPassword()
