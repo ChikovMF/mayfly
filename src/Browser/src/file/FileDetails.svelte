@@ -1,6 +1,7 @@
 <script lang="ts">
   import { getApi } from '../api/context'
   import type { FileInfo } from '../api/MayflyApi'
+  import FileIcon from './FileIcon.svelte'
   import { formatDate, formatSize, formatTimeLeft } from '../format'
 
   let { id, info, password }: { id: string; info: FileInfo; password?: string } = $props()
@@ -33,14 +34,13 @@
     }
   }
 
-  const extension = $derived(/\.([^.]{1,5})$/.exec(info.name)?.[1].toUpperCase() ?? '')
 </script>
 
 <article class="card" aria-labelledby="file-name">
   <p class="address">{location.host}/<span>{id}</span></p>
 
   <div class="title">
-    <div class="badge" aria-hidden="true">{extension}</div>
+    <FileIcon name={info.name} contentType={info.contentType} />
     <div class="name">
       <h1 id="file-name">{info.name}</h1>
       <span>{formatSize(info.size)} · {info.contentType}</span>
@@ -127,27 +127,12 @@
 
   .title {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 16px 20px;
-  }
-
-  .badge {
-    flex: 0 0 auto;
-    width: 64px;
-    height: 76px;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding-bottom: 10px;
-    border-radius: 12px;
-    background: var(--surface-2);
-    font: 600 12px var(--font-mono);
-    color: var(--text-muted);
+    gap: 16px;
   }
 
   .name {
-    flex: 1 1 260px;
+    flex: 1 1 0;
     min-width: 0;
     display: flex;
     flex-direction: column;
