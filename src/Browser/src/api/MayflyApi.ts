@@ -41,11 +41,14 @@ export class MayflyApi {
 
     const token = crypto.randomUUID()
     const channel = new MessageChannel()
-    const accepted = new Promise<void>((resolve) => {
-      channel.port1.onmessage = () => resolve()
+    const answered = new Promise<number>((resolve) => {
+      channel.port1.onmessage = (event: MessageEvent<number>) => resolve(event.data)
     })
     active.postMessage({ token, url: this.fileUrl(id), password: encodePassword(password) }, [channel.port2])
-    await accepted
+    const status = await answered
+    if (status !== 200) {
+      throw new ApiError(`The server answered ${status}.`)
+    }
 
     downloadFrame?.remove()
     downloadFrame = document.createElement('iframe')

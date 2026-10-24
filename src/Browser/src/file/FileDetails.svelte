@@ -6,14 +6,18 @@
   let { id, info, password }: { id: string; info: FileInfo; password?: string } = $props()
 
   const api = getApi()
+  let downloading = $state(false)
   let downloadError = $state<string | null>(null)
 
   async function download(password: string) {
     downloadError = null
+    downloading = true
     try {
       await api.downloadProtected(id, password)
     } catch {
       downloadError = 'Не удалось начать скачивание'
+    } finally {
+      downloading = false
     }
   }
 
@@ -52,7 +56,9 @@
   {#if password === undefined}
     <a class="download" href={api.fileUrl(id)}>Скачать</a>
   {:else}
-    <button type="button" class="download" onclick={() => download(password)}>Скачать</button>
+    <button type="button" class="download" disabled={downloading} onclick={() => download(password)}>
+      {downloading ? 'Готовим файл…' : 'Скачать'}
+    </button>
   {/if}
   {#if downloadError !== null}
     <span class="error" role="alert">{downloadError}</span>
@@ -182,8 +188,14 @@
     color: var(--danger);
   }
 
-  .download:hover {
+  .download:hover:not(:disabled) {
     background: var(--accent-hover);
+  }
+
+  .download:disabled {
+    background: var(--surface-2);
+    color: var(--text-faint);
+    cursor: default;
   }
 
   .checksum {

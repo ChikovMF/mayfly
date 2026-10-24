@@ -1,13 +1,12 @@
 const downloadPrefix = '/download/'
-const pending = new Map()
+const prepared = new Map()
 
 self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()))
 
 self.addEventListener('message', (event) => {
   const { token, url, password } = event.data
-  pending.set(token, { url, password })
-  event.ports[0].postMessage(null)
+  event.waitUntil(prepare(token, url, password, event.ports[0]))
 })
 
 self.addEventListener('fetch', (event) => {
@@ -17,14 +16,24 @@ self.addEventListener('fetch', (event) => {
   }
 
   const token = pathname.slice(downloadPrefix.length)
-  const entry = pending.get(token)
-  pending.delete(token)
-  event.respondWith(entry === undefined ? new Response(null, { status: 404 }) : download(entry))
+  const response = prepared.get(token)
+  prepared.delete(token)
+  event.respondWith(response === undefined ? new Response(null, { status: 404 }) : forward(response))
 })
 
-async function download({ url, password }) {
-  const response = await fetch(url, { headers: { 'Mayfly-Password': password } })
+async function prepare(token, url, password, port) {
+  try {
+    const response = await fetch(url, { headers: { 'Mayfly-Password': password } })
+    if (response.ok) {
+      prepared.set(token, response)
+    }
+    port.postMessage(response.status)
+  } catch {
+    port.postMessage(0)
+  }
+}
 
+function forward(response) {
   const headers = new Headers()
   for (const name of ['Content-Disposition', 'Content-Type', 'Content-Length']) {
     const value = response.headers.get(name)
@@ -33,5 +42,5 @@ async function download({ url, password }) {
     }
   }
 
-  return new Response(response.ok ? response.body : null, { status: response.status, headers })
+  return new Response(response.body, { headers })
 }
