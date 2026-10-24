@@ -2,7 +2,7 @@
   import type { FileInfo } from '../api/MayflyApi'
   import { formatDate, formatSize, formatTimeLeft } from '../format'
 
-  let { id, info }: { id: string; info: FileInfo } = $props()
+  let { id, info, downloadUrl }: { id: string; info: FileInfo; downloadUrl?: string } = $props()
 
   const extension = $derived(/\.([^.]{1,5})$/.exec(info.name)?.[1].toUpperCase() ?? '')
 </script>
@@ -34,6 +34,10 @@
         </div>
       {/if}
     </div>
+  {/if}
+
+  {#if downloadUrl !== undefined}
+    <a class="download" href={downloadUrl}>Скачать</a>
   {/if}
 
   <div class="checksum">
@@ -135,6 +139,24 @@
   .note {
     font-size: 13px;
     color: var(--text-faint);
+  }
+
+  .download {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    height: 48px;
+    padding: 0 28px;
+    border-radius: 12px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font: 600 15px var(--font-sans);
+    text-decoration: none;
+    transition: background-color 120ms;
+  }
+
+  .download:hover {
+    background: var(--accent-hover);
   }
 
   .checksum {

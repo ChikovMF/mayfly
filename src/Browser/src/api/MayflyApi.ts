@@ -22,9 +22,13 @@ export class MayflyApi {
     this.server = server
   }
 
+  fileUrl(id: string): string {
+    return new URL(`/api/files/${id}`, this.server).href
+  }
+
   async getFileInfo(id: string, password?: string): Promise<FileInfoResult> {
     const headers = password === undefined ? undefined : { 'Mayfly-Password': encodePassword(password) }
-    const response = await fetch(new URL(`/api/files/${id}`, this.server), { method: 'HEAD', headers })
+    const response = await fetch(this.fileUrl(id), { method: 'HEAD', headers })
 
     switch (response.status) {
       case 200:

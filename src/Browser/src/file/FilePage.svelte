@@ -24,7 +24,7 @@
       </section>
     {:then result}
       {#if result.status === 'found'}
-        <FileDetails {id} info={result.info} />
+        <FileDetails {id} info={result.info} downloadUrl={api.fileUrl(id)} />
       {:else if result.status === 'not-found'}
         <section class="card">
           <h1>Файл не найден</h1>
