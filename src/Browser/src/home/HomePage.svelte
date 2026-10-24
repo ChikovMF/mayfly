@@ -1,4 +1,5 @@
 <script lang="ts">
+  import UploadZone from '../send/UploadZone.svelte'
   import GetFileForm from './GetFileForm.svelte'
 </script>
 
@@ -9,6 +10,7 @@
   </section>
 
   <div class="actions">
+    <UploadZone />
     <GetFileForm />
   </div>
 </div>
