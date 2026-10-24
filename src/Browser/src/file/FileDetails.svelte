@@ -6,8 +6,20 @@
   let { id, info, password }: { id: string; info: FileInfo; password?: string } = $props()
 
   const api = getApi()
+  let copyState = $state<'idle' | 'copied' | 'failed'>('idle')
   let downloading = $state(false)
   let downloadError = $state<string | null>(null)
+
+  async function copyChecksum() {
+    try {
+      await navigator.clipboard.writeText(info.sha256)
+      copyState = 'copied'
+    } catch {
+      copyState = 'failed'
+    }
+
+    setTimeout(() => (copyState = 'idle'), 2000)
+  }
 
   async function download(password: string) {
     downloadError = null
@@ -65,8 +77,27 @@
   {/if}
 
   <div class="checksum">
-    <span class="label">SHA-256</span>
-    <code>{info.sha256}</code>
+    <span class="label">Контрольная сумма SHA-256</span>
+    <button type="button" class="hash" class:failed={copyState === 'failed'} aria-label="Копировать SHA-256" onclick={copyChecksum}>
+      <code>{info.sha256}</code>
+      <span class="state">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          {#if copyState === 'copied'}
+            <path d="M5 12.5l4.5 4.5L19 7.5" />
+          {:else if copyState === 'failed'}
+            <path d="M6 6l12 12M18 6L6 18" />
+          {:else}
+            <rect x="9" y="9" width="11" height="11" rx="2" />
+            <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+          {/if}
+        </svg>
+        {#if copyState === 'copied'}
+          Скопировано
+        {:else if copyState === 'failed'}
+          Не удалось скопировать
+        {/if}
+      </span>
+    </button>
   </div>
 </article>
 
@@ -201,15 +232,57 @@
   .checksum {
     display: flex;
     flex-direction: column;
+    gap: 8px;
+  }
+
+  .hash {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 14px;
+    width: 100%;
+    padding: 12px 14px 12px 16px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    background: var(--surface-2);
+    color: var(--text-muted);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 120ms;
+  }
+
+  .hash:hover {
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+
+  .hash.failed {
+    color: var(--danger);
+  }
+
+  .state {
+    display: inline-flex;
+    align-items: center;
     gap: 6px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border);
+    margin-left: auto;
+    font: 500 13px var(--font-sans);
+  }
+
+  .state svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   code {
+    flex: 1 1 280px;
+    min-width: 0;
     font-size: 13px;
     line-height: 1.55;
-    color: var(--text-muted);
+    color: inherit;
     overflow-wrap: anywhere;
   }
 </style>
