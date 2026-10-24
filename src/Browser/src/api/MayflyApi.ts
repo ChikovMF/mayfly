@@ -15,6 +15,8 @@ export type FileInfoResult =
 
 export class ApiError extends Error {}
 
+let downloadFrame: HTMLIFrameElement | undefined
+
 export class MayflyApi {
   private readonly server: string
 
@@ -24,6 +26,32 @@ export class MayflyApi {
 
   fileUrl(id: string): string {
     return new URL(`/api/files/${id}`, this.server).href
+  }
+
+  async downloadProtected(id: string, password: string): Promise<void> {
+    if (!('serviceWorker' in navigator)) {
+      throw new Error('Service workers are not available.')
+    }
+
+    await navigator.serviceWorker.register('/download-worker.js')
+    const { active } = await navigator.serviceWorker.ready
+    if (active === null) {
+      throw new Error('The download worker is not active.')
+    }
+
+    const token = crypto.randomUUID()
+    const channel = new MessageChannel()
+    const accepted = new Promise<void>((resolve) => {
+      channel.port1.onmessage = () => resolve()
+    })
+    active.postMessage({ token, url: this.fileUrl(id), password: encodePassword(password) }, [channel.port2])
+    await accepted
+
+    downloadFrame?.remove()
+    downloadFrame = document.createElement('iframe')
+    downloadFrame.hidden = true
+    downloadFrame.src = `/download/${token}`
+    document.body.append(downloadFrame)
   }
 
   async getFileInfo(id: string, password?: string): Promise<FileInfoResult> {

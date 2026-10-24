@@ -9,12 +9,12 @@
   const api = getApi()
   const result = $derived(api.getFileInfo(id))
 
-  let unlockedInfo = $state<FileInfo | null>(null)
+  let unlocked = $state<{ info: FileInfo; password: string } | null>(null)
 </script>
 
 <div class="page">
-  {#if unlockedInfo !== null}
-    <FileDetails {id} info={unlockedInfo} />
+  {#if unlocked !== null}
+    <FileDetails {id} info={unlocked.info} password={unlocked.password} />
   {:else}
     {#await result}
       <section class="card" aria-busy="true" aria-label="Загружаем сведения о файле">
@@ -24,14 +24,14 @@
       </section>
     {:then result}
       {#if result.status === 'found'}
-        <FileDetails {id} info={result.info} downloadUrl={api.fileUrl(id)} />
+        <FileDetails {id} info={result.info} />
       {:else if result.status === 'not-found'}
         <section class="card">
           <h1>Файл не найден</h1>
           <a href="/#get">Ввести другой ID</a>
         </section>
       {:else if result.status === 'access-denied'}
-        <PasswordForm {id} onunlock={(info) => (unlockedInfo = info)} />
+        <PasswordForm {id} onunlock={(info, password) => (unlocked = { info, password })} />
       {:else}
         <section class="card">
           <h1>Слишком много запросов</h1>

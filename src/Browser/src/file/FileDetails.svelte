@@ -1,8 +1,21 @@
 <script lang="ts">
+  import { getApi } from '../api/context'
   import type { FileInfo } from '../api/MayflyApi'
   import { formatDate, formatSize, formatTimeLeft } from '../format'
 
-  let { id, info, downloadUrl }: { id: string; info: FileInfo; downloadUrl?: string } = $props()
+  let { id, info, password }: { id: string; info: FileInfo; password?: string } = $props()
+
+  const api = getApi()
+  let downloadError = $state<string | null>(null)
+
+  async function download(password: string) {
+    downloadError = null
+    try {
+      await api.downloadProtected(id, password)
+    } catch {
+      downloadError = 'Не удалось начать скачивание'
+    }
+  }
 
   const extension = $derived(/\.([^.]{1,5})$/.exec(info.name)?.[1].toUpperCase() ?? '')
 </script>
@@ -36,8 +49,13 @@
     </div>
   {/if}
 
-  {#if downloadUrl !== undefined}
-    <a class="download" href={downloadUrl}>Скачать</a>
+  {#if password === undefined}
+    <a class="download" href={api.fileUrl(id)}>Скачать</a>
+  {:else}
+    <button type="button" class="download" onclick={() => download(password)}>Скачать</button>
+  {/if}
+  {#if downloadError !== null}
+    <span class="error" role="alert">{downloadError}</span>
   {/if}
 
   <div class="checksum">
@@ -150,9 +168,18 @@
     border-radius: 12px;
     background: var(--accent);
     color: var(--on-accent);
+    border: 0;
     font: 600 15px var(--font-sans);
     text-decoration: none;
+    cursor: pointer;
     transition: background-color 120ms;
+  }
+
+  .error {
+    margin-top: -14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--danger);
   }
 
   .download:hover {

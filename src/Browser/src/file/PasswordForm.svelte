@@ -3,7 +3,7 @@
   import { ApiError, type FileInfo } from '../api/MayflyApi'
   import Button from '../ui/Button.svelte'
 
-  let { id, onunlock }: { id: string; onunlock: (info: FileInfo) => void } = $props()
+  let { id, onunlock }: { id: string; onunlock: (info: FileInfo, password: string) => void } = $props()
 
   const api = getApi()
 
@@ -43,7 +43,7 @@
     try {
       const result = await api.getFileInfo(id, password)
       if (result.status === 'found') {
-        onunlock(result.info)
+        onunlock(result.info, password)
       } else if (result.status === 'access-denied') {
         error = 'Неверный пароль'
       } else if (result.status === 'rate-limited') {
