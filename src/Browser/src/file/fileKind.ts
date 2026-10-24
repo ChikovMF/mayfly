@@ -24,7 +24,7 @@ const extensions: Record<Exclude<FileKind, 'other'>, string[]> = {
   text: ['txt', 'md', 'log'],
 }
 
-function fileExtension(name: string): string {
+export function fileExtension(name: string): string {
   return /\.([^.]+)$/.exec(name)?.[1].toLowerCase() ?? ''
 }
 
