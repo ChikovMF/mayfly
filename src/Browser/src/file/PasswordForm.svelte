@@ -83,8 +83,13 @@
       <div class="input" class:invalid={message !== null}>
         <input
           id="file-password"
-          type={visible ? 'text' : 'password'}
+          type="text"
+          class:masked={!visible}
           autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          data-1p-ignore
+          data-lpignore="true"
           bind:value={password}
           oninput={() => (error = null)}
           aria-invalid={message !== null}
@@ -214,6 +219,10 @@
     color: var(--text);
     font: 500 17px var(--font-mono);
     outline: none;
+  }
+
+  input.masked {
+    -webkit-text-security: disc;
   }
 
   .toggle {
