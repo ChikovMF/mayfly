@@ -11,6 +11,26 @@
   let visible = $state(false)
   let checking = $state(false)
   let error = $state<string | null>(null)
+  let retryAt = $state<number | null>(null)
+  let now = $state(Date.now())
+
+  const secondsLeft = $derived(retryAt === null ? 0 : Math.max(0, Math.ceil((retryAt - now) / 1000)))
+  const message = $derived(retryAt === null ? error : `Слишком много попыток. Повторим через ${secondsLeft} с`)
+
+  $effect(() => {
+    if (retryAt === null) {
+      return
+    }
+
+    const timer = setInterval(() => {
+      now = Date.now()
+      if (retryAt !== null && now >= retryAt) {
+        retryAt = null
+      }
+    }, 250)
+
+    return () => clearInterval(timer)
+  })
 
   async function submit(event: SubmitEvent) {
     event.preventDefault()
@@ -27,10 +47,12 @@
       } else if (result.status === 'access-denied') {
         error = 'Неверный пароль'
       } else if (result.status === 'rate-limited') {
-        error =
-          result.retryAfterSeconds === null
-            ? 'Слишком много попыток. Повторите позже'
-            : `Слишком много попыток. Повторите через ${result.retryAfterSeconds} с`
+        if (result.retryAfterSeconds === null) {
+          error = 'Слишком много попыток. Повторите позже'
+        } else {
+          now = Date.now()
+          retryAt = now + result.retryAfterSeconds * 1000
+        }
       } else {
         error = 'Файл не найден'
       }
@@ -58,15 +80,15 @@
   <form onsubmit={submit} novalidate>
     <div class="field">
       <label for="file-password">Пароль</label>
-      <div class="input" class:invalid={error !== null}>
+      <div class="input" class:invalid={message !== null}>
         <input
           id="file-password"
           type={visible ? 'text' : 'password'}
           autocomplete="off"
           bind:value={password}
           oninput={() => (error = null)}
-          aria-invalid={error !== null}
-          aria-describedby={error === null ? undefined : 'file-password-error'}
+          aria-invalid={message !== null}
+          aria-describedby={message === null ? undefined : 'file-password-error'}
         />
         <button
           type="button"
@@ -84,12 +106,12 @@
           </svg>
         </button>
       </div>
-      {#if error !== null}
-        <span id="file-password-error" class="error" role="alert">{error}</span>
+      {#if message !== null}
+        <span id="file-password-error" class="error" role={retryAt === null ? 'alert' : undefined}>{message}</span>
       {/if}
     </div>
 
-    <Button type="submit" variant="primary" disabled={checking}>Открыть файл</Button>
+    <Button type="submit" variant="primary" disabled={checking || retryAt !== null}>Открыть файл</Button>
   </form>
 </section>
 
