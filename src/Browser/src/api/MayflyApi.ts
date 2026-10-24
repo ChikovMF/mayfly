@@ -28,6 +28,19 @@ export interface UploadedFile {
 
 export class ApiError extends Error {}
 
+export class UploadNetworkError extends Error {}
+
+export class UploadRejectedError extends ApiError {
+  readonly status: number
+  readonly fields: string[]
+
+  constructor(status: number, fields: string[]) {
+    super(`The server answered ${status}.`)
+    this.status = status
+    this.fields = fields
+  }
+}
+
 let downloadFrame: HTMLIFrameElement | undefined
 
 export class MayflyApi {
@@ -89,11 +102,11 @@ export class MayflyApi {
       }
 
       request.upload.onprogress = (event) => onProgress(event.loaded)
-      request.onerror = () => reject(new TypeError('The upload failed.'))
+      request.onerror = () => reject(new UploadNetworkError('The upload failed.'))
       request.onabort = () => reject(signal.reason)
       request.onload = () => {
         if (request.status !== 201) {
-          reject(new ApiError(`The server answered ${request.status}.`))
+          reject(new UploadRejectedError(request.status, readProblemFields(request.responseText)))
           return
         }
 
@@ -130,6 +143,15 @@ export class MayflyApi {
 
 function encodeFileName(name: string): string {
   return encodeURIComponent(name).replace(/['()*]/g, (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`)
+}
+
+function readProblemFields(body: string): string[] {
+  try {
+    const errors = (JSON.parse(body) as { errors?: unknown }).errors
+    return typeof errors === 'object' && errors !== null ? Object.keys(errors) : []
+  } catch {
+    return []
+  }
 }
 
 function readUploadedFile(body: string): UploadedFile {

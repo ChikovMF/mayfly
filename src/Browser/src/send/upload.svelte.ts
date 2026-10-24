@@ -1,8 +1,9 @@
-import { ApiError, type MayflyApi } from '../api/MayflyApi'
+import type { MayflyApi } from '../api/MayflyApi'
 import type { Selection } from './selection.svelte'
 import { settings } from './settings.svelte'
 import { sha256OfFile } from './sha256'
-import { createZip, ZipTooLargeError } from './zip'
+import { describeFailure, type UploadFailure } from './uploadFailure'
+import { createZip } from './zip'
 
 export type UploadPhase = 'idle' | 'archiving' | 'hashing' | 'sending' | 'saving' | 'done' | 'failed'
 
@@ -31,9 +32,10 @@ class Upload {
   sentBytes = $state(0)
   bytesPerSecond = $state(0)
   sent = $state<SentFile | null>(null)
-  error = $state<string | null>(null)
+  failure = $state<UploadFailure | null>(null)
 
   private controller: AbortController | null = null
+  private last: { api: MayflyApi; selection: Selection; request: UploadRequest } | null = null
   private samples: { time: number; bytes: number }[] = []
 
   get active(): boolean {
@@ -43,8 +45,9 @@ class Upload {
   async start(api: MayflyApi, selection: Selection, request: UploadRequest) {
     const controller = new AbortController()
     this.controller = controller
+    this.last = { api, selection, request }
     this.sent = null
-    this.error = null
+    this.failure = null
     this.archived = selection.kind === 'archive'
     this.name = selection.kind === 'file' ? selection.file.name : selection.name
     this.totalBytes = selection.kind === 'file' ? selection.file.size : selection.size
@@ -98,14 +101,23 @@ class Upload {
         return
       }
 
-      this.error =
-        exception instanceof ZipTooLargeError
-          ? 'Слишком большой архив'
-          : exception instanceof ApiError
-            ? 'Не удалось отправить файл'
-            : 'Нет связи с сервером'
+      this.failure = describeFailure(exception, {
+        name: this.name,
+        sentPercent: this.phase === 'sending' && this.totalBytes > 0 ? Math.floor((this.sentBytes / this.totalBytes) * 100) : null,
+      })
       this.phase = 'failed'
     }
+  }
+
+  retry() {
+    if (this.last !== null) {
+      void this.start(this.last.api, this.last.selection, this.last.request)
+    }
+  }
+
+  dismissFailure() {
+    this.phase = 'idle'
+    this.failure = null
   }
 
   cancel() {
@@ -115,7 +127,7 @@ class Upload {
   reset() {
     this.phase = 'idle'
     this.sent = null
-    this.error = null
+    this.failure = null
     settings.clearPassword()
   }
 

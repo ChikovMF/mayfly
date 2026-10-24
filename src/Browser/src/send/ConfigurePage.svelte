@@ -81,9 +81,6 @@
         <dd>{settings.passwordEnabled ? 'да' : 'нет'}</dd>
       </dl>
       <Button variant="primary" disabled={!settings.isValid} onclick={send}>Загрузить и получить ссылку</Button>
-      {#if upload.error !== null}
-        <span class="error" role="alert">{upload.error}</span>
-      {/if}
     </aside>
   </div>
 </div>
@@ -204,12 +201,6 @@
     gap: 10px 16px;
     margin: 0;
     font-size: 15px;
-  }
-
-  .error {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--danger);
   }
 
   dt {

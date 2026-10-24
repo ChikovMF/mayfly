@@ -3,6 +3,7 @@
   import DonePage from '../send/DonePage.svelte'
   import { selection } from '../send/selection.svelte'
   import { upload } from '../send/upload.svelte'
+  import UploadErrorPage from '../send/UploadErrorPage.svelte'
   import UploadingPage from '../send/UploadingPage.svelte'
   import UploadZone from '../send/UploadZone.svelte'
   import GetFileForm from './GetFileForm.svelte'
@@ -10,6 +11,8 @@
 
 {#if upload.phase === 'done' && upload.sent !== null}
   <DonePage sent={upload.sent} />
+{:else if upload.phase === 'failed' && upload.failure !== null}
+  <UploadErrorPage failure={upload.failure} />
 {:else if upload.active}
   <UploadingPage />
 {:else if selection.current !== null}
