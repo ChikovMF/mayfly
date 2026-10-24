@@ -1,22 +1,14 @@
 <script lang="ts">
   import Upload from '@lucide/svelte/icons/upload'
-  import FileIcon from '../file/FileIcon.svelte'
-  import { formatSize } from '../format'
   import Button from '../ui/Button.svelte'
   import { selectedFile } from './selectedFile.svelte'
 
-  let input: HTMLInputElement
   let dragging = $state(false)
 
   function choose(files: FileList | null | undefined) {
     if (files !== null && files !== undefined && files.length > 0) {
       selectedFile.select(files[0])
     }
-  }
-
-  function pick() {
-    choose(input.files)
-    input.value = ''
   }
 
   function dragOver(event: DragEvent) {
@@ -47,25 +39,14 @@
   ondragleave={() => (dragging = false)}
   ondrop={drop}
 >
-  <input bind:this={input} type="file" hidden onchange={pick} />
-
-  {#if selectedFile.current === null}
-    <span class="mark" aria-hidden="true">
-      <Upload size={28} strokeWidth={2} />
-    </span>
-    <div class="text">
-      <h2>Перетащите файл</h2>
-      <p>или вставьте из буфера обмена</p>
-    </div>
-    <Button variant="primary" onclick={() => input.click()}>Выбрать файл</Button>
-  {:else}
-    <FileIcon name={selectedFile.current.name} contentType={selectedFile.current.type} />
-    <div class="text">
-      <h2>{selectedFile.current.name}</h2>
-      <p>{formatSize(selectedFile.current.size)}</p>
-    </div>
-    <Button onclick={() => input.click()}>Выбрать другой</Button>
-  {/if}
+  <span class="mark" aria-hidden="true">
+    <Upload size={28} strokeWidth={2} />
+  </span>
+  <div class="text">
+    <h2>Перетащите файл</h2>
+    <p>или вставьте из буфера обмена</p>
+  </div>
+  <Button variant="primary" onclick={selectedFile.pick}>Выбрать файл</Button>
 </section>
 
 <style>

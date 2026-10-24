@@ -15,10 +15,10 @@ export function formatSize(bytes: number): string {
 
 export function formatTimeLeft(until: Date): string {
   const minutes = Math.floor((until.getTime() - Date.now()) / 60_000)
-  if (minutes < 1) {
-    return 'меньше минуты'
-  }
+  return minutes < 1 ? 'меньше минуты' : formatDuration(minutes)
+}
 
+export function formatDuration(minutes: number): string {
   const parts = [
     count(Math.floor(minutes / 1440), ['день', 'дня', 'дней']),
     count(Math.floor(minutes / 60) % 24, ['час', 'часа', 'часов']),

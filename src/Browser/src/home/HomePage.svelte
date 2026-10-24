@@ -1,19 +1,25 @@
 <script lang="ts">
+  import ConfigurePage from '../send/ConfigurePage.svelte'
+  import { selectedFile } from '../send/selectedFile.svelte'
   import UploadZone from '../send/UploadZone.svelte'
   import GetFileForm from './GetFileForm.svelte'
 </script>
 
-<div class="page">
-  <section class="intro">
-    <h1>Обмен файлами по ссылке</h1>
-    <p>По желанию можно ограничить срок хранения и число скачиваний или защитить файл паролем.</p>
-  </section>
+{#if selectedFile.current !== null}
+  <ConfigurePage file={selectedFile.current} />
+{:else}
+  <div class="page">
+    <section class="intro">
+      <h1>Обмен файлами по ссылке</h1>
+      <p>По желанию можно ограничить срок хранения и число скачиваний или защитить файл паролем.</p>
+    </section>
 
-  <div class="actions">
-    <UploadZone />
-    <GetFileForm />
+    <div class="actions">
+      <UploadZone />
+      <GetFileForm />
+    </div>
   </div>
-</div>
+{/if}
 
 <style>
   .page {
