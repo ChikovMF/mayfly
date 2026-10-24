@@ -13,6 +13,13 @@ export type FileInfoResult =
   | { status: 'access-denied' }
   | { status: 'rate-limited'; retryAfterSeconds: number | null }
 
+export interface UploadOptions {
+  expiresAt: Date | null
+  maxDownloads: number | null
+  password: string | null
+  sha256: string
+}
+
 export class ApiError extends Error {}
 
 let downloadFrame: HTMLIFrameElement | undefined
@@ -57,6 +64,45 @@ export class MayflyApi {
     document.body.append(downloadFrame)
   }
 
+  upload(file: File, options: UploadOptions, onProgress: (sentBytes: number) => void, signal: AbortSignal): Promise<string> {
+    signal.throwIfAborted()
+
+    return new Promise((resolve, reject) => {
+      const request = new XMLHttpRequest()
+      request.open('POST', new URL('/api/files', this.server))
+      request.setRequestHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeFileName(file.name)}`)
+      request.setRequestHeader('Repr-Digest', `sha-256=:${options.sha256}:`)
+      if (options.expiresAt !== null) {
+        request.setRequestHeader('Mayfly-Expires-At', options.expiresAt.toISOString())
+      }
+      if (options.maxDownloads !== null) {
+        request.setRequestHeader('Mayfly-Max-Downloads', String(options.maxDownloads))
+      }
+      if (options.password !== null) {
+        request.setRequestHeader('Mayfly-Password', encodePassword(options.password))
+      }
+
+      request.upload.onprogress = (event) => onProgress(event.loaded)
+      request.onerror = () => reject(new TypeError('The upload failed.'))
+      request.onabort = () => reject(signal.reason)
+      request.onload = () => {
+        if (request.status !== 201) {
+          reject(new ApiError(`The server answered ${request.status}.`))
+          return
+        }
+
+        try {
+          resolve(readUploadedId(request.responseText))
+        } catch (error) {
+          reject(error)
+        }
+      }
+
+      signal.addEventListener('abort', () => request.abort(), { once: true })
+      request.send(file)
+    })
+  }
+
   async getFileInfo(id: string, password?: string): Promise<FileInfoResult> {
     const headers = password === undefined ? undefined : { 'Mayfly-Password': encodePassword(password) }
     const response = await fetch(this.fileUrl(id), { method: 'HEAD', headers })
@@ -74,6 +120,19 @@ export class MayflyApi {
         throw new ApiError(`The server answered ${response.status}.`)
     }
   }
+}
+
+function encodeFileName(name: string): string {
+  return encodeURIComponent(name).replace(/['()*]/g, (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`)
+}
+
+function readUploadedId(body: string): string {
+  const id: unknown = (JSON.parse(body) as { id?: unknown }).id
+  if (typeof id !== 'string') {
+    throw new ApiError('The server answered without a file id.')
+  }
+
+  return id
 }
 
 function encodePassword(password: string): string {
