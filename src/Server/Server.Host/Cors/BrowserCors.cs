@@ -17,8 +17,14 @@ internal static class BrowserCors
         services.AddOptions<CorsOptions>().Configure<IOptions<BrowserCorsOptions>>((cors, browser) =>
             cors.AddDefaultPolicy(policy => policy
                 .WithOrigins([.. browser.Value.AllowedOrigins.Select(ToOrigin)])
-                .WithMethods(HttpMethods.Get, HttpMethods.Head)
-                .WithHeaders(FilesEndpoints.PasswordHeader)
+                .WithMethods(HttpMethods.Get, HttpMethods.Head, HttpMethods.Post)
+                .WithHeaders(
+                    HeaderNames.ContentDisposition,
+                    HeaderNames.ContentType,
+                    FilesEndpoints.ExpiresAtHeader,
+                    FilesEndpoints.MaxDownloadsHeader,
+                    FilesEndpoints.PasswordHeader,
+                    FilesEndpoints.ReprDigestHeader)
                 .WithExposedHeaders(
                     HeaderNames.ContentDisposition,
                     FilesEndpoints.ReprDigestHeader,

@@ -19,7 +19,7 @@ internal static class FilesEndpoints
     private const string ContentDispositionHeader = "Content-Disposition";
     private const string ContentTypeHeader = "Content-Type";
     internal const string ExpiresAtHeader = "Mayfly-Expires-At";
-    private const string MaxDownloadsHeader = "Mayfly-Max-Downloads";
+    internal const string MaxDownloadsHeader = "Mayfly-Max-Downloads";
     internal const string DownloadsLeftHeader = "Mayfly-Downloads-Left";
     internal const string ReprDigestHeader = "Repr-Digest";
     internal const string PasswordHeader = "Mayfly-Password";
