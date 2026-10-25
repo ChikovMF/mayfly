@@ -54,9 +54,14 @@ export class MayflyApi {
     return new URL(`/api/files/${id}`, this.server).href
   }
 
-  async downloadProtected(id: string, password: string): Promise<void> {
+  async download(id: string, password?: string): Promise<void> {
     if (!('serviceWorker' in navigator)) {
-      throw new Error('Service workers are not available.')
+      if (password !== undefined) {
+        throw new Error('Service workers are not available.')
+      }
+
+      location.assign(this.fileUrl(id))
+      return
     }
 
     await navigator.serviceWorker.register('/download-worker.js')
@@ -70,7 +75,7 @@ export class MayflyApi {
     const answered = new Promise<number>((resolve) => {
       channel.port1.onmessage = (event: MessageEvent<number>) => resolve(event.data)
     })
-    active.postMessage({ token, url: this.fileUrl(id), password: encodePassword(password) }, [channel.port2])
+    active.postMessage({ token, url: this.fileUrl(id), password: password === undefined ? null : encodePassword(password) }, [channel.port2])
     const status = await answered
     if (status !== 200) {
       throw new ApiError(`The server answered ${status}.`)

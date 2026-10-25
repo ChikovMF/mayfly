@@ -4,12 +4,16 @@
 
   let {
     variant = 'secondary',
+    loading = false,
     children,
     ...attributes
-  }: HTMLButtonAttributes & { variant?: 'primary' | 'secondary'; children: Snippet } = $props()
+  }: HTMLButtonAttributes & { variant?: 'primary' | 'secondary'; loading?: boolean; children: Snippet } = $props()
 </script>
 
-<button type="button" class={variant} {...attributes}>
+<button type="button" class={variant} class:loading {...attributes} disabled={attributes.disabled || loading} aria-busy={loading}>
+  {#if loading}
+    <span class="spinner" aria-hidden="true"></span>
+  {/if}
   {@render children()}
 </button>
 
@@ -40,6 +44,41 @@
     background: var(--surface-2);
     color: var(--text-faint);
     cursor: default;
+  }
+
+  button.loading:disabled {
+    border-color: transparent;
+    background: var(--accent);
+    color: var(--on-accent);
+    cursor: progress;
+    opacity: 0.85;
+  }
+
+  button.secondary.loading:disabled {
+    border-color: var(--border-strong);
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 700ms linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spinner {
+      animation-duration: 2s;
+    }
   }
 
   .primary {

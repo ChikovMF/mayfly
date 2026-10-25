@@ -1,6 +1,7 @@
 <script lang="ts">
   import { getApi } from '../api/context'
   import type { FileInfo } from '../api/MayflyApi'
+  import Button from '../ui/Button.svelte'
   import FileIcon from './FileIcon.svelte'
   import { formatDate, formatSize, formatTimeLeft } from '../format'
 
@@ -22,11 +23,11 @@
     setTimeout(() => (copyState = 'idle'), 2000)
   }
 
-  async function download(password: string) {
+  async function download(password?: string) {
     downloadError = null
     downloading = true
     try {
-      await api.downloadProtected(id, password)
+      await api.download(id, password)
     } catch {
       downloadError = 'Не удалось начать скачивание'
     } finally {
@@ -65,13 +66,11 @@
     </div>
   {/if}
 
-  {#if password === undefined}
-    <a class="download" href={api.fileUrl(id)}>Скачать</a>
-  {:else}
-    <button type="button" class="download" disabled={downloading} onclick={() => download(password)}>
+  <div>
+    <Button variant="primary" loading={downloading} onclick={() => download(password)}>
       {downloading ? 'Готовим файл…' : 'Скачать'}
-    </button>
-  {/if}
+    </Button>
+  </div>
   {#if downloadError !== null}
     <span class="error" role="alert">{downloadError}</span>
   {/if}
@@ -181,37 +180,11 @@
     color: var(--text-faint);
   }
 
-  .download {
-    align-self: flex-start;
-    display: inline-flex;
-    align-items: center;
-    height: 48px;
-    padding: 0 28px;
-    border-radius: 12px;
-    background: var(--accent);
-    color: var(--on-accent);
-    border: 0;
-    font: 600 15px var(--font-sans);
-    text-decoration: none;
-    cursor: pointer;
-    transition: background-color 120ms;
-  }
-
   .error {
     margin-top: -14px;
     font-size: 14px;
     font-weight: 500;
     color: var(--danger);
-  }
-
-  .download:hover:not(:disabled) {
-    background: var(--accent-hover);
-  }
-
-  .download:disabled {
-    background: var(--surface-2);
-    color: var(--text-faint);
-    cursor: default;
   }
 
   .checksum {

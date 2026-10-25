@@ -23,7 +23,7 @@ self.addEventListener('fetch', (event) => {
 
 async function prepare(token, url, password, port) {
   try {
-    const response = await fetch(url, { headers: { 'Mayfly-Password': password } })
+    const response = await fetch(url, { headers: password === null ? {} : { 'Mayfly-Password': password } })
     if (response.ok) {
       prepared.set(token, response)
     }

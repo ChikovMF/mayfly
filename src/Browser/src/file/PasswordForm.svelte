@@ -92,7 +92,7 @@
       {/if}
     </div>
 
-    <Button type="submit" variant="primary" disabled={checking || retryAt !== null}>Открыть файл</Button>
+    <Button type="submit" variant="primary" loading={checking} disabled={retryAt !== null}>Открыть файл</Button>
   </form>
 </section>
 
