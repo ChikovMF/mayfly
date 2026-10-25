@@ -15,7 +15,7 @@
   let now = $state(Date.now())
 
   const secondsLeft = $derived(retryAt === null ? 0 : Math.max(0, Math.ceil((retryAt - now) / 1000)))
-  const message = $derived(retryAt === null ? error : `Слишком много попыток. Повторим через ${secondsLeft} с`)
+  const message = $derived(retryAt === null ? error : `Слишком много попыток. Можно повторить через ${secondsLeft} с`)
 
   $effect(() => {
     if (retryAt === null) {
