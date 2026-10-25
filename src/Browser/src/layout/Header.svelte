@@ -1,11 +1,23 @@
 <script lang="ts">
   import TerminalIcon from '@lucide/svelte/icons/terminal'
   import { repository } from '../repository'
+  import { selection } from '../send/selection.svelte'
+  import { upload } from '../send/upload.svelte'
   import ThemeToggle from '../theme/ThemeToggle.svelte'
+
+  function goHome() {
+    if (location.pathname !== '/') {
+      return
+    }
+
+    upload.cancel()
+    upload.reset()
+    selection.clear()
+  }
 </script>
 
 <header>
-  <a class="logo" href="/" aria-label="Mayfly, на главную">
+  <a class="logo" href="/" onclick={goHome} aria-label="Mayfly, на главную">
     <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true">
       <g transform="translate(0 -1.75)">
         <g>
