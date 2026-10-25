@@ -28,6 +28,8 @@ export interface UploadedFile {
 
 export class ApiError extends Error {}
 
+export class DownloadInterruptedError extends Error {}
+
 export class UploadNetworkError extends Error {}
 
 export class UploadRejectedError extends ApiError {
@@ -40,6 +42,12 @@ export class UploadRejectedError extends ApiError {
     this.fields = fields
   }
 }
+
+type DownloadMessage =
+  | { type: 'status'; status: number }
+  | { type: 'progress'; loaded: number }
+  | { type: 'done' }
+  | { type: 'interrupted' }
 
 let downloadFrame: HTMLIFrameElement | undefined
 
@@ -54,14 +62,18 @@ export class MayflyApi {
     return new URL(`/api/files/${id}`, this.server).href
   }
 
-  async download(id: string, password?: string): Promise<void> {
+  /**
+   * Starts the download and reports the bytes passed to the browser. Resolves with `completed` once all of them
+   * are passed, or with `started` when the browser handles the download itself and nothing can be observed.
+   */
+  async download(id: string, password: string | undefined, onProgress: (loadedBytes: number) => void): Promise<'completed' | 'started'> {
     if (!('serviceWorker' in navigator)) {
       if (password !== undefined) {
         throw new Error('Service workers are not available.')
       }
 
       location.assign(this.fileUrl(id))
-      return
+      return 'started'
     }
 
     await navigator.serviceWorker.register('/download-worker.js')
@@ -72,20 +84,36 @@ export class MayflyApi {
 
     const token = crypto.randomUUID()
     const channel = new MessageChannel()
-    const answered = new Promise<number>((resolve) => {
-      channel.port1.onmessage = (event: MessageEvent<number>) => resolve(event.data)
-    })
-    active.postMessage({ token, url: this.fileUrl(id), password: password === undefined ? null : encodePassword(password) }, [channel.port2])
-    const status = await answered
-    if (status !== 200) {
-      throw new ApiError(`The server answered ${status}.`)
-    }
+    return new Promise((resolve, reject) => {
+      channel.port1.onmessage = (event: MessageEvent<DownloadMessage>) => {
+        const message = event.data
+        switch (message.type) {
+          case 'status':
+            if (message.status === 200) {
+              downloadFrame?.remove()
+              downloadFrame = document.createElement('iframe')
+              downloadFrame.hidden = true
+              downloadFrame.src = `/download/${token}`
+              document.body.append(downloadFrame)
+              onProgress(0)
+            } else {
+              reject(new ApiError(`The server answered ${message.status}.`))
+            }
+            break
+          case 'progress':
+            onProgress(message.loaded)
+            break
+          case 'done':
+            resolve('completed')
+            break
+          case 'interrupted':
+            reject(new DownloadInterruptedError('The download was interrupted.'))
+            break
+        }
+      }
 
-    downloadFrame?.remove()
-    downloadFrame = document.createElement('iframe')
-    downloadFrame.hidden = true
-    downloadFrame.src = `/download/${token}`
-    document.body.append(downloadFrame)
+      active.postMessage({ token, url: this.fileUrl(id), password: password === undefined ? null : encodePassword(password) }, [channel.port2])
+    })
   }
 
   upload(file: File, options: UploadOptions, onProgress: (sentBytes: number) => void, signal: AbortSignal): Promise<UploadedFile> {

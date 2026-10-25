@@ -1,6 +1,6 @@
 <script lang="ts">
   import { getApi } from '../api/context'
-  import type { FileInfo } from '../api/MayflyApi'
+  import { DownloadInterruptedError, type FileInfo } from '../api/MayflyApi'
   import Button from '../ui/Button.svelte'
   import FileIcon from './FileIcon.svelte'
   import { formatDate, formatSize, formatTimeLeft } from '../format'
@@ -9,8 +9,12 @@
 
   const api = getApi()
   let copyState = $state<'idle' | 'copied' | 'failed'>('idle')
-  let downloading = $state(false)
+  let preparing = $state(false)
+  let loaded = $state<number | null>(null)
+  let downloaded = $state(false)
   let downloadError = $state<string | null>(null)
+
+  const percent = $derived(loaded === null ? 0 : info.size === 0 ? 100 : Math.min(100, Math.floor((loaded / info.size) * 100)))
 
   async function copyChecksum() {
     try {
@@ -25,16 +29,17 @@
 
   async function download(password?: string) {
     downloadError = null
-    downloading = true
+    downloaded = false
+    preparing = true
     try {
-      await api.download(id, password)
-    } catch {
-      downloadError = 'Не удалось начать скачивание'
+      downloaded = (await api.download(id, password, (bytes) => (loaded = bytes))) === 'completed'
+    } catch (error) {
+      downloadError = error instanceof DownloadInterruptedError ? 'Скачивание прервано' : 'Не удалось начать скачивание'
     } finally {
-      downloading = false
+      preparing = false
+      loaded = null
     }
   }
-
 </script>
 
 <article class="card" aria-labelledby="file-name">
@@ -66,11 +71,28 @@
     </div>
   {/if}
 
-  <div>
-    <Button variant="primary" loading={downloading} onclick={() => download(password)}>
-      {downloading ? 'Готовим файл…' : 'Скачать'}
-    </Button>
-  </div>
+  {#if loaded !== null}
+    <div class="progress">
+      <div class="bar" role="progressbar" aria-label="Скачивание" aria-valuemin="0" aria-valuemax="100" aria-valuenow={percent}>
+        <div class="fill" style:width="{percent}%"></div>
+      </div>
+      <span class="status">{percent}% · {formatSize(loaded)} из {formatSize(info.size)}</span>
+    </div>
+  {:else if downloaded}
+    <div class="done">
+      <span class="ok">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+        Скачано
+      </span>
+      <button type="button" class="again" onclick={() => download(password)}>Скачать ещё раз</button>
+    </div>
+  {:else}
+    <div>
+      <Button variant="primary" loading={preparing} onclick={() => download(password)}>
+        {preparing ? 'Готовим файл…' : 'Скачать'}
+      </Button>
+    </div>
+  {/if}
   {#if downloadError !== null}
     <span class="error" role="alert">{downloadError}</span>
   {/if}
@@ -178,6 +200,70 @@
   .note {
     font-size: 13px;
     color: var(--text-faint);
+  }
+
+  .progress {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .bar {
+    height: 12px;
+    border-radius: 6px;
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+
+  .fill {
+    height: 100%;
+    border-radius: 6px;
+    background: var(--accent);
+    transition: width 150ms linear;
+  }
+
+  .status {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .done {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 20px;
+  }
+
+  .ok {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 650;
+    color: var(--accent-text);
+  }
+
+  .ok svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .again {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-muted);
+    font: 500 14px var(--font-sans);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .again:hover {
+    color: var(--text);
   }
 
   .error {

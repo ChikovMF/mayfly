@@ -16,24 +16,24 @@ self.addEventListener('fetch', (event) => {
   }
 
   const token = pathname.slice(downloadPrefix.length)
-  const response = prepared.get(token)
+  const download = prepared.get(token)
   prepared.delete(token)
-  event.respondWith(response === undefined ? new Response(null, { status: 404 }) : forward(response))
+  event.respondWith(download === undefined ? new Response(null, { status: 404 }) : forward(download.response, download.port))
 })
 
 async function prepare(token, url, password, port) {
   try {
     const response = await fetch(url, { headers: password === null ? {} : { 'Mayfly-Password': password } })
     if (response.ok) {
-      prepared.set(token, response)
+      prepared.set(token, { response, port })
     }
-    port.postMessage(response.status)
+    port.postMessage({ type: 'status', status: response.status })
   } catch {
-    port.postMessage(0)
+    port.postMessage({ type: 'status', status: 0 })
   }
 }
 
-function forward(response) {
+function forward(response, port) {
   const headers = new Headers()
   for (const name of ['Content-Disposition', 'Content-Type', 'Content-Length']) {
     const value = response.headers.get(name)
@@ -42,5 +42,39 @@ function forward(response) {
     }
   }
 
-  return new Response(response.body, { headers })
+  return new Response(count(response.body, port), { headers })
+}
+
+function count(source, port) {
+  const reader = source.getReader()
+  let loaded = 0
+  let reportedAt = 0
+
+  return new ReadableStream({
+    async pull(controller) {
+      try {
+        const { done, value } = await reader.read()
+        if (done) {
+          controller.close()
+          port.postMessage({ type: 'done' })
+          return
+        }
+
+        loaded += value.byteLength
+        controller.enqueue(value)
+        const now = Date.now()
+        if (now - reportedAt >= 100) {
+          reportedAt = now
+          port.postMessage({ type: 'progress', loaded })
+        }
+      } catch (error) {
+        controller.error(error)
+        port.postMessage({ type: 'interrupted' })
+      }
+    },
+    cancel(reason) {
+      port.postMessage({ type: 'interrupted' })
+      return reader.cancel(reason)
+    },
+  })
 }
