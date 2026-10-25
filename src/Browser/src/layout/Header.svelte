@@ -18,21 +18,21 @@
 
 <header>
   <a class="logo" href="/" onclick={goHome} aria-label="Mayfly, на главную">
-    <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true">
-      <g transform="translate(0 -1.75)">
-        <g>
-          <polygon class="wing" points="27,15 3.5,10 8,28 14,34 27,28" />
-          <path d="M30.2 44.5 L32.4 46.5 L21 61 Z" />
-        </g>
-        <g transform="matrix(-1 0 0 1 64 0)">
-          <polygon class="wing" points="27,15 3.5,10 8,28 14,34 27,28" />
-          <path d="M30.2 44.5 L32.4 46.5 L21 61 Z" />
-        </g>
-        <circle cx="29.6" cy="9.6" r="3.4" />
-        <circle cx="34.4" cy="9.6" r="3.4" />
-        <ellipse cx="32" cy="19.5" rx="4.4" ry="6.2" />
-        <path d="M29.5 24 H34.5 L33.3 47 H30.7 Z" />
-        <path d="M30.6 45 H33.4 L32 62.5 Z" />
+    <svg width="30" height="30" viewBox="8 7 55 55" aria-hidden="true">
+      <defs>
+        <mask id="logo-cut" maskUnits="userSpaceOnUse" x="-8" y="-8" width="80" height="80">
+          <rect x="-8" y="-8" width="80" height="80" fill="#fff" />
+          <path d="M31 9 v11 h11" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round" />
+          <g class="link-cut" transform="rotate(-45 44 45)">
+            <rect x="31" y="40" width="18" height="10" rx="5" />
+            <rect x="39" y="40" width="18" height="10" rx="5" />
+          </g>
+        </mask>
+      </defs>
+      <path d="M15 9 h16 l11 11 v27 a3 3 0 0 1 -3 3 h-24 a3 3 0 0 1 -3 -3 v-35 a3 3 0 0 1 3 -3 z" mask="url(#logo-cut)" />
+      <g class="link" transform="rotate(-45 44 45)">
+        <rect x="31" y="40" width="18" height="10" rx="5" />
+        <rect x="39" y="40" width="18" height="10" rx="5" />
       </g>
     </svg>
     <span>mayfly</span>
@@ -79,11 +79,19 @@
     fill: currentColor;
   }
 
-  .wing {
-    fill: var(--accent);
+  .link,
+  .link-cut {
+    fill: none;
+    stroke-width: 3.5;
+  }
+
+  .link {
     stroke: var(--accent);
-    stroke-width: 3;
-    stroke-linejoin: round;
+  }
+
+  .link-cut {
+    stroke: #000;
+    stroke-width: 9;
   }
 
   .actions {
