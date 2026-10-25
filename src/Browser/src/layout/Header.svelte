@@ -1,11 +1,5 @@
 <script lang="ts">
-  import { router } from '../routing/router.svelte'
   import ThemeToggle from '../theme/ThemeToggle.svelte'
-
-  const sections = [
-    { href: '/', label: 'Отправить', page: 'home' },
-    { href: '/#get', label: 'Получить', page: 'file' },
-  ]
 </script>
 
 <header>
@@ -29,12 +23,6 @@
     </svg>
     <span>mayfly</span>
   </a>
-
-  <nav aria-label="Разделы">
-    {#each sections as section (section.href)}
-      <a href={section.href} aria-current={router.route.page === section.page ? 'page' : undefined}>{section.label}</a>
-    {/each}
-  </nav>
 
   <div class="actions">
     <ThemeToggle />
@@ -72,30 +60,6 @@
     stroke: var(--accent);
     stroke-width: 3;
     stroke-linejoin: round;
-  }
-
-  nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  nav a {
-    display: inline-flex;
-    align-items: center;
-    height: 44px;
-    padding: 0 14px;
-    border-radius: 10px;
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 15px;
-    font-weight: 500;
-  }
-
-  nav a[aria-current='page'] {
-    background: var(--surface-2);
-    color: var(--text);
-    font-weight: 600;
   }
 
   .actions {
