@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ConsolePage from './console/ConsolePage.svelte'
   import FilePage from './file/FilePage.svelte'
   import HomePage from './home/HomePage.svelte'
   import Footer from './layout/Footer.svelte'
@@ -16,6 +17,8 @@
   <main>
     {#if route.page === 'home'}
       <HomePage />
+    {:else if route.page === 'console'}
+      <ConsolePage />
     {:else if route.page === 'file'}
       {#key route.id}
         <FilePage id={route.id} />

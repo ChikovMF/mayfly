@@ -3,6 +3,7 @@ import { isFileId } from '../file/fileId'
 
 export type Route =
   | { page: 'home' }
+  | { page: 'console' }
   | { page: 'file'; id: string }
   | { page: 'not-found' }
 
@@ -33,6 +34,10 @@ export const router = {
 function match(path: string): Route {
   if (path === '/') {
     return { page: 'home' }
+  }
+
+  if (path === '/console') {
+    return { page: 'console' }
   }
 
   const id = path.slice(1)
