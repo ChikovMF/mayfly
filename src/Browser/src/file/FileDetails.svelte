@@ -2,6 +2,7 @@
   import { getApi } from '../api/context'
   import { DownloadInterruptedError, type FileInfo } from '../api/MayflyApi'
   import Button from '../ui/Button.svelte'
+  import { copyText } from '../ui/toast.svelte'
   import FileIcon from './FileIcon.svelte'
   import { formatDate, formatSize, formatTimeLeft } from '../format'
 
@@ -17,12 +18,7 @@
   const percent = $derived(loaded === null ? 0 : info.size === 0 ? 100 : Math.min(100, Math.floor((loaded / info.size) * 100)))
 
   async function copyChecksum() {
-    try {
-      await navigator.clipboard.writeText(info.sha256)
-      copyState = 'copied'
-    } catch {
-      copyState = 'failed'
-    }
+    copyState = (await copyText(info.sha256)) ? 'copied' : 'failed'
 
     setTimeout(() => (copyState = 'idle'), 2000)
   }
