@@ -45,7 +45,7 @@ jobs:
       - name: Pack
         run: |
           mkdir dist
-          name=mayfly-$VERSION-${{ matrix.rid }}
+          name=mayfly-${{ matrix.rid }}
           if [ "$RUNNER_OS" = Windows ]; then
             7z a "dist/$name.zip" ./publish/mayfly.exe
           else
@@ -89,8 +89,47 @@ jobs:
           tags: ${{ env.TAGS }}
           push: true
 
+  browser-image:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: src/Browser/package-lock.json
+      - run: npm ci
+        working-directory: src/Browser
+      - run: npm run check
+        working-directory: src/Browser
+      - name: Image tags
+        run: |
+          version=${GITHUB_REF_NAME#v}
+          image=ghcr.io/${GITHUB_REPOSITORY,,}-browser
+          tags=$image:$version
+          if [[ $version != *-* ]]; then
+            tags+=,$image:latest
+          fi
+          echo "TAGS=$tags" >> "$GITHUB_ENV"
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v7
+        with:
+          context: src/Browser
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ env.TAGS }}
+          push: true
+
   release:
-    needs: [terminal, image]
+    needs: [terminal, image, browser-image]
     runs-on: ubuntu-latest
     permissions:
       contents: write
