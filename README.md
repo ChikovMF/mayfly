@@ -16,6 +16,7 @@
 | Сервер | `src/Server` | HTTP API, см. [docs/api.md](docs/api.md) |
 | Консольное приложение | `src/Terminal` | Команда `mayfly`, см. [docs/terminal.md](docs/terminal.md) |
 | Клиентская библиотека | `src/Client` | Пакет `Mayfly.Client` для .NET-приложений |
+| Веб-интерфейс | `src/Browser` | Страница для отправки и скачивания файлов, образ `ghcr.io/chikovmf/mayfly-browser` |
 
 ## Зависимости
 
@@ -35,4 +36,4 @@
 
 ## Конфигурация
 
-Параметры сервера, консольного приложения и клиентской библиотеки описаны в [docs/configuration.md](docs/configuration.md).
+Параметры сервера, консольного приложения, клиентской библиотеки и веб-интерфейса описаны в [docs/configuration.md](docs/configuration.md).

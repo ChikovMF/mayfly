@@ -21,7 +21,7 @@ jobs:
       - name: Publish console app
         run: dotnet publish src/Terminal --configuration Release --runtime linux-x64
 
-  browser:
+  browser :
     name: Web frontend
     runs-on: ubuntu-latest
     defaults:

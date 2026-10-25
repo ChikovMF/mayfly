@@ -87,3 +87,17 @@
   }
 }
 ```
+
+## Веб-интерфейс
+
+Образ `ghcr.io/chikovmf/mayfly-browser` отдаёт статические файлы на порту `8080`.
+
+| Параметр | Обязательный | Описание |
+|---|---|---|
+| `MAYFLY_SERVER` | Да | Адрес сервера, например `https://api.example.com`. Задаётся переменной окружения контейнера |
+
+```
+docker run -p 8080:8080 -e MAYFLY_SERVER=http://localhost:5015 ghcr.io/chikovmf/mayfly-browser
+```
+
+Адрес, по которому открыт веб-интерфейс, должен быть в `Cors:AllowedOrigins` сервера.
