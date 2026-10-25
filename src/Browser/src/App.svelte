@@ -2,7 +2,6 @@
   import ConsolePage from './console/ConsolePage.svelte'
   import FilePage from './file/FilePage.svelte'
   import HomePage from './home/HomePage.svelte'
-  import Footer from './layout/Footer.svelte'
   import Header from './layout/Header.svelte'
   import NotFoundPage from './routing/NotFoundPage.svelte'
   import { router } from './routing/router.svelte'
@@ -27,8 +26,6 @@
       <NotFoundPage />
     {/if}
   </main>
-
-  <Footer />
 </div>
 
 <ToastHost />
