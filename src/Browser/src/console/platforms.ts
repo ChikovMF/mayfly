@@ -1,25 +1,46 @@
-export type Platform = 'linux-x64' | 'linux-arm64' | 'win-x64' | 'osx-arm64'
+export type System = 'linux' | 'windows' | 'macos'
 
-export const platforms: { value: Platform; label: string }[] = [
-  { value: 'linux-x64', label: 'Linux x64' },
-  { value: 'linux-arm64', label: 'Linux ARM64' },
-  { value: 'win-x64', label: 'Windows x64' },
-  { value: 'osx-arm64', label: 'macOS ARM64' },
-]
-
-export function archiveName(platform: Platform): string {
-  return `mayfly-${platform}.${platform === 'win-x64' ? 'zip' : 'tar.gz'}`
+export interface Build {
+  archive: string
+  label: string
 }
 
-export function detectPlatform(): Platform {
+export interface SystemInfo {
+  id: System
+  name: string
+  builds: Build[]
+}
+
+export const systems: SystemInfo[] = [
+  {
+    id: 'linux',
+    name: 'Linux',
+    builds: [
+      { archive: 'mayfly-linux-x64.tar.gz', label: 'x64' },
+      { archive: 'mayfly-linux-arm64.tar.gz', label: 'ARM64' },
+    ],
+  },
+  {
+    id: 'windows',
+    name: 'Windows',
+    builds: [{ archive: 'mayfly-win-x64.zip', label: 'x64' }],
+  },
+  {
+    id: 'macos',
+    name: 'macOS',
+    builds: [{ archive: 'mayfly-osx-arm64.tar.gz', label: 'ARM64' }],
+  },
+]
+
+export function detectSystem(): System {
   const agent = navigator.userAgent
   if (/windows/i.test(agent)) {
-    return 'win-x64'
+    return 'windows'
   }
 
   if (/macintosh|mac os x/i.test(agent)) {
-    return 'osx-arm64'
+    return 'macos'
   }
 
-  return /aarch64|arm64/i.test(agent) ? 'linux-arm64' : 'linux-x64'
+  return 'linux'
 }
