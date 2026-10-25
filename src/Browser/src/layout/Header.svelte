@@ -5,7 +5,6 @@
   const sections = [
     { href: '/', label: 'Отправить', page: 'home' },
     { href: '/#get', label: 'Получить', page: 'file' },
-    { href: '/history', label: 'История', page: 'history' },
   ]
 </script>
 

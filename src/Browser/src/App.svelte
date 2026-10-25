@@ -1,6 +1,5 @@
 <script lang="ts">
   import FilePage from './file/FilePage.svelte'
-  import HistoryPage from './history/HistoryPage.svelte'
   import HomePage from './home/HomePage.svelte'
   import Footer from './layout/Footer.svelte'
   import Header from './layout/Header.svelte'
@@ -17,8 +16,6 @@
   <main>
     {#if route.page === 'home'}
       <HomePage />
-    {:else if route.page === 'history'}
-      <HistoryPage />
     {:else if route.page === 'file'}
       {#key route.id}
         <FilePage id={route.id} />
